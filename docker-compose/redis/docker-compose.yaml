@@ -1,0 +1,22 @@
+services:
+  redis6:
+    image: redis:6.2-alpine
+    container_name: redis6
+    restart: always
+    # network_mode: host
+    networks:
+      - env-dev
+    ports:
+      - '6378:6379'
+    volumes:
+      - /data/env-docker-data/redis/data:/data
+      - ./conf/redis.conf:/etc/redis/redis.conf
+    ulimits:
+      # rtprio: 95
+      memlock: -1
+    command:
+      redis-server /etc/redis/redis.conf
+
+networks:
+  env-dev:
+    external: true

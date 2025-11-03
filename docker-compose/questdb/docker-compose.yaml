@@ -1,0 +1,21 @@
+
+services:
+  questdb:
+    image: questdb/questdb:8.2.1
+    container_name: questdb
+    environment:
+      - QDB_METRICS_ENABLED=TRUE
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/var/lib/questdb
+    ports:
+      - "8812:8812"
+      - "9000:9000"
+      - "9003:9003"
+      - "9009:9009"
+    networks:
+      - env-dev
+
+networks:
+  env-dev:
+    external: true

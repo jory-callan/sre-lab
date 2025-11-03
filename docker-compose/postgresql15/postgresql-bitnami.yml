@@ -1,0 +1,22 @@
+
+services:
+  postgres15:
+    image: bitnami/postgresql:15
+    container_name: postgres15
+    restart: always
+    environment:
+      POSTGRESQL_USERNAME: postgres
+      POSTGRESQL_PASSWORD: 123456
+      POSTGRESQL_DATABASE: postgres
+      TZ: Aisa/Shanghai
+    networks:
+      - env-dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./data:/bitnami/postgresql
+
+networks:
+  env-dev:
+    external: true
