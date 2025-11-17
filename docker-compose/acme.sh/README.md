@@ -23,9 +23,10 @@ acme.sh --issue --dns dns_tencent -d xxx.com -d *.xxx.com
 
 #签署指定域名
 #证书URL
-CERT=ims-prod.jingxishenghuo1688.com
-#申请证书：  #安装并到期自动更新证书：
+CERT=demo.czwlinux.cloud
+#申请证书
 acme.sh --issue --dns dns_ali -d $CERT
+#安装并到期自动更新证书
 acme.sh --install-cert -d $CERT \
   --key-file /data/ssl/$CERT.key \
   --fullchain-file /data/ssl/$CERT.pem \
@@ -37,6 +38,26 @@ acme.sh  --remove  -d  $CERT
 
 docker compose up -d
 docker exec acmesh --help
-docker exec acmesh --issue -d example.com --standalone
+docker exec acmesh acme.sh --info
+docker exec acmesh --register-account -m xxxxx@xx.xxx
+docker exec acmesh --issue --dns dns_tencent -d czwlinux.cloud -d *.czwlinux.cloud
+# nginx-ssl
+docker exec acmesh --install-cert -d czwlinux.cloud -d *.czwlinux.cloud --key-file /nginx-ssl/$CERT.key --fullchain-file /nginx-ssl/czwlinux.cloud.pem  --reloadcmd "echo '======= acme auto reload cmd here =========' "
+
+cp out/czwlinux.cloud_ecc/fullchain.cer  ../nginx/ssl/czwlinux.cloud.cer
+cp out/czwlinux.cloud_ecc/czwlinux.cloud.key  ../nginx/ssl/czwlinux.cloud.key
+
+# nginx config
+ssl_certificate ssl/czwlinux.cloud.cer;
+ssl_certificate_key ssl/czwlinux.cloud.key;
+
+# 写一个定时任务 或者 将 acme.sh 安装到本机
+# 添加自动更新任务
+# 10 0 * * * docker exec acmesh --cron > /dev/null
+# 10 1 * * * nginx -s reload    # 重新加载nginx配置
+
+# 自 1.15.9+ , nginx 会自动重载
+# ssl_certificate ssl/default.crt;
+# ssl_certificate_key ssl/default.key;
 
 ```
