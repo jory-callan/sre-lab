@@ -4,6 +4,7 @@ services:
     image: neilpang/acme.sh
     restart: always
     environment:
+      - ACME_ACCOUNT_EMAIL=${ACME_ACCOUNT_EMAIL}
       - Tencent_SecretId=${Tencent_SecretId}
       - Tencent_SecretKey=${Tencent_SecretKey}
     volumes:
