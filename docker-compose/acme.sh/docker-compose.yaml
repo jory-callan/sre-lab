@@ -1,0 +1,13 @@
+services:
+  acme:
+    image: neilpang/acme.sh
+    restart: always
+    environment:
+      - DP_Id=value
+      - DP_Key=value
+    volumes:
+      - ./out:/acme.sh
+    stdin_open: true
+    tty: true
+    network_mode: host
+    command: daemon
