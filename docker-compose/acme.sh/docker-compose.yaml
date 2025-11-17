@@ -1,10 +1,11 @@
 services:
-  acme:
+  acmesh:
+    container_name: acmesh
     image: neilpang/acme.sh
     restart: always
     environment:
-      - DP_Id=value
-      - DP_Key=value
+      - Tencent_SecretId=${Tencent_SecretId}
+      - Tencent_SecretKey=${Tencent_SecretKey}
     volumes:
       - ./out:/acme.sh
     stdin_open: true

@@ -36,7 +36,7 @@ acme.sh  --remove  -d  $CERT
 
 
 docker compose up -d
-docker exec acme.sh --help
-docker exec acme.sh --issue -d example.com --standalone
+docker exec acmesh --help
+docker exec acmesh --issue -d example.com --standalone
 
 ```
