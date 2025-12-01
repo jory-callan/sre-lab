@@ -14,6 +14,11 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
     && echo "Asia/Shanghai" > /etc/timezone \
     && apk del tzdata
 
+# 配置 git 镜像
+RUN git config --global url."https://hub.fastgit.xyz".insteadOf "https://github.com" || \
+    git config --global url."https://mirror.ghproxy.com/https://github.com".insteadOf "https://github.com" || \
+    git config --global url."https://gitclone.com/github.com".insteadOf "https://github.com"
+
 # PHP扩展安装
 RUN apk add --no-cache --virtual .php-build-deps \
         $PHPIZE_DEPS autoconf g++ make openssl-dev curl-dev libxml2-dev libzip-dev \
