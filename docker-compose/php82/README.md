@@ -1,1 +1,1 @@
-php8.2.29 alpine3.22 版本需要修改 openswoole-22.1.2  
+php8.2.29 alpine3.22 版本的依赖需要注意 ， 需要 apk add 添加 linux-headers , 然后 pecl install 修改 openswoole-22.1.2  即可
