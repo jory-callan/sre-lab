@@ -7,6 +7,8 @@
 # 192.168.0.0/20 # 范围 192.168.0.0 - 192.168.15.255 . 共 2^12 - 2 = 4094 个 IP 地址
 docker network create --driver bridge --subnet=192.168.0.0/20 env-dev
 
+docker network create --driver bridge --subnet=172.21.0.0/16 env-dev
+
 # 其他相关指令
 docker network ls
 docker network inspect env-dev
