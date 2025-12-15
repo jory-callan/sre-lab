@@ -10,8 +10,8 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - VALKEY_DATABASE=0
-      # - VALKEY_PASSWORD=my_password
-      - ALLOW_EMPTY_PASSWORD=yes # 允许没有密码
+      - VALKEY_PASSWORD=valkey
+      # - ALLOW_EMPTY_PASSWORD=yes # 允许没有密码
     volumes:
       - ./data:/bitnami/valkey/data
     restart: always
