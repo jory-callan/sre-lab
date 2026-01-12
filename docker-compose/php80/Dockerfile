@@ -1,6 +1,6 @@
 # 0. 基础参数，方便以后换版本
-ARG PHP_VERSION=8.2.29
-ARG ALPINE_VERSION=3.22
+ARG PHP_VERSION=8.0.30
+ARG ALPINE_VERSION=3.16
 
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
@@ -27,7 +27,7 @@ RUN apk add --no-cache --virtual .php-build-deps \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql mysqli bcmath gd zip intl soap xsl exif pcntl posix sockets sysvmsg sysvsem sysvshm \
-    && pecl install redis amqp rdkafka-6.0.3 openswoole-4.12.1 xlswriter imagick \
+    && pecl install redis amqp rdkafka-6.0.3 openswoole-4.11.1 xlswriter imagick \
     && docker-php-ext-enable redis amqp rdkafka openswoole xlswriter imagick \
     && apk del .php-build-deps
 

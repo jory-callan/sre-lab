@@ -45,7 +45,7 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     # && addgroup -g 1000 www-data \
     # && adduser -u 1000 -G www-data -D -s /bin/bash www-data \
     && mkdir -p /var/www/html \
-    && chown -R www-data:www-data /var/www/html
+    && chown -R www-data:www-data /var/www/html \
     && mkdir -p /var/log && touch /var/log/cron.log && chmod 666 /var/log/cron.log
 
 # 健康检查
