@@ -1,0 +1,98 @@
+services:
+  # 时序库 VictoriaMetrics
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.130.0 
+    networks: [env-dev]
+    ports:
+      - "8428:8428"
+    volumes:
+      - ./victoria-metrics-data:/storage
+    command:
+      - "--storageDataPath=/storage"
+      - "--retentionPeriod=90d"
+      - "--httpListenAddr=:8428"
+    restart: unless-stopped
+
+  # 日志库 VictoriaLogs
+  victorialogs:
+    image: victoriametrics/victoria-logs:v1.43.1
+    networks: [env-dev]
+    ports:
+      - "9428:9428"
+      - "514:514/udp"          # 如想直接收 syslog 可开
+    volumes:
+      - ./victoria-logs-data:/victoria-logs-data
+    command:
+      - "--storageDataPath=/victoria-logs-data"
+      - "--retentionPeriod=30d"
+      - "--syslog.listenAddr.udp=:514"
+    restart: unless-stopped
+
+  # 采集器 Categraf
+  categraf:
+    image: flashcatcloud/categraf:latest
+    networks: [env-dev]
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./categraf-conf:/etc/categraf
+    depends_on:
+      - victoriametrics
+    restart: unless-stopped
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.2.0
+    networks: [env-dev]
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: adminadmin123
+      GF_INSTALL_PLUGINS: victoriametrics-logs-datasource
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - victoriametrics
+      - victorialogs
+    restart: unless-stopped
+
+  # # 告警引擎 Nightingale
+  # nightingale:
+  #   image: flashcatcloud/nightingale:latest
+  #   networks: [env-dev]
+  #   ports:
+  #     - "17000:17000"          # Web 控制台
+  #   environment:
+  #     GIN_MODE: release
+  #     TZ: Asia/Shanghai
+  #     WAIT_HOSTS: mysql:3306, redis:6379
+  #   volumes:
+  #     - ./n9e-data/etc:/app/etc
+  #     - ./n9e-data/logs:/app/logs
+  #   depends_on:
+  #     - mysql
+  #     - redis
+  #     - victoriametrics
+  #   restart: unless-stopped
+
+  # Nightingale 依赖 MySQL & Redis
+  # mysql:
+  #   image: mysql:8.0
+  #   networks: [env-dev]
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root123
+  #     MYSQL_DATABASE: n9e
+  #   volumes:
+  #     - mysql-data:/var/lib/mysql
+  #   restart: unless-stopped
+
+  # redis:
+  #   image: redis:7-alpine
+  #   networks: [env-dev]
+  #   volumes:
+  #     - redis-data:/data
+  #   restart: unless-stopped
+
+networks:
+  env-dev:
+    external: true
