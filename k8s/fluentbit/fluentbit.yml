@@ -1,0 +1,183 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/version: 4.1.1
+  name: fluent-bit
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: fluent-bit
+      app.kubernetes.io/name: fluent-bit
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/instance: fluent-bit
+        app.kubernetes.io/name: fluent-bit
+    spec:
+      containers:
+        - name: fluent-bit
+          image: 'cr.fluentbit.io/fluent/fluent-bit:4.1.1'
+          imagePullPolicy: IfNotPresent
+          args:
+            - '--workdir=/fluent-bit/etc'
+            - '--config=/fluent-bit/etc/conf/fluent-bit.conf'
+          command:
+            - /fluent-bit/bin/fluent-bit
+          ports:
+            - containerPort: 2020
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /api/v1/health
+              port: http
+              scheme: HTTP
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+          volumeMounts:
+            - mountPath: /fluent-bit/etc/conf
+              name: config
+            - mountPath: /var/log
+              name: varlog              
+            - mountPath: /var/lib/docker/containers
+              name: varlibdockercontainers
+              readOnly: true
+            - mountPath: /etc/machine-id
+              name: etcmachineid
+              readOnly: true
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: fluent-bit
+          name: config
+        - hostPath:
+            path: /var/log
+            type: Directory
+          name: varlog
+        - hostPath:
+            path: /var/lib/docker/containers
+            type: Directory
+          name: varlibdockercontainers
+        - hostPath:
+            path: /etc/machine-id
+            type: File
+          name: etcmachineid
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 2
+  desiredNumberScheduled: 2
+  numberAvailable: 2
+  numberMisscheduled: 0
+  numberReady: 2
+  observedGeneration: 3
+  updatedNumberScheduled: 2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 4.1.1
+  name: fluent-bit
+  namespace: kube-system
+spec:
+  selector:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/name: fluent-bit
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 2020
+      protocol: TCP
+      targetPort: http
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: fluent-bit
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/version: 4.1.1
+    helm.sh/chart: fluent-bit-0.54.1
+  name: fluent-bit
+  namespace: kube-system
+  resourceVersion: '1898694'
+data:
+  custom_parsers.conf: |
+    [PARSER]
+        Name docker_no_time
+        Format json
+        Time_Keep Off
+        Time_Key time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+  fluent-bit.conf: |
+    [SERVICE]
+        Daemon Off
+        Flush 1
+        Log_Level info
+        Parsers_File /fluent-bit/etc/parsers.conf
+        Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
+        HTTP_Server On
+        HTTP_Listen 0.0.0.0
+        HTTP_Port 2020
+        Health_Check On
+
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        multiline.parser docker, cri
+        DB /var/log/fluent-bit/varlogcontainers.db
+        Tag kube.*
+        Mem_Buf_Limit 5MB
+        Skip_Long_Lines On
+
+    [INPUT]
+        Name systemd
+        Tag host.*
+        DB /var/log/fluent-bit/systemd.db
+        Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+        Read_From_Tail On
+
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+
+    [OUTPUT]
+        Name loki
+        Match *
+        Host 192.168.1.212
+        Port 9428
+        Uri /insert/loki/api/v1/push
+        Tls Off
+        Labels job=fluentbit
+        Auto_kubernetes_labels On
+
