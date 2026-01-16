@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   fluentbit:
     image: fluent/fluent-bit:3.0.7
