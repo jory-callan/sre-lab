@@ -10,6 +10,9 @@ services:
       - QDB_PG_ENABLED=true
       - QDB_PG_USER=admin
       - QDB_PG_PASSWORD=questdb
+      - QDB_PG_READONLY_USER_ENABLED=true
+      - QDB_PG_READONLY_USER=viewer
+      - QDB_PG_READONLY_PASSWORD=questdb
       # HTTP 认证 (Basic Auth, 仅对 API 有效)
       - QDB_HTTP_ENABLED=true
       - QDB_HTTP_USER=admin
