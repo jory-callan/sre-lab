@@ -48,19 +48,16 @@
         content: |
           # 配置 npm 镜像源为 npmmirror
           registry=https://registry.npmmirror.com/
-
     - name: 运行 Docker 容器执行 Node 构建
-      community.docker.run_container:
-        image: "{{ DOCKER_IMAGE_NODE }}"
-        name: "node_build_{{ ansible_date_time.epoch }}"
-        auto_remove: true
-        volumes:
-          - "{{ ARTIFACT_DIR }}/app" # 挂载代码目录
-          - "{{ ansible_env.HOME }}/.npm:/root/.npm" # 挂载 npm 缓存
-          - "{{ ansible_env.HOME }}/.npmrc:/root/.npmrc" # 挂载 npmrc 配置文件
-        working_dir: /app
-        command: >
-          sh -c "{{ NODE_BUILD_CMD }}"
+      shell: |
+        docker run --rm \
+          -v "{{ BUILD_CODE_DIR }}:/app" \
+          -v "{{ ansible_env.HOME }}/.npm:/root/.npm" \
+          -v "{{ ansible_env.HOME }}/.npmrc:/root/.npmrc" \
+          -w /app \
+          {{ DOCKER_IMAGE_NODE }} \
+          sh -c '{{ NODE_BUILD_CMD }}'
+
   when:
     - NODE_BUILD_CMD is defined
     - NODE_BUILD_CMD | length > 0
@@ -94,7 +91,7 @@
 
 - name: 同步源码到构建目录
   synchronize:
-    src: "{{ BUILD_CODE_DIR }}/"
+    src: "{{ BUILD_CODE_DIR }}/dist/"
     dest: "{{ ARTIFACT_DIR }}/"
     delete: yes
     rsync_opts:
