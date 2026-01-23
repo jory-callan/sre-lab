@@ -6,10 +6,10 @@
     fail_msg: "缺少变量: {{ item }}"
     quiet: true
   loop:
-    - SOURCECODE_ROOT_DIR
     - GIT_REPO
     - GIT_BRANCH
     - GIT_COMMIT_ID
+    - SOURCECODE_ROOT_DIR
     - USE_DOCKER
     - DOCKER_IMAGE_GIT
 

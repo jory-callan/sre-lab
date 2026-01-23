@@ -1,21 +1,18 @@
 # 全局通用变量
 USE_DOCKER: true
 DOCKER_IMAGE_GIT: "alpine/git"
-DOCKER_IMAGE_PHP: "php:7.4-fpm"
-DOCKER_IMAGE_NODE: "node:16-alpine"
+PHP_VERSION: "7.4"
+DOCKER_IMAGE_PHP: "phpfpm:{{ PHP_VERSION }}"
+NODE_VERSION: "20"
+DOCKER_IMAGE_NODE: "node: {{ NODE_VERSION }}"
 
-SOURCECODE_ROOT: "/data/sourcecode"
-BUILD_ROOT: "/data/deploycode"
-DEPLOY_ROOT: "/data/www"
+DEPLOY_ENV: "test"
 
-PATH_MODE: "domain"   # domain | project
+SOURCECODE_ROOT_DIR: "/data/sourcecode"
+ARTIFACT_ROOT_DIR: "/data/artifact"
+BUILD_SUB_DIR: "" # 构建子目录 (如 admin，默认为空即根目录, 用于支持不规范的仓库结构)
+DEPLOY_ROOT_DIR: "/data/deploy"
+PROJECT_PATH: "xxx.example.local" # 项目域名部署路径
 
-DEPLOY_STRATEGY: "rsync"
-DEPLOY_EXCLUDES:
-  - "node_modules"
-  - ".git"
-  - "vendor"
 
-RSYNC_EXCLUDE_DEFAULT:
-  - ".git"
-  - ".env"
+TARGET_HOSTS: ""

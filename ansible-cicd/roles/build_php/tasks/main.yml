@@ -6,9 +6,9 @@
     fail_msg: "缺少 PHP 构建必要的变量: {{ item }}"
     quiet: true
   loop:
+    - SOURCE_CODE_DIR
     - PHP_VERSION
     - PHP_BUILD_CMD
-    - SOURCE_CODE_DIR
     - ARTIFACT_ROOT_DIR # 必须是这种 /data/artifact/test/app
     - PROJECT_PATH
     - USE_DOCKER
@@ -20,44 +20,19 @@
       - "========================================"
       - "    PHP 构建任务开始"
       - "========================================"
+      - "GIT源码目录: {{ SOURCE_CODE_DIR }}"
       - "PHP 版本: {{ PHP_VERSION }}"
       - "构建命令: {{ PHP_BUILD_CMD | default('未配置，将跳过构建') }}"
-      - "源码目录: {{ SOURCE_CODE_DIR }}"
       - "构建产物根目录: {{ ARTIFACT_ROOT_DIR }}"
       - "项目: {{ PROJECT_PATH }}"
       - "构建产物目录: {{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
       - "使用 Docker 构建: {{ USE_DOCKER | default(true) }}"
       - "Docker PHP 镜像: {{ DOCKER_IMAGE_PHP | default('未配置') }}"
 
-
-# 同步代码
-- name: 设置构建产物目录路径 由 ARTIFACT_ROOT_DIR + PROJECT_PATH 构成
+# 兼容不规范的git路径
+- name: 兼容不规范的git路径
   set_fact:
-    # 无论原始地址是 https 还是 git@，都可以用这个逻辑提取路径
-    ARTIFACT_DIR: "{{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
-
-- name: 确保 ARTIFACT 目录存在
-  file:
-    path: "{{ ARTIFACT_DIR }}"
-    state: directory
-    owner: www-data
-    group: www-data
-    mode: '0755'
-
-- name: 同步源码到部署目录 (Rsync)
-  synchronize:
-    src: "{{ SOURCE_CODE_DIR }}/"
-    dest: "{{ ARTIFACT_DIR }}/"
-    # delete: yes  # 删除目标目录中源码没有的文件，保持纯净
-    rsync_opts:
-      - "--chmod=755"
-      - "--exclude=.git"
-      - "--exclude=*.log"
-      - "--exclude=.env"
-      - "--exclude=node_modules"
-      - "--exclude=vendor"
-  # 默认使用本机 rsync，如果是推送到远程目标，需配置 delegate_to
-
+    SOURCE_CODE_DIR: "{{ SOURCE_CODE_DIR }}/{{ BUILD_SUB_DIR if BUILD_SUB_DIR | length > 0 else '' }}"
 
 # 判断是否需要执行构建
 # A: 配置了构建命令，且使用 Docker 构建
@@ -102,12 +77,12 @@
         auto_remove: true
         # 挂载代码目录和 Composer 配置
         volumes:
-          - "{{ ARTIFACT_DIR }}:/app"
+          - "{{ SOURCE_CODE_DIR }}:/app"
           - "{{ COMPOSER_HOME }}:{{ COMPOSER_HOME }}" # 缓存目录
           - "{{ COMPOSER_HOME }}/config.json:{{ COMPOSER_HOME }}/config.json"
         working_dir: /app
         command: >
-          sh -c " {{ PHP_BUILD_CMD }} "
+          sh -c "{{ PHP_BUILD_CMD }} "
   when:
     - PHP_BUILD_CMD is defined
     - PHP_BUILD_CMD | length > 0
@@ -125,7 +100,7 @@
     - name: 执行 Native PHP 构建
       command: "{{ PHP_BUILD_CMD }}"
       args:
-        chdir: "{{ ARTIFACT_DIR }}"  # 在这个目录下执行构建命令
+        chdir: "{{ SOURCE_CODE_DIR }}"  # 在这个目录下执行构建命令
       environment:
         # 设置 Composer 镜像源（本机模式下可能需要）
         COMPOSER_MIRROR_URL: "https://mirrors.aliyun.com/composer/"
@@ -140,6 +115,36 @@
     msg: "未配置 PHP_BUILD_CMD，跳过依赖安装步骤。"
   when:
     - PHP_BUILD_CMD is not defined or PHP_BUILD_CMD | length == 0
+
+# 同步代码
+- name: 设置构建产物目录路径 由 ARTIFACT_ROOT_DIR + PROJECT_PATH 构成
+  set_fact:
+    # 无论原始地址是 https 还是 git@，都可以用这个逻辑提取路径
+    # ARTIFACT_DIR: "{{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
+    ARTIFACT_DIR: "{{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}/{{ BUILD_SUB_DIR if BUILD_SUB_DIR | length > 0 else '' }}"
+
+- name: 确保 ARTIFACT 目录存在
+  file:
+    path: "{{ ARTIFACT_DIR }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: 同步源码到部署目录 (Rsync)
+  synchronize:
+    src: "{{ SOURCE_CODE_DIR }}/"
+    dest: "{{ ARTIFACT_DIR }}/"
+    # delete: yes  # 删除目标目录中源码没有的文件，保持纯净
+    rsync_opts:
+      - "--chmod=755"
+      - "--exclude=.git"
+      - "--exclude=*.log"
+      - "--exclude=.env"
+      - "--exclude=node_modules"
+      - "--exclude=vendor"
+  # 默认使用本机 rsync，如果是推送到远程目标，需配置 delegate_to
+
 
 # 打印完成信息
 - name: 打印 PHP 构建结束信息
