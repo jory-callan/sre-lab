@@ -5,29 +5,15 @@
   vars_files:
     - inventory/group_vars/all.yml
 
-  pre_tasks:
-    - name: Set default optional build flags
-      set_fact:
-        php_build_enabled: "{{ php_build_enabled | default(false) }}"
-        node_build_enabled: "{{ node_build_enabled | default(false) }}"
-        h5_enabled: "{{ h5_enabled | default(false) }}"
-
-    - name: Ensure only one build type is enabled
-      assert:
-        that:
-          - (php_build_enabled | bool) + (node_build_enabled | bool) + (h5_enabled | bool) <= 1
-        fail_msg: "Only one of php_build_enabled, node_build_enabled, h5_enabled can be true"
-
   roles:
-    - role: common
     - role: git_pull
     # 按条件加载构建 Role
     - role: build_php
-      when: php_build_enabled | bool
+      when: PROJECT_TYPE == "php" | bool
     - role: build_node
-      when: node_build_enabled | bool
+      when: PROJECT_TYPE == "node" | bool
     - role: build_h5
-      when: h5_enabled | bool
+      when: PROJECT_TYPE == "h5" | bool
     - role: deploy_push
 
 
