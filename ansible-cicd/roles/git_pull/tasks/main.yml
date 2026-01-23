@@ -50,32 +50,26 @@
     mode: '0755'
 
 # 拉代码
-# A: 使用 Docker 拉取代码
+# A: 使用 Docker 拉取代码 (Shell 模式)
 - name: Git 操作 (使用 Docker)
-  community.docker.run_container:
-    image: "{{ DOCKER_IMAGE_GIT }}"
-    name: "git_pull_{{ project_name | default('unknown') }}"
-    auto_remove: true
-    volumes:
-      - "{{ SOURCE_CODE_DIR }}:/src"
-    working_dir: /src
-    # 直接在一个 Shell 脚本里完成所有判断和操作
-    command: >
-      sh -c "
-      # 1. 判断是否存在 .git 目录
-      if [ -d .git ]; then
-        echo '仓库已存在，执行 Fetch...';
-        git fetch origin;
-      else
-        echo '仓库不存在，执行浅克隆...';
-        # 注意：这里使用了 GIT_REPO_SSH
-        git clone --depth 1 --no-single-branch {{ GIT_REPO_SSH }} .;
-      fi
-      
-      # 2. 无论哪种情况，最后都强制 Reset
-      echo '重置到 commit: {{ GIT_COMMIT_ID }}';
-      git reset --hard {{ GIT_COMMIT_ID }} || true
-      "
+  shell: |
+    # 挂载路径：确保源码目录存在
+    mkdir -p "{{ SOURCE_CODE_DIR }}"
+    if [ -d .git ]; then
+      echo "仓库已存在，执行 Fetch... 并重置到 commit: {{ GIT_COMMIT_ID }}";
+      # 运行 Docker 容器执行 Git 操作
+      docker run --rm \
+        -v "{{ SOURCE_CODE_DIR }}:/src" \
+        -w /src \
+        {{ DOCKER_IMAGE_GIT }} fetch origin && git reset --hard {{ GIT_COMMIT_ID }} ;
+    else
+      echo "仓库不存在，执行浅克隆... 并重置到 commit: {{ GIT_COMMIT_ID }}";
+      # 运行 Docker 容器执行 Git 克隆操作
+      docker run --rm \
+        -v "{{ SOURCE_CODE_DIR }}:/src" \
+        -w /src \
+        {{ DOCKER_IMAGE_GIT }} clone --depth 1 --no-single-branch {{ GIT_REPO_SSH }} . && git reset --hard {{ GIT_COMMIT_ID }};
+    fi
   when: USE_DOCKER | bool
 
 # B: 本机直接拉取代码 (无变量注册)
