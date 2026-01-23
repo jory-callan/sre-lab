@@ -69,20 +69,15 @@
                   }
               }
           }
-
     - name: 执行 Docker PHP 构建
-      community.docker.run_container:
-        image: "{{ DOCKER_IMAGE_PHP}}"
-        name: "build_php_{{ ansible_date_time.epoch }}"
-        auto_remove: true
-        # 挂载代码目录和 Composer 配置
-        volumes:
-          - "{{ SOURCE_CODE_DIR }}:/app"
-          - "{{ COMPOSER_HOME }}:{{ COMPOSER_HOME }}" # 缓存目录
-          - "{{ COMPOSER_HOME }}/config.json:{{ COMPOSER_HOME }}/config.json"
-        working_dir: /app
-        command: >
-          sh -c "{{ PHP_BUILD_CMD }} "
+      shell: |
+        docker run --rm \
+          -v "{{ SOURCE_CODE_DIR }}:/app" \
+          -v "{{ COMPOSER_HOME }}:{{ COMPOSER_HOME }}" \
+          -v "{{ COMPOSER_HOME }}/config.json:{{ COMPOSER_HOME }}/config.json" \
+          -w /app \
+          {{ DOCKER_IMAGE_PHP }} \
+          sh -c '{{ PHP_BUILD_CMD }}'
   when:
     - PHP_BUILD_CMD is defined
     - PHP_BUILD_CMD | length > 0
