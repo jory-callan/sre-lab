@@ -8,7 +8,7 @@
   loop:
     - NODE_VERSION
     - NODE_BUILD_CMD
-    - SOURCE_CODE_DIR
+    - BUILD_CODE_DIR
     - ARTIFACT_ROOT_DIR # 必须是这种 /data/artifact/test/app
     - PROJECT_PATH
     - USE_DOCKER
@@ -27,26 +27,9 @@
       - "   Node 构建任务开始"
       - "========================================"
       - "Node 版本: {{ NODE_VERSION }}"
-      - "源码目录: {{ SOURCE_CODE_DIR }}"
+      - "源码目录: {{ BUILD_CODE_DIR }}"
       - "产物目录: {{ ARTIFACT_DIR }}"
       - "构建命令: {{ NODE_BUILD_CMD }}"
-
-# Rsync 同步源码到构建目录
-- name: 确保 Node 产物目录存在
-  file:
-    path: "{{ ARTIFACT_DIR }}"
-    state: directory
-    mode: '0755'
-
-- name: 同步源码到构建目录
-  synchronize:
-    src: "{{ SOURCE_CODE_DIR }}/"
-    dest: "{{ ARTIFACT_DIR }}/"
-    delete: yes
-    rsync_opts:
-      - "--chmod=755"
-      - "--exclude=.git"
-      - "--exclude=node_modules" # 排除源码中的 node_modules
 
 # 判断并执行构建
 # A: 使用 Docker 构建
@@ -101,6 +84,24 @@
     msg: "未配置 NODE_BUILD_CMD，跳过 Node 构建步骤。"
   when:
     - NODE_BUILD_CMD is not defined or NODE_BUILD_CMD | length == 0
+
+# Rsync 同步源码到构建目录
+- name: 确保 Node 产物目录存在
+  file:
+    path: "{{ ARTIFACT_DIR }}"
+    state: directory
+    mode: '0755'
+
+- name: 同步源码到构建目录
+  synchronize:
+    src: "{{ BUILD_CODE_DIR }}/"
+    dest: "{{ ARTIFACT_DIR }}/"
+    delete: yes
+    rsync_opts:
+      - "--chmod=755"
+      - "--exclude=.git"
+      - "--exclude=node_modules" # 排除源码中的 node_modules
+
 
 # 打印完成信息
 - name: 打印 Node 构建结束信息

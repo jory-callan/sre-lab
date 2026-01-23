@@ -88,16 +88,24 @@
     chdir: "{{ SOURCE_CODE_DIR }}"
   when: not (USE_DOCKER | bool)
 
+# 兼容不规范的git路径
+- name: 兼容不规范的git路径
+  set_fact:
+    BUILD_CODE_DIR: "{{ SOURCE_CODE_DIR }}/{{ BUILD_SUB_DIR if BUILD_SUB_DIR | length > 0 else '' }}"
+
 # 输出详细信息
 - name: 输出详细信息
   debug:
     msg:
-    - "git 操作完成，产生的相关变量信息如下："
+    - "================================="
+    - "git 操作完成，代码已拉取到本地"
+    - "源码目录: {{ SOURCE_CODE_DIR }}"
+    - "SOURCE_CODE_DIR: {{ SOURCE_CODE_DIR }}"
+    - "兼容不符合仓库规范的BUILD_CODE_DIR: {{ BUILD_CODE_DIR }}"
     - "USE_DOCKER: {{ USE_DOCKER }}"
     - "GIT_REPO: {{ GIT_REPO }}"
     - "GIT_BRANCH: {{ GIT_BRANCH }}"
     - "GIT_COMMIT_ID: {{ GIT_COMMIT_ID }}"
     - "GIT_REPO_SSH: {{ GIT_REPO_SSH }}"
     - "GIT_PROJECT_PATH: {{ GIT_PROJECT_PATH }}"
-    - "SOURCE_CODE_DIR: {{ SOURCE_CODE_DIR }}"
-    - "git 操作完成，代码已拉取到本地，源码目录: {{ SOURCE_CODE_DIR }}"
+    - "================================="

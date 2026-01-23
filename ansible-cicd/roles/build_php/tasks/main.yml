@@ -6,7 +6,7 @@
     fail_msg: "缺少 PHP 构建必要的变量: {{ item }}"
     quiet: true
   loop:
-    - SOURCE_CODE_DIR
+    - BUILD_CODE_DIR
     - PHP_VERSION
     - PHP_BUILD_CMD
     - ARTIFACT_ROOT_DIR # 必须是这种 /data/artifact/test/app
@@ -20,7 +20,7 @@
       - "========================================"
       - "    PHP 构建任务开始"
       - "========================================"
-      - "GIT源码目录: {{ SOURCE_CODE_DIR }}"
+      - "GIT源码目录: {{ BUILD_CODE_DIR }}"
       - "PHP 版本: {{ PHP_VERSION }}"
       - "构建命令: {{ PHP_BUILD_CMD | default('未配置，将跳过构建') }}"
       - "构建产物根目录: {{ ARTIFACT_ROOT_DIR }}"
@@ -28,11 +28,6 @@
       - "构建产物目录: {{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
       - "使用 Docker 构建: {{ USE_DOCKER | default(true) }}"
       - "Docker PHP 镜像: {{ DOCKER_IMAGE_PHP | default('未配置') }}"
-
-# 兼容不规范的git路径
-- name: 兼容不规范的git路径
-  set_fact:
-    SOURCE_CODE_DIR: "{{ SOURCE_CODE_DIR }}/{{ BUILD_SUB_DIR if BUILD_SUB_DIR | length > 0 else '' }}"
 
 # 判断是否需要执行构建
 # A: 配置了构建命令，且使用 Docker 构建
@@ -72,7 +67,7 @@
     - name: 执行 Docker PHP 构建
       shell: |
         docker run --rm \
-          -v "{{ SOURCE_CODE_DIR }}:/app" \
+          -v "{{ BUILD_CODE_DIR }}:/app" \
           -v "{{ COMPOSER_HOME }}:{{ COMPOSER_HOME }}" \
           -v "{{ COMPOSER_HOME }}/config.json:{{ COMPOSER_HOME }}/config.json" \
           -w /app \
@@ -95,7 +90,7 @@
     - name: 执行 Native PHP 构建
       command: "{{ PHP_BUILD_CMD }}"
       args:
-        chdir: "{{ SOURCE_CODE_DIR }}"  # 在这个目录下执行构建命令
+        chdir: "{{ BUILD_CODE_DIR }}"  # 在这个目录下执行构建命令
       environment:
         # 设置 Composer 镜像源（本机模式下可能需要）
         COMPOSER_MIRROR_URL: "https://mirrors.aliyun.com/composer/"
@@ -128,7 +123,7 @@
 
 - name: 同步源码到部署目录 (Rsync)
   synchronize:
-    src: "{{ SOURCE_CODE_DIR }}/"
+    src: "{{ BUILD_CODE_DIR }}/"
     dest: "{{ ARTIFACT_DIR }}/"
     # delete: yes  # 删除目标目录中源码没有的文件，保持纯净
     rsync_opts:
@@ -148,6 +143,6 @@
       - "========================================"
       - "    PHP 构建任务结束"
       - "========================================"
-      - "源码目录: {{ SOURCE_CODE_DIR }}"
+      - "源码目录: {{ BUILD_CODE_DIR }}"
       - "产物目录: {{ ARTIFACT_DIR }}"
       - "构建状态: {{ '已执行构建' if (PHP_BUILD_CMD is defined and PHP_BUILD_CMD | length > 0) else '已跳过构建' }}"

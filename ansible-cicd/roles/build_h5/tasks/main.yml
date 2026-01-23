@@ -1,37 +1,7 @@
-# roles/build_h5/tasks/main.yml
-
-- name: Validate required H5 variables
-  assert:
-    that:
-      - h5_zip_file_path is defined
-      - h5_zip_file_path != ""
-    fail_msg: "h5_zip_file_path must be provided for H5 deployment"
-
-- name: Include common facts for paths
-  include_role:
-    name: common
-
-- name: Compute source dir
-  set_fact:
-    source_dir: "{{ SOURCECODE_ROOT }}/{{ env }}/{{ project_path_final }}/{{ GIT_BRANCH }}"
-
-- name: Compute artifact base dir based on PATH_MODE
-  set_fact:
-    artifact_base_dir: >-
-      {% if PATH_MODE == 'domain' %}
-      {{ BUILD_ROOT }}/{{ env }}/{{ DEPLOY_DOMAIN }}
-      {% else %}
-      {{ BUILD_ROOT }}/{{ env }}/{{ project_path_final }}
-      {% endif %}
-
-- name: Ensure unzip is installed (Debian)
-  apt:
-    name: unzip
-    state: present
-  when: ansible_os_family == 'Debian'
-
-- name: Unzip H5 package
-  unarchive:
-    src: "{{ source_dir }}/{{ h5_zip_file_path }}"
-    dest: "{{ artifact_base_dir }}"
-    remote_src: yes
+# 打印开始信息
+- name: 打印 H5 构建开始信息
+  debug:
+    msg:
+      - "========================================"
+      - "   H5 构建任务开始"
+      - "========================================"
