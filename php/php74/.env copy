@@ -1,0 +1,6 @@
+PROJECT_CODE_DIR=/data/prodapp
+PROJECT_LOG_DIR=/data/logs/prodapp/php74
+PROJECT_CRONTAB_DIR=/data/env/php74/crontab
+PROJECT_CRONTAB_LOG_DIR=/data/logs/prodapp/php74/crontab
+PROJECT_SUPERVISOR_DIR=/data/env/php74/supervisor
+PROJECT_SUPERVISOR_LOG_DIR=/data/logs/prodapp/php74/supervisor

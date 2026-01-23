@@ -1,0 +1,7 @@
+# SHELL=/bin/bash
+# PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin
+# USER=www-data
+# TZ='Asia/Shanghai'
+# LANG=en_US.UTF-8
+# LC_ALL=en_US.UTF-8
+# * * * * * xxx > /dev/null 2>&1

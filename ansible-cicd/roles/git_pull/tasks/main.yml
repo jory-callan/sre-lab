@@ -1,0 +1,109 @@
+# 检查必备变量
+- name: 开始 git 操作， 检查必备变量
+  assert:
+    that:
+      - item is defined
+    fail_msg: "缺少变量: {{ item }}"
+    quiet: true
+  loop:
+    - SOURCECODE_ROOT_DIR
+    - GIT_REPO
+    - GIT_BRANCH
+    - GIT_COMMIT_ID
+    - USE_DOCKER
+    - DOCKER_IMAGE_GIT
+
+# 解析地址提取变量
+- name: 解析 Git 地址为 git 开头，不使用 https
+  set_fact:
+    GIT_REPO_SSH: >-
+      {%- if GIT_REPO.startswith('https://') or GIT_REPO.startswith('http://') -%}
+      {{ GIT_REPO | regex_replace('^https?://([^/]+)/', 'git@\\1:') | regex_replace('\\.git$', '') }}
+      {%- else -%}
+      {{ GIT_REPO }}
+      {%- endif -%}
+
+- name: 从 GIT_REPO 中提取 GIT_PROJECT_PATH
+  set_fact:
+    # 无论原始地址是 https 还是 git@，都可以用这个逻辑提取路径
+    GIT_PROJECT_PATH: "{{ GIT_REPO | regex_replace('^.*@([^:]+):', '') | regex_replace('^https?://[^/]+/', '') | regex_replace('\\.git$', '') }}"
+
+# 校验 GIT_PROJECT_PATH 是否存在
+- name: 校验 GIT_PROJECT_PATH 是否存在
+  assert:
+    that:
+      - GIT_PROJECT_PATH is defined
+      - GIT_PROJECT_PATH != ""
+    fail_msg: "GIT_PROJECT_PATH 不存在，请检查 GIT_REPO 变量"
+
+# 建源码文件夹
+- name: 定义源码最终存放目录
+  set_fact:
+    SOURCE_CODE_DIR: "{{ SOURCECODE_ROOT_DIR }}/{{ GIT_PROJECT_PATH }}/{{ GIT_BRANCH }}"
+
+- name: 确保源码目录存在
+  file:
+    path: "{{ SOURCE_CODE_DIR }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+# 拉代码
+# A: 使用 Docker 拉取代码
+- name: Git 操作 (使用 Docker)
+  community.docker.run_container:
+    image: "{{ DOCKER_IMAGE_GIT }}"
+    name: "git_pull_{{ project_name | default('unknown') }}"
+    auto_remove: true
+    volumes:
+      - "{{ SOURCE_CODE_DIR }}:/src"
+    working_dir: /src
+    # 直接在一个 Shell 脚本里完成所有判断和操作
+    command: >
+      sh -c "
+      # 1. 判断是否存在 .git 目录
+      if [ -d .git ]; then
+        echo '仓库已存在，执行 Fetch...';
+        git fetch origin;
+      else
+        echo '仓库不存在，执行浅克隆...';
+        # 注意：这里使用了 GIT_REPO_SSH
+        git clone --depth 1 --no-single-branch {{ GIT_REPO_SSH }} .;
+      fi
+      
+      # 2. 无论哪种情况，最后都强制 Reset
+      echo '重置到 commit: {{ GIT_COMMIT_ID }}';
+      git reset --hard {{ GIT_COMMIT_ID }} || true
+      "
+  when: USE_DOCKER | bool
+
+# B: 本机直接拉取代码 (无变量注册)
+- name: Git 操作 (本机 Native)
+  git:
+    repo: "{{ GIT_REPO_SSH }}"
+    dest: "{{ SOURCE_CODE_DIR }}"
+    version: "{{ GIT_BRANCH }}"
+    force: yes
+    depth: 1
+  when: not (USE_DOCKER | bool)
+
+- name: 本机 - 强制重置到指定 Commit
+  command: "git reset --hard {{ GIT_COMMIT_ID }}"
+  args:
+    chdir: "{{ SOURCE_CODE_DIR }}"
+  when: not (USE_DOCKER | bool)
+
+# 输出详细信息
+- name: 输出详细信息
+  debug:
+    msg:
+    - "git 操作完成，产生的相关变量信息如下："
+    - "USE_DOCKER: {{ USE_DOCKER }}"
+    - "GIT_REPO: {{ GIT_REPO }}"
+    - "GIT_BRANCH: {{ GIT_BRANCH }}"
+    - "GIT_COMMIT_ID: {{ GIT_COMMIT_ID }}"
+    - "GIT_REPO_SSH: {{ GIT_REPO_SSH }}"
+    - "GIT_PROJECT_PATH: {{ GIT_PROJECT_PATH }}"
+    - "SOURCE_CODE_DIR: {{ SOURCE_CODE_DIR }}"
+    - "git 操作完成，代码已拉取到本地，源码目录: {{ SOURCE_CODE_DIR }}"

@@ -1,0 +1,153 @@
+# 检查必备变量
+- name: 开始 构建 操作, php , 检查必备变量
+  assert:
+    that:
+      - item is defined
+    fail_msg: "缺少 PHP 构建必要的变量: {{ item }}"
+    quiet: true
+  loop:
+    - PHP_VERSION
+    - PHP_BUILD_CMD
+    - SOURCE_CODE_DIR
+    - ARTIFACT_ROOT_DIR # 必须是这种 /data/artifact/test/app
+    - PROJECT_PATH
+    - USE_DOCKER
+    - DOCKER_IMAGE_PHP
+
+- name: 打印 PHP 构建开始信息
+  debug:
+    msg:
+      - "========================================"
+      - "    PHP 构建任务开始"
+      - "========================================"
+      - "PHP 版本: {{ PHP_VERSION }}"
+      - "构建命令: {{ PHP_BUILD_CMD | default('未配置，将跳过构建') }}"
+      - "源码目录: {{ SOURCE_CODE_DIR }}"
+      - "构建产物根目录: {{ ARTIFACT_ROOT_DIR }}"
+      - "项目: {{ PROJECT_PATH }}"
+      - "构建产物目录: {{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
+      - "使用 Docker 构建: {{ USE_DOCKER | default(true) }}"
+      - "Docker PHP 镜像: {{ DOCKER_IMAGE_PHP | default('未配置') }}"
+
+
+# 同步代码
+- name: 设置构建产物目录路径 由 ARTIFACT_ROOT_DIR + PROJECT_PATH 构成
+  set_fact:
+    # 无论原始地址是 https 还是 git@，都可以用这个逻辑提取路径
+    ARTIFACT_DIR: "{{ ARTIFACT_ROOT_DIR }}/{{ PROJECT_PATH }}"
+
+- name: 确保 ARTIFACT 目录存在
+  file:
+    path: "{{ ARTIFACT_DIR }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: 同步源码到部署目录 (Rsync)
+  synchronize:
+    src: "{{ SOURCE_CODE_DIR }}/"
+    dest: "{{ ARTIFACT_DIR }}/"
+    # delete: yes  # 删除目标目录中源码没有的文件，保持纯净
+    rsync_opts:
+      - "--chmod=755"
+      - "--exclude=.git"
+      - "--exclude=*.log"
+      - "--exclude=.env"
+      - "--exclude=node_modules"
+      - "--exclude=vendor"
+  # 默认使用本机 rsync，如果是推送到远程目标，需配置 delegate_to
+
+
+# 判断是否需要执行构建
+# A: 配置了构建命令，且使用 Docker 构建
+- name: PHP 构建 (使用 Docker)
+  block:
+    # 先处理挂载路径：如果没有配置，默认使用 ansible 用户的 home 目录
+    - name: 设置 Composer 缓存路径
+      set_fact:
+        COMPOSER_HOME: "{{ ansible_env.HOME }}/.composer"
+
+    - name: 确保 Composer 缓存目录权限正确
+      file:
+        path: "{{ COMPOSER_HOME }}"
+        state: directory  # 如果不存在，则创建
+        mode: '0755'
+
+    - name: 写入 Composer 配置文件 (config.json)
+      copy:
+        dest: "{{ COMPOSER_HOME }}/config.json"
+        mode: '0755'
+        content: |
+          {
+              "repositories": {
+                  "packagist": {
+                      "type": "composer",
+                      "url": "https://mirrors.aliyun.com/composer/"
+                  }
+              },
+              "config": {
+                  "process-timeout": 600,
+                  "no-interaction": true,
+                  "audit": {
+                      "block-insecure": false
+                  }
+              }
+          }
+
+    - name: 执行 Docker PHP 构建
+      community.docker.run_container:
+        image: "{{ DOCKER_IMAGE_PHP}}"
+        name: "build_php_{{ ansible_date_time.epoch }}"
+        auto_remove: true
+        # 挂载代码目录和 Composer 配置
+        volumes:
+          - "{{ ARTIFACT_DIR }}:/app"
+          - "{{ COMPOSER_HOME }}:{{ COMPOSER_HOME }}" # 缓存目录
+          - "{{ COMPOSER_HOME }}/config.json:{{ COMPOSER_HOME }}/config.json"
+        working_dir: /app
+        command: >
+          sh -c " {{ PHP_BUILD_CMD }} "
+  when:
+    - PHP_BUILD_CMD is defined
+    - PHP_BUILD_CMD | length > 0
+    - USE_DOCKER | bool
+
+# B: 配置了构建命令，使用本机 Native 构建
+- name: PHP 构建 (本机 Native)
+  block:
+    - name: 确保 Composer 缓存目录存在
+      file:
+        path: "{{ ansible_env.HOME }}/.composer"
+        state: directory
+        mode: '0755'
+
+    - name: 执行 Native PHP 构建
+      command: "{{ PHP_BUILD_CMD }}"
+      args:
+        chdir: "{{ ARTIFACT_DIR }}"  # 在这个目录下执行构建命令
+      environment:
+        # 设置 Composer 镜像源（本机模式下可能需要）
+        COMPOSER_MIRROR_URL: "https://mirrors.aliyun.com/composer/"
+  when:
+    - PHP_BUILD_CMD is defined
+    - PHP_BUILD_CMD | length > 0
+    - not (USE_DOCKER | bool)
+
+# 场景 C: 未配置构建命令，跳过构建
+- name: 跳过构建 (未配置构建命令)
+  debug:
+    msg: "未配置 PHP_BUILD_CMD，跳过依赖安装步骤。"
+  when:
+    - PHP_BUILD_CMD is not defined or PHP_BUILD_CMD | length == 0
+
+# 打印完成信息
+- name: 打印 PHP 构建结束信息
+  debug:
+    msg:
+      - "========================================"
+      - "    PHP 构建任务结束"
+      - "========================================"
+      - "源码目录: {{ SOURCE_CODE_DIR }}"
+      - "产物目录: {{ ARTIFACT_DIR }}"
+      - "构建状态: {{ '已执行构建' if (PHP_BUILD_CMD is defined and PHP_BUILD_CMD | length > 0) else '已跳过构建' }}"

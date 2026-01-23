@@ -1,1 +1,0 @@
-docker build --build-arg BUILD_TIMEOUT=30m -t phpfpm:7.4.33 .

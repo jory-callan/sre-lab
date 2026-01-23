@@ -22,7 +22,7 @@ services:
     volumes:
       - ${CODE_FILE_DIR}:/data/app/php74:cached
       - ${LOG_FILE_DIR}:/data1/logs/app
-      - ${CRONTAB_DIR}:/etc/cron.d/
+      - ${CRONTAB_DIR}:/etc/crontabs/
     working_dir: /data/app/php74
     deploy:
       resources:
@@ -35,8 +35,8 @@ services:
     command: |
       sh -c "
         # 加载定时任务
-        crontab -u root /etc/cron.d/root &&
-        crontab -u www-data /etc/cron.d/www-data &&
+        crontab -u root /etc/crontabs/root &&
+        crontab -u www-data /etc/crontabs/www-data &&
         exec crond -f -l 2 -L /dev/stdout
       "
 
