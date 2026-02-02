@@ -17,22 +17,35 @@ acme.sh --issue --dns dns_tencent -d example.com -d *.example.com
 #需要注册邮箱
 acme.sh --register-account -m xxxxx@xx.xxx
 
-#签署泛域名
-#开始签名证书
-acme.sh --issue --dns dns_tencent -d xxx.com -d *.xxx.com
 
-#签署指定域名
-#证书URL
+# 签署指定域名证书
+# 证书URL
 CERT=demo.czwlinux.cloud
-#申请证书
+# 申请证书
 acme.sh --issue --dns dns_ali -d $CERT
-#安装并到期自动更新证书
+# 安装并到期自动更新证书
 acme.sh --install-cert -d $CERT \
   --key-file /data/ssl/$CERT.key \
   --fullchain-file /data/ssl/$CERT.pem \
   --reloadcmd "docker exec nginx nginx -s reload"
 # 移除不必要的证书：
 acme.sh  --remove  -d  $CERT
+
+
+
+# 申请泛域名证书
+# 证书URL
+CERT=demo.czwlinux.cloud
+# 申请证书
+acme.sh --issue --dns dns_ali -d $CERT -d *.$CERT
+# 安装并到期自动更新证书
+acme.sh --install-cert -d *.$CERT \
+  --key-file /data/ssl/$CERT.key \
+  --fullchain-file /data/ssl/$CERT.pem \
+  --reloadcmd "docker exec nginx nginx -s reload"
+# 移除不必要的证书：
+acme.sh  --remove  -d  $CERT
+
 
 
 
