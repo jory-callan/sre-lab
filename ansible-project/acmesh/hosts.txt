@@ -1,0 +1,28 @@
+[all:vars]
+local_cert_dir=/data0/opsdir/project/nginx/ssl
+
+[nginxservers:children]
+metalnginx
+dockernginx
+
+
+[metalnginx]
+web-1 ansible_host=10.1.2.148
+
+[metalnginx:vars]
+nginx_ssl_path=/etc/nginx/ssl
+nginx_reload_cmd=systemctl reload nginx
+
+
+[dockernginx]
+web-2  ansible_host=127.0.0.1 ansible_connection=local
+web-3  ansible_host=121.40.237.246
+web-3  ansible_host=47.97.76.17
+web-4  ansible_host=118.178.59.216
+web-5  ansible_host=114.55.148.164
+
+[dockernginx:vars]
+nginx_ssl_path=/data0/docker-compose/config/nginx/ssl/
+nginx_reload_cmd=docker exec nginx nginx -s reload
+
+

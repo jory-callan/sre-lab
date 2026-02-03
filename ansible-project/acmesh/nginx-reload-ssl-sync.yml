@@ -1,0 +1,16 @@
+---
+- name: Push SSL Certs
+  # 这里直接写 webservers 或者 all 都行
+  hosts: nginxservers
+  gather_facts: no
+  tasks:
+    - name: Sync Cert Files
+      synchronize:
+        src: "{{ local_cert_dir }}/"
+        dest: "{{ nginx_ssl_path }}"  # 直接使用组变量
+        delete: no
+        recursive: yes
+
+    - name: Reload Nginx
+      shell: "{{ nginx_reload_cmd }}" # 直接使用组变量
+
