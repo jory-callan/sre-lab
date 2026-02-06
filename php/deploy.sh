@@ -188,6 +188,7 @@ git_operation() {
     docker run  --rm \
       --cpus="2" -m="4g" \
       -v "${HOME}/.ssh:${HOME}/.ssh" \
+      -v "${HOME}/.gitconfig:${HOME}/.gitconfig" \
       -v "${SOURCE_DIR}:${SOURCE_DIR}" \
       -w "${SOURCE_DIR}" \
       "${DOCKER_IMAGE_GIT}" \
@@ -338,7 +339,7 @@ git_pull_code() {
 
   cd "$SOURCE_DIR"
   # 添加子仓库的支持
-  git submodule update --init --recursive --force
+  git_operation submodule update --init --recursive --force
 
 }
 
