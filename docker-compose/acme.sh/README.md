@@ -33,7 +33,7 @@ acme.sh --issue --dns dns_ali -d $CERT
 # 安装并到期自动更新证书
 acme.sh --install-cert -d $CERT \
   --key-file /data/ssl/$CERT.key \
-  --fullchain-file /data/ssl/$CERT.pem \
+  --fullchain-file /data/ssl/$CERT.cer \
   --reloadcmd "docker exec nginx nginx -s reload"
 # 移除不必要的证书：
 acme.sh  --remove  -d  $CERT
@@ -48,7 +48,7 @@ acme.sh --issue --dns dns_ali -d $CERT -d *.$CERT
 # 安装并到期自动更新证书
 acme.sh --install-cert -d *.$CERT \
   --key-file /data/ssl/$CERT.key \
-  --fullchain-file /data/ssl/$CERT.pem \
+  --fullchain-file /data/ssl/$CERT.cer \
   --reloadcmd "docker exec nginx nginx -s reload"
 # 移除不必要的证书：
 acme.sh  --remove  -d  $CERT
