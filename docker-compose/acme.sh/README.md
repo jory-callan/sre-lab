@@ -62,7 +62,7 @@ docker exec acmesh acme.sh --info
 docker exec acmesh --register-account -m xxxxx@xx.xxx
 docker exec acmesh --issue --dns dns_tencent -d czwlinux.cloud -d *.czwlinux.cloud
 # nginx-ssl
-docker exec acmesh --install-cert -d czwlinux.cloud -d *.czwlinux.cloud --key-file /nginx-ssl/$CERT.key --fullchain-file /nginx-ssl/czwlinux.cloud.pem  --reloadcmd "echo '======= acme auto reload cmd here =========' "
+docker exec acmesh --install-cert -d czwlinux.cloud -d *.czwlinux.cloud --key-file /ssl-dir/$CERT.key --fullchain-file /ssl-dir/czwlinux.cloud.cer  --reloadcmd "echo '======= acme auto reload cmd here =========' "
 
 cp out/czwlinux.cloud_ecc/fullchain.cer  ../nginx/ssl/czwlinux.cloud.cer
 cp out/czwlinux.cloud_ecc/czwlinux.cloud.key  ../nginx/ssl/czwlinux.cloud.key
