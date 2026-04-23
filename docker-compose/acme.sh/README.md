@@ -1,3 +1,10 @@
+# 使用方法
+vi .env 确定 SSL_DIR 目录
+
+# 检查证书有效期
+./tools/check_ssl.sh h5.czwlinux.cloud
+./tools/check_ssl.sh /data/ssl/h5.czwlinux.cloud.cer
+
 # 参考
 https://github.com/acmesh-official/acme.sh/wiki/Run-acme.sh-in-docker
 

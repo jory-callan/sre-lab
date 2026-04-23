@@ -8,9 +8,12 @@ services:
       - Tencent_SecretId=${Tencent_SecretId}
       - Tencent_SecretKey=${Tencent_SecretKey}
     volumes:
-      - ./out:/acme.sh
-      - ../nginx/ssl/:/nginx-ssl
-    stdin_open: true
-    tty: true
+      - ./acme.sh:/acme.sh
+      - ./tools/:/tools/
+      - ${SSL_DIR}:/ssl-dir
     network_mode: host
     command: daemon
+
+networks:
+  env-dev:
+    external: true
