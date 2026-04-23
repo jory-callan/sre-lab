@@ -1,0 +1,14 @@
+bindPort = 27000
+# 强制要求客户端使用 TLS 加密连接，拒绝非加密连接，极大提升安全性
+transport.tls.force = true
+# 设置复杂的认证令牌，客户端必须一致才能连接
+auth.token = "your_complex_token_here"
+# 限制客户端只能绑定 20000-30000 范围内的端口，防止端口滥用
+allowPorts = [
+  { start = 20000, end = 21000 }
+]
+# 启用 Dashboard 以监控连接状态
+webServer.addr = "127.0.0.1"
+webServer.port = 7500
+webServer.user = "admin"
+webServer.password = "your_complex_passwd_here"
