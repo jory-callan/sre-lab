@@ -42,34 +42,37 @@ acme.sh  --remove  -d  $CERT
 
 # 申请泛域名证书
 # 证书URL
-CERT=demo.czwlinux.cloud
+CERT=czwlinux.cloud
+# acme.sh --register-account -m xxxxx@xx.xxx
+# 设置默认CA为letsencrypt，不使用 zerossl
+acme.sh --set-default-ca --server letsencrypt
 # 申请证书
-acme.sh --issue --dns dns_ali -d $CERT -d *.$CERT
+acme.sh --issue --dns dns_tencent -d $CERT -d *.$CERT
 # 安装并到期自动更新证书
-acme.sh --install-cert -d *.$CERT \
+acme.sh --install-cert -d $CERT  -d *.$CERT \
   --key-file /data/ssl/$CERT.key \
-  --fullchain-file /data/ssl/$CERT.cer \
+
+  --fullchain-file /data/ssl/$CERT.cer
   --reloadcmd "docker exec nginx nginx -s reload"
 # 移除不必要的证书：
 acme.sh  --remove  -d  $CERT
 
 
 
-
+CERT=czwlinux.cloud
 docker compose up -d
 docker exec acmesh --help
 docker exec acmesh acme.sh --info
-docker exec acmesh --register-account -m xxxxx@xx.xxx
-docker exec acmesh --issue --dns dns_tencent -d czwlinux.cloud -d *.czwlinux.cloud
-# nginx-ssl
-docker exec acmesh --install-cert -d czwlinux.cloud -d *.czwlinux.cloud --key-file /ssl-dir/$CERT.key --fullchain-file /ssl-dir/czwlinux.cloud.cer  --reloadcmd "echo '======= acme auto reload cmd here =========' "
+docker exec acmesh --set-default-ca --server letsencrypt
+docker exec acmesh --issue --dns dns_tencent -d $CERT -d *.$CERT
+docker exec acmesh --install-cert -d $CERT -d *.$CERT  --key-file /ssl-dir/$CERT.key --fullchain-file /ssl-dir/$CERT.cer  --reloadcmd "echo '======= acme auto reload cmd here =========' "
 
-cp out/czwlinux.cloud_ecc/fullchain.cer  ../nginx/ssl/czwlinux.cloud.cer
-cp out/czwlinux.cloud_ecc/czwlinux.cloud.key  ../nginx/ssl/czwlinux.cloud.key
+cp acme.sh/$CERT_ecc/fullchain.cer  ../nginx/ssl/$CERT.cer
+cp acme.sh/data/$CERT_ecc/$CERT.key  ../nginx/ssl/$CERT.key
 
 # nginx config
-ssl_certificate ssl/czwlinux.cloud.cer;
-ssl_certificate_key ssl/czwlinux.cloud.key;
+ssl_certificate ssl/$CERT.cer;
+ssl_certificate_key ssl/$CERT.key;
 
 # 写一个定时任务 或者 将 acme.sh 安装到本机
 # 添加自动更新任务
