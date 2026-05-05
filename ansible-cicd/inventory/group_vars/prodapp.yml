@@ -1,3 +1,0 @@
-env: prodapp
-DEPLOY_DOMAIN: "ims.example.com"
-DEPLOY_ROOT: "/data/www/prodapp"

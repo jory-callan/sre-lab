@@ -1,3 +1,0 @@
-env: testapp
-DEPLOY_DOMAIN: "test.ims.example.com"
-DEPLOY_ROOT: "/data/www/testapp"
