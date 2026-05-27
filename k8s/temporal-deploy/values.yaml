@@ -1,0 +1,33 @@
+server:
+  config:
+    persistence:
+      defaultStore: default
+      visibilityStore: visibility
+      numHistoryShards: 512
+      datastores:
+        default:
+          sql:
+            pluginName: mysql8
+            databaseName: temporal
+            connectAddr: "temporal-mysql.temporal-test.svc.cluster.local:3306"
+            connectProtocol: "tcp"
+            user: temporal
+            password: temporal123
+            createDatabase: false
+            manageSchema: true
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: "1h"
+        visibility:
+          sql:
+            pluginName: mysql8
+            databaseName: temporal_visibility
+            connectAddr: "temporal-mysql.temporal-test.svc.cluster.local:3306"
+            connectProtocol: "tcp"
+            user: temporal
+            password: temporal123
+            createDatabase: false
+            manageSchema: true
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: "1h"

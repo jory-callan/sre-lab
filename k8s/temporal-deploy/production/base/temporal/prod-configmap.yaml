@@ -1,0 +1,179 @@
+# ==============================================
+# 生产级 Temporal 配置 - 生产优化配置
+# ==============================================
+# 优化目标：支撑 1天10万工作流
+# ==============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-prod-config
+data:
+  config_template.yaml: |-
+    log:
+      stdout: true
+      level: "info"  # 生产用 info，调试用 debug
+      
+    persistence:
+      datastores:
+        default:
+          sql:
+            pluginName: mysql8
+            databaseName: temporal
+            connectAddr: ${MYSQL_ADDR}
+            connectProtocol: tcp
+            user: ${MYSQL_USER}
+            password: ${MYSQL_PASSWORD}
+            maxConns: 100  # 生产优化
+            maxIdleConns: 50
+            maxConnLifetime: 1h
+        visibility:
+          sql:
+            pluginName: mysql8
+            databaseName: temporal_visibility
+            connectAddr: ${MYSQL_ADDR}
+            connectProtocol: tcp
+            user: ${MYSQL_USER}
+            password: ${MYSQL_PASSWORD}
+            maxConns: 100  # 生产优化
+            maxIdleConns: 50
+            maxConnLifetime: 1h
+      defaultStore: default
+      visibilityStore: visibility
+      numHistoryShards: 512
+      
+    global:
+      membership:
+        name: temporal-prod
+        maxJoinDuration: 30s
+        broadcastAddress: ${POD_IP}
+        
+      metrics:
+        prometheus:
+          listenAddress: 0.0.0.0:9090
+          timerType: histogram
+          
+    services:
+      frontend:
+        rpc:
+          grpcPort: 7233
+          httpPort: 7243
+          membershipPort: 6933
+          bindOnIP: "0.0.0.0"
+      history:
+        rpc:
+          grpcPort: 7234
+          membershipPort: 6934
+          bindOnIP: "0.0.0.0"
+      matching:
+        rpc:
+          grpcPort: 7235
+          membershipPort: 6935
+          bindOnIP: "0.0.0.0"
+      worker:
+        rpc:
+          membershipPort: 6939
+          bindOnIP: "0.0.0.0"
+          
+    clusterMetadata:
+      enableGlobalNamespace: false
+      failoverVersionIncrement: 10
+      masterClusterName: "active"
+      currentClusterName: "active"
+      clusterInformation:
+        active:
+          enabled: true
+          initialFailoverVersion: 1
+          rpcName: "temporal-frontend"
+          rpcAddress: "temporal-frontend:7233"
+          httpAddress: "temporal-frontend:7243"
+          
+    dynamicConfigClient:
+      filepath: "/etc/temporal/dynamic_config/dynamic_config.yaml"
+      pollInterval: "1s"
+  dynamic_config.yaml: |
+    # 生产级动态配置
+    # ==========================================
+    # 系统优化参数
+    # ==========================================
+    # Frontend：限流配置
+    history.ratelimit:
+    - value: 20000  # 每秒 2万请求
+      constraints: {}
+    frontend.ratelimit:
+    - value: 10000
+      constraints: {}
+    matching.ratelimit:
+    - value: 10000
+      constraints: {}
+    worker.ratelimit:
+    - value: 10000
+      constraints: {}
+    
+    # History 优化
+    history.persistenceMaxQPS:
+    - value: 3000
+      constraints: {}
+    history.persistenceIndividualNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    history.persistenceGlobalNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    
+    # Matching 优化
+    matching.persistenceMaxQPS:
+    - value: 3000
+      constraints: {}
+    
+    # 批量操作优化
+    matching.numTaskqueueReadPartitions:
+    - value: 10
+      constraints: {}
+    matching.numTaskqueueWritePartitions:
+    - value: 10
+      constraints: {}
+    matching.numTaskqueueActivePartitions:
+    - value: 10
+      constraints: {}
+    matching.routingHistoryMaxQueueCount:
+    - value: 10
+      constraints: {}
+    matching.routingHistoryMaxBusyPolls:
+    - value: 10
+      constraints: {}
+    
+    # Worker 优化
+    worker.persistenceMaxQPS:
+    - value: 1000
+      constraints: {}
+    worker.persistenceGlobalNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    worker.persistenceIndividualNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    
+    # 缓存优化
+    frontend.cacheMaxSizeBytes:
+    - value: 500000000  # 500MB
+      constraints: {}
+    frontend.cacheTTLSeconds:
+    - value: 60
+      constraints: {}
+    history.historyCacheSize:
+    - value: 10000
+      constraints: {}
+    history.historyCacheTTL:
+    - value: 300
+      constraints: {}
+    matching.historyCacheSize:
+    - value: 10000
+      constraints: {}
+    
+    # 队列优化
+    matching.longPollExpirationInterval:
+    - value: 2000000000  # 20秒
+      constraints: {}
+    frontend.longPollExpirationInterval:
+    - value: 2000000000
+      constraints: {}

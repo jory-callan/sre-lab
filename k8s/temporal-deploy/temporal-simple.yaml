@@ -1,0 +1,496 @@
+# ============================================
+# Temporal 单体版部署文件
+# ============================================
+# 包含 4 个服务：
+# 1. temporal-simple-mysql (数据库)
+# 2. temporal-simple-server (单体服务: frontend+history+matching+worker)
+# 3. temporal-simple-web (Web UI)
+# 4. temporal-simple-admintools (管理工具)
+# ============================================
+
+# ------------------------------
+# 1. ConfigMap: Temporal 配置
+# ------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-simple-config
+  namespace: temporal-simple
+data:
+  config_template.yaml: |-
+    # enable-template
+    log:
+      stdout: true
+      level: "debug,info"
+
+    persistence:
+      datastores:
+        default:
+          sql:
+            connectAddr: temporal-simple-mysql.temporal-simple.svc.cluster.local:3306
+            connectProtocol: tcp
+            databaseName: temporal
+            maxConnLifetime: 1h
+            maxConns: 20
+            maxIdleConns: 20
+            password: {{ env "TEMPORAL_DEFAULT_STORE_PASSWORD" | quote }}
+            pluginName: mysql8
+            user: temporal
+        visibility:
+          sql:
+            connectAddr: temporal-simple-mysql.temporal-simple.svc.cluster.local:3306
+            connectProtocol: tcp
+            databaseName: temporal_visibility
+            maxConnLifetime: 1h
+            maxConns: 20
+            maxIdleConns: 20
+            password: {{ env "TEMPORAL_VISIBILITY_STORE_PASSWORD" | quote }}
+            pluginName: mysql8
+            user: temporal
+      defaultStore: default
+      numHistoryShards: 512
+      visibilityStore: visibility
+
+    global:
+      membership:
+        name: temporal-simple
+        maxJoinDuration: 30s
+        broadcastAddress: {{ env "POD_IP" | quote }}
+
+      pprof:
+        port: 7936
+
+      metrics:
+        tags:
+          type: {{ env "TEMPORAL_SERVICES" | quote }}
+        prometheus:
+          listenAddress: 0.0.0.0:9090
+          timerType: histogram
+
+    services:
+      frontend:
+        rpc:
+          grpcPort: 7233
+          httpPort: 7243
+          membershipPort: 6933
+          bindOnIP: "0.0.0.0"
+
+      history:
+        rpc:
+          grpcPort: 7234
+          membershipPort: 6934
+          bindOnIP: "0.0.0.0"
+
+      matching:
+        rpc:
+          grpcPort: 7235
+          membershipPort: 6935
+          bindOnIP: "0.0.0.0"
+
+      worker:
+        rpc:
+          membershipPort: 6939
+          bindOnIP: "0.0.0.0"
+
+    clusterMetadata:
+      enableGlobalNamespace: false
+      failoverVersionIncrement: 10
+      masterClusterName: "active"
+      currentClusterName: "active"
+      clusterInformation:
+        active:
+          enabled: true
+          initialFailoverVersion: 1
+          rpcName: "temporal-simple-frontend"
+          rpcAddress: "127.0.0.1:7233"
+          httpAddress: "127.0.0.1:7243"
+
+    dcRedirectionPolicy:
+      policy: "noop"
+      toDC: ""
+
+    archival:
+      status: "disabled"
+    publicClient:
+      hostPort: "127.0.0.1:7233"
+
+    dynamicConfigClient:
+      filepath: "/etc/temporal/dynamic_config/dynamic_config.yaml"
+      pollInterval: "10s"
+    namespaces:
+      # Enable this to create namespaces
+      create: true
+      namespace:
+        - name: default
+          retention: 8760h  # 1年 = 8760小时
+  dynamic_config.yaml: |
+    # 生产级动态配置
+    # ==========================================
+    # 系统优化参数
+    # ==========================================
+    # Namespace 默认配置（关键！创建时忘指定也会用这些值！）
+    # ==========================================
+    system.defaultWorkflowExecutionRetentionTtl:
+    - value: 8760h0m0s
+      constraints: {}
+    
+    # Frontend：限流配置
+    history.ratelimit:
+    - value: 20000
+      constraints: {}
+    frontend.ratelimit:
+    - value: 10000
+      constraints: {}
+    matching.ratelimit:
+    - value: 10000
+      constraints: {}
+    worker.ratelimit:
+    - value: 10000
+      constraints: {}
+    
+    # History 优化
+    history.persistenceMaxQPS:
+    - value: 3000
+      constraints: {}
+    history.persistenceIndividualNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    history.persistenceGlobalNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    
+    # Matching 优化
+    matching.persistenceMaxQPS:
+    - value: 3000
+      constraints: {}
+    
+    # 批量操作优化
+    matching.numTaskqueueReadPartitions:
+    - value: 10
+      constraints: {}
+    matching.numTaskqueueWritePartitions:
+    - value: 10
+      constraints: {}
+    matching.numTaskqueueActivePartitions:
+    - value: 10
+      constraints: {}
+    
+    # Worker 优化
+    worker.persistenceMaxQPS:
+    - value: 1000
+      constraints: {}
+    worker.persistenceGlobalNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    worker.persistenceIndividualNamespaceQPS:
+    - value: 1000
+      constraints: {}
+    
+    # 缓存优化
+    frontend.cacheMaxSizeBytes:
+    - value: 500000000
+      constraints: {}
+    frontend.cacheTTLSeconds:
+    - value: 60
+      constraints: {}
+    history.historyCacheSize:
+    - value: 10000
+      constraints: {}
+    history.historyCacheTTL:
+    - value: 300
+      constraints: {}
+    matching.historyCacheSize:
+    - value: 10000
+      constraints: {}
+    
+    # 队列优化
+    matching.longPollExpirationInterval:
+    - value: 2000000000
+      constraints: {}
+    frontend.longPollExpirationInterval:
+    - value: 2000000000
+      constraints: {}
+---
+# ------------------------------
+# 2. Secret: 数据库密码
+# ------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: temporal-simple-secret
+  namespace: temporal-simple
+type: Opaque
+stringData:
+  password: "temporal123"
+---
+# ------------------------------
+# 3. Service: Temporal Server (单体)
+# ------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-simple-frontend
+  namespace: temporal-simple
+spec:
+  selector:
+    app: temporal-simple-server
+  ports:
+  - name: grpc
+    port: 7233
+    targetPort: 7233
+  - name: http
+    port: 7243
+    targetPort: 7243
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+---
+# ------------------------------
+# 4. Job: Schema 初始化
+# ------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: temporal-simple-schema
+  namespace: temporal-simple
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      - name: setup-default-store
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "temporal-sql-tool setup-schema -v 0.0 && temporal-sql-tool update-schema --schema-dir /etc/temporal/schema/mysql/v8/temporal/versioned"]
+        env:
+        - name: SQL_PLUGIN
+          value: "mysql8"
+        - name: SQL_HOST
+          value: "temporal-simple-mysql.temporal-simple.svc.cluster.local"
+        - name: SQL_PORT
+          value: "3306"
+        - name: SQL_DATABASE
+          value: "temporal"
+        - name: SQL_USER
+          value: "temporal"
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: temporal-simple-secret
+              key: password
+      - name: setup-visibility-store
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "temporal-sql-tool setup-schema -v 0.0 && temporal-sql-tool update-schema --schema-dir /etc/temporal/schema/mysql/v8/visibility/versioned"]
+        env:
+        - name: SQL_PLUGIN
+          value: "mysql8"
+        - name: SQL_HOST
+          value: "temporal-simple-mysql.temporal-simple.svc.cluster.local"
+        - name: SQL_PORT
+          value: "3306"
+        - name: SQL_DATABASE
+          value: "temporal_visibility"
+        - name: SQL_USER
+          value: "temporal"
+        - name: SQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: temporal-simple-secret
+              key: password
+      containers:
+      - name: done
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "echo Schema setup completed"]
+---
+# ------------------------------
+# 5. Job: Namespace 初始化（自动创建 default Namespace，Retention 1年！）
+# ------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: temporal-simple-namespaces
+  namespace: temporal-simple
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      - name: create-default-namespace
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ['/bin/sh', '-c']
+        args: ['temporal operator namespace describe default || temporal operator namespace create default --retention 8760h']
+        env:
+        - name: TEMPORAL_ADDRESS
+          value: temporal-simple-frontend.temporal-simple.svc.cluster.local:7233
+      containers:
+      - name: done
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ['sh', '-c', 'echo Namespace setup completed']
+---
+# ------------------------------
+# 6. Deployment: Temporal Server (单体)
+# ------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-simple-server
+  namespace: temporal-simple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-simple-server
+  template:
+    metadata:
+      labels:
+        app: temporal-simple-server
+    spec:
+      containers:
+      - name: temporal-simple-server
+        image: temporalio/server:1.31.0
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: SERVICES
+          value: "frontend,history,matching,worker"
+        - name: TEMPORAL_SERVICES
+          value: "frontend,history,matching,worker"
+        - name: TEMPORAL_SERVER_CONFIG_FILE_PATH
+          value: "/etc/temporal/config/config_template.yaml"
+        - name: TEMPORAL_DEFAULT_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: temporal-simple-secret
+              key: password
+        - name: TEMPORAL_VISIBILITY_STORE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: temporal-simple-secret
+              key: password
+        ports:
+        - name: frontend-grpc
+          containerPort: 7233
+          protocol: TCP
+        - name: frontend-http
+          containerPort: 7243
+          protocol: TCP
+        - name: history
+          containerPort: 7234
+          protocol: TCP
+        - name: matching
+          containerPort: 7235
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/temporal/config/config_template.yaml
+          subPath: config_template.yaml
+        - name: dynamic-config
+          mountPath: /etc/temporal/dynamic_config
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+        livenessProbe:
+          initialDelaySeconds: 150
+          tcpSocket:
+            port: frontend-grpc
+        readinessProbe:
+          initialDelaySeconds: 10
+          tcpSocket:
+            port: frontend-grpc
+      volumes:
+      - name: config
+        configMap:
+          name: temporal-simple-config
+      - name: dynamic-config
+        configMap:
+          name: temporal-simple-config
+          items:
+          - key: dynamic_config.yaml
+            path: dynamic_config.yaml
+---
+# ------------------------------
+# 6. Service: Web UI
+# ------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-simple-web
+  namespace: temporal-simple
+spec:
+  selector:
+    app: temporal-simple-web
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+# ------------------------------
+# 7. Deployment: Web UI
+# ------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-simple-web
+  namespace: temporal-simple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-simple-web
+  template:
+    metadata:
+      labels:
+        app: temporal-simple-web
+    spec:
+      containers:
+      - name: temporal-simple-web
+        image: temporalio/ui:2.49.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TEMPORAL_ADDRESS
+          value: "temporal-simple-frontend:7233"
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+---
+# ------------------------------
+# 8. Deployment: Admin Tools
+# ------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-simple-admintools
+  namespace: temporal-simple
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-simple-admintools
+  template:
+    metadata:
+      labels:
+        app: temporal-simple-admintools
+    spec:
+      containers:
+      - name: temporal-simple-admintools
+        image: temporalio/admin-tools:1.31.0
+        imagePullPolicy: IfNotPresent
+        command: ["tail", "-f", "/dev/null"]
+        env:
+        - name: TEMPORAL_ADDRESS
+          value: "temporal-simple-frontend:7233"
