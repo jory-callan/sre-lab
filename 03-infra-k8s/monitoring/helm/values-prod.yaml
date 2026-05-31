@@ -142,6 +142,10 @@ grafana:
       cpu: 500m
       memory: 512Mi
 
+  # 插件 - 预装 VictoriaLogs 数据源插件
+  plugins:
+    - victoriametrics-logs-datasource
+
   # 通过 sidecar 自动发现仪表板和 datasource
   sidecar:
     dashboards:

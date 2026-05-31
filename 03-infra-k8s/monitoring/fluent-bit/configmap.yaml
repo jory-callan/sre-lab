@@ -1,0 +1,119 @@
+# Fluent Bit 配置
+# 采集 K8s 容器日志 → K8s filter 添加元数据 → HTTP 输出到 VictoriaLogs
+#
+# === Fluent Bit 数据流 ===
+# tail (cri 格式) → kubernetes filter (注入 pod/ns 元数据)
+#   → modify (加 cluster 标签) → grep (过滤空行) → http (VictoriaLogs)
+#
+# === 关键参数说明 ===
+# - storage.total_limit_size 2G: 本地文件缓冲上限，VictoriaLogs 不可用时不丢日志
+# - Retry_Limit false: 无限重试，直到后端恢复
+# - workers 2: OUTPUT 线程数，提升吞吐
+# - _stream_fields=namespace,container_name: 低基数流划分，pod_name 不作为 stream field
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: fluent-bit
+    app.kubernetes.io/component: log-collector
+data:
+  # ============================================
+  # 主配置
+  # ============================================
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush                     5
+        Daemon                    off
+        Log_Level                 info
+        Parsers_File              parsers.conf
+        HTTP_Server               On
+        HTTP_Listen               0.0.0.0
+        HTTP_Port                 2020
+        Health_Check              On
+        storage.path              /tmp/flb-storage/
+        storage.sync              normal
+        storage.checksum          off
+        storage.backlog.mem_limit 50M
+        storage.total_limit_size  2G
+
+    # ---- 输入: K8s 容器日志 ----
+    # 通过 /var/log/containers/*.log (symlinks) 采集所有 Pod 日志
+    # CRI multiline 处理 containerd 拆行日志（如 Java 异常栈）
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        multiline.parser  cri
+        Parser            cri
+        DB                /tmp/flb_kube.db
+        Mem_Buf_Limit     50MB
+        Skip_Long_Lines   On
+        Refresh_Interval  5
+        storage.type      filesystem
+
+    # ---- Filter: K8s 元数据注入 ----
+    # 从日志文件路径解析出 namespace/pod/container 并通过 K8s API
+    # 获取 Pod labels 注入到每条日志记录
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        Merge_Log           On
+        Merge_Log_Key       log_processed
+        K8S-Logging.Parser  On
+        K8S-Logging.Exclude Off
+        Labels              On
+        Annotations         Off
+
+    # ---- Filter: 全局标签 ----
+    [FILTER]
+        Name          modify
+        Match         *
+        Add           cluster_name czw-sre-k3s
+        Add           node_name ${NODE_NAME}
+        Add           environment production
+
+    # ---- Filter: 排除空行 ----
+    [FILTER]
+        Name          grep
+        Match         *
+        Exclude       log ^$
+
+    # ---- Output: VictoriaLogs ----
+    # 使用原生 JSON API (/insert/jsonline)，不走 Loki 兼容层
+    # _stream_fields: 流划分字段（必须低基数）
+    #   - namespace: 命名空间，基数有限
+    #   - container_name: 容器名，基数有限
+    #   注意: pod_name 不作为 stream field（高基数），但可通过 K8s filter
+    #         注入到日志 body 中作为查询字段
+    # Retry_Limit false: 后端不可用时无限重试，配合本地缓冲不丢日志
+    [OUTPUT]
+        Name              http
+        Match             *
+        Host              victoria-logs.monitoring.svc.cluster.local
+        Port              9428
+        URI               /insert/jsonline?_stream_fields=namespace,container_name&_msg_field=log&_time_field=@timestamp
+        Format            json_lines
+        Json_date_key     @timestamp
+        Json_date_format  iso8601
+        Header            Content-Type application/stream+json
+        compress          gzip
+        Retry_Limit       false
+        workers           2
+
+  # ============================================
+  # 解析器规则
+  # ============================================
+  parsers.conf: |
+    [PARSER]
+        Name        cri
+        Format      regex
+        Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
