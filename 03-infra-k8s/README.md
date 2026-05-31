@@ -19,9 +19,14 @@
 │   ├── helm/                  # Helm Chart
 │   ├── install.sh             # 安装脚本
 │   └── uninstall.sh           # 卸载脚本
-└── redis/
-    ├── dev/
-    └── prod/
+├── monitoring/
+│   ├── helm/                  # Helm Chart (remote- + values-prod)
+│   ├── install.sh             # 安装脚本
+│   └── uninstall.sh           # 卸载脚本
+├── redis/
+│   ├── manifests/             # 原生 K8s 清单
+│   ├── install.sh             # 安装脚本
+│   └── uninstall.sh           # 卸载脚本
 ```
 
 ---
@@ -58,5 +63,6 @@ kubectl apply -f manifests/
 |------|------|
 | [mysql/](./mysql/) | MySQL 数据库 |
 | [postgresql/](./postgresql/) | PostgreSQL 数据库 |
-| [redis/](./redis/) | Redis 缓存 |
-| [kite/](./kite/) | Kubernetes Web UI 管理面板 |
+| [redis/](./redis/) | Redis 缓存（已部署，NodePort:30003） |
+| [kite/](./kite/) | Kubernetes Web UI 管理面板（已部署，NodePort:30001） |
+| [monitoring/](./monitoring/) | kube-prometheus-stack 监控栈（已部署，Grafana:30002） |

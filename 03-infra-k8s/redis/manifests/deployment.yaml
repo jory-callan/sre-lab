@@ -1,0 +1,76 @@
+# Redis Deployment - 单实例有状态部署
+# 镜像: redis:7-alpine（轻量级，约 12MB）
+# 存储: 1Gi PVC 挂载到 /data，开启 AOF+RDB 持久化
+# 认证: 通过 Secret 注入 REDIS_PASSWORD 环境变量
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: redis
+  name: redis
+  namespace: redis
+spec:
+  replicas: 1  # 单副本
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - image: redis:7-alpine
+          imagePullPolicy: IfNotPresent  # 镜像通过 k3s 层面配置的镜像源拉取
+          name: redis
+          command:
+            - redis-server
+          args:
+            - --requirepass $(REDIS_PASSWORD)           # 启用密码认证
+            - --appendonly yes                           # 开启 AOF 持久化
+            - --save 900 1                               # RDB 快照：900秒内1个key变更
+            - --save 300 10                              # RDB 快照：300秒内10个key变更
+            - --save 60 10000                            # RDB 快照：60秒内10000个key变更
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+          ports:
+            - containerPort: 6379
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          # 就绪探针 - 通过 Redis CLI 验证密码认证是否正常
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # 存活探针
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          volumeMounts:
+            - name: data
+              mountPath: /data  # Redis 持久化数据目录
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: redis-data

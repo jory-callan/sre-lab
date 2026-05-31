@@ -1,0 +1,15 @@
+# Redis PersistentVolumeClaim
+# 持久化 Redis 数据到宿主机，确保 Pod 重启后数据不丢失
+# 使用 k3s 内置的 local-path StorageClass
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data
+  namespace: redis
+spec:
+  accessModes:
+    - ReadWriteOnce  # 单节点读写
+  resources:
+    requests:
+      storage: 1Gi  # 1GB 足够存储 Redis 数据
+  storageClassName: local-path  # k3s 默认的 local-path StorageClass
