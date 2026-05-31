@@ -1,0 +1,159 @@
+# VictoriaLogs 日志浏览 Dashboard
+# 通过 Grafana sidecar 自动发现并加载（label: grafana_dashboard=1）
+# 数据源引用方式: 按名称 "VictoriaLogs" 匹配
+#
+# 使用方式:
+#   Grafana → 左侧菜单 → Dashboards → VictoriaLogs - 日志查询
+#   或者直接在 Search 中搜索 "日志"
+#
+# 变量说明:
+#   namespace - 多选，从 VictoriaLogs 自动拉取，默认 All
+#   container - 多选，从 VictoriaLogs 自动拉取，依赖 namespace 选择
+#   search    - 自由文本，输入关键字过滤
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-logs
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  victorialogs-logs.json: |
+    {
+      "__inputs": [],
+      "__requires": [],
+      "title": "VictoriaLogs - 日志查询",
+      "description": "K8s 集群日志实时查询面板，支持命名空间、容器、关键字快速过滤",
+      "tags": ["victorialogs", "logging", "kubernetes"],
+      "timezone": "Asia/Shanghai",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h"]
+      },
+
+      "templating": {
+        "list": [
+          {
+            "name": "namespace",
+            "type": "query",
+            "label": "命名空间",
+            "query": "kubernetes.namespace_name.*",
+            "datasource": "VictoriaLogs",
+            "refresh": 2,
+            "includeAll": true,
+            "allValue": "*",
+            "multi": true,
+            "sort": 1
+          },
+          {
+            "name": "container",
+            "type": "query",
+            "label": "容器名",
+            "query": "kubernetes.container_name.*",
+            "datasource": "VictoriaLogs",
+            "refresh": 2,
+            "includeAll": true,
+            "allValue": "*",
+            "multi": true,
+            "sort": 1
+          },
+          {
+            "name": "search",
+            "type": "textbox",
+            "label": "关键字",
+            "query": "",
+            "description": "输入搜索关键词: error / WARNING / SELECT / 多个词用空格分隔"
+          }
+        ]
+      },
+
+      "panels": [
+        {
+          "title": "日志量趋势",
+          "description": "每30秒日志写入条数，按命名空间区分颜色",
+          "type": "timeseries",
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 0
+          },
+          "datasource": "VictoriaLogs",
+          "options": {
+            "legend": {
+              "calcs": ["max", "last"],
+              "displayMode": "table",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 70,
+                "showPoints": "never",
+                "spanNulls": false
+              },
+              "color": {
+                "mode": "palette-classic"
+              },
+              "unit": "short",
+              "min": 0
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": "VictoriaLogs",
+              "exprType": "metrics",
+              "query": "stats_count || ${search:raw} namespace:${namespace:csv} container:${container:csv}",
+              "legendFormat": "namespace: ${namespace}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "title": "日志详情",
+          "description": "实时日志流，点击单条日志可展开查看完整 JSON",
+          "type": "logs",
+          "gridPos": {
+            "h": 20,
+            "w": 24,
+            "x": 0,
+            "y": 7
+          },
+          "datasource": "VictoriaLogs",
+          "options": {
+            "showTime": true,
+            "showLabels": true,
+            "sortOrder": "Descending",
+            "dedupStrategy": "none",
+            "wrapLogMessage": true,
+            "enableLogDetails": true
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "targets": [
+            {
+              "datasource": "VictoriaLogs",
+              "exprType": "logs",
+              "query": "${search:raw} namespace:${namespace:csv} container:${container:csv}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }
