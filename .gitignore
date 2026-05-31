@@ -3,6 +3,8 @@
 !.vscode/settings.json
 .idea
 
+data
+
 logs
 log
 *.log
