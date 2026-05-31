@@ -1,6 +1,7 @@
 services:
   victorialogs:
-    image: 114.115.130.46/jlkj-base/victoriametrics/victoria-logs:v1.23.3-victorialogs
+    # 注意：如需升级，确保私有仓库 114.115.130.46/jlkj-base/ 中有对应版本
+    image: 114.115.130.46/jlkj-base/victoriametrics/victoria-logs:v1.46.0-victorialogs
     container_name: victorialogs
     restart: always
     ports:
@@ -16,11 +17,11 @@ services:
       - '--maxConcurrentInserts=16'
       - '--memory.allowedPercent=80'
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9428/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9428/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 15s
     environment:
       - TZ=Asia/Shanghai
     ulimits:

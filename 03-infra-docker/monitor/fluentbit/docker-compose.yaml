@@ -12,6 +12,9 @@ services:
       - ./logs:/var/log:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - /var/log:/host/var/log:ro
+    depends_on:
+      victorialogs:
+        condition: service_healthy
     environment:
       - TZ=Asia/Shanghai
       - FLUENT_CONF=fluent-bit.conf
