@@ -29,7 +29,7 @@ else
   # Helm 方式
   helm upgrade --install kite "$SCRIPT_DIR/helm" \
     -n kite --create-namespace \
-    -f "$SCRIPT_DIR/helm/values.custom.yaml"
+    -f "$SCRIPT_DIR/helm/values-prod.yaml"
 fi
 
 echo ""

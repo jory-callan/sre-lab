@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HELM_DIR="$SCRIPT_DIR/helm"
 CHART_DIR="$HELM_DIR/remote-kube-prometheus-stack-85.1.3"
-VALUES="$HELM_DIR/values.custom.yaml"
+VALUES="$HELM_DIR/values-prod.yaml"
 NAMESPACE="monitoring"
 RELEASE="kube-prometheus-stack"
 
