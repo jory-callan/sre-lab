@@ -20,8 +20,8 @@ spec:
         app: redis
     spec:
       containers:
-        - image: redis:7-alpine
-          imagePullPolicy: IfNotPresent  # 镜像通过 k3s 层面配置的镜像源拉取
+        - image: redis:7.2-alpine
+          imagePullPolicy: IfNotPresent  # 7.2.x 为最后一个 BSD 开源协议版本，7.4+ 改为 SSPL/RSAL
           name: redis
           command:
             - redis-server
