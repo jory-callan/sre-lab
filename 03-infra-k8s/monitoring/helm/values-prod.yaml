@@ -117,6 +117,15 @@ grafana:
     accessModes: [ReadWriteOnce]
     size: 5Gi
 
+  # 安全上下文 - 使用 PVC 已有 uid/gid，跳过 init chown
+  initChownData:
+    enabled: false
+
+  # grafana.ini 覆盖 - 允许加载未签名插件
+  grafana.ini:
+    plugins:
+      allow_loading_unsigned_plugins: victoriametrics-logs-datasource
+
   # Ingress - 通过域名访问
   ingress:
     enabled: true
@@ -142,9 +151,9 @@ grafana:
       cpu: 500m
       memory: 512Mi
 
-  # 插件 - 预装 VictoriaLogs 数据源插件
-  plugins:
-    - victoriametrics-logs-datasource
+  # 插件 - 已手动安装到 PVC，自动安装依赖网络可能不可用
+  # plugins:
+  #   - victoriametrics-logs-datasource
 
   # 通过 sidecar 自动发现仪表板和 datasource
   sidecar:
