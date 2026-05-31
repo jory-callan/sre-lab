@@ -1,0 +1,127 @@
+# MySQL 集群实例 - PerconaServerMySQL CR（InnoDB Cluster）
+# 由 percona-server-mysql-operator 管理
+# 创建 3 节点 MySQL InnoDB Cluster（group-replication）
+apiVersion: ps.percona.com/v1
+kind: PerconaServerMySQL
+metadata:
+  name: mysql-cluster
+  namespace: mysql
+  finalizers:
+    - percona.com/delete-mysql-pods-in-order
+spec:
+  crVersion: 1.1.0
+
+  # ================================================================
+  # MySQL 配置
+  # ================================================================
+  mysql:
+    # group-replication: 3 节点 InnoDB Cluster
+    clusterType: group-replication
+    size: 3
+    autoRecovery: true
+
+    image: percona/percona-server:8.4.8-8.1
+    imagePullPolicy: IfNotPresent
+
+    secretsName: mysql-cluster-secrets
+
+    podDisruptionBudget:
+      maxUnavailable: 1
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # 持久化 5Gi × 3 个实例
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 5Gi
+
+    # 内部 Service（ClusterIP，供集群内其他 Pod 访问）
+    exposePrimary:
+      enabled: true
+      type: ClusterIP
+
+    # 反亲和 - 尽量分散到不同节点
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+
+    gracePeriod: 600
+
+  # ================================================================
+  # Proxy - HAProxy 提供读写分离
+  #   - 3306: Primary (read-write)
+  #   - 3307: Replicas (read-only)
+  # ================================================================
+  proxy:
+    haproxy:
+      enabled: true
+      size: 3
+      image: percona/haproxy:2.8.18-1
+      imagePullPolicy: IfNotPresent
+
+      podDisruptionBudget:
+        maxUnavailable: 1
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 300m
+          memory: 256Mi
+
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+
+      gracePeriod: 30
+
+    router:
+      enabled: true
+      size: 3
+      image: percona/percona-mysql-router:8.4.8
+      imagePullPolicy: IfNotPresent
+
+      podDisruptionBudget:
+        maxUnavailable: 1
+
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 300m
+          memory: 256Mi
+
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+
+      gracePeriod: 30
+
+  # ================================================================
+  # Orchestrator - group-replication 不需要
+  # ================================================================
+  orchestrator:
+    enabled: false
+    image: percona/percona-orchestrator:3.2.6-20
+    size: 0
+
+  # ================================================================
+  # Backup - 暂不配置
+  # ================================================================
+  backup:
+    enabled: false
+    image: percona/percona-xtrabackup:8.4.0-5.1
+
+  # ================================================================
+  # PMM - 暂不启用
+  # ================================================================
+  pmm:
+    enabled: false
+    image: percona/pmm-client:3.7.0

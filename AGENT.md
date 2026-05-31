@@ -13,8 +13,6 @@
 - 所有文件需初始化 Git，每次修改后按 type(scope): subject 格式提交
 - 提交注释最后需要展示当前提交的工具版本号和使用的模型
 - 用户在国内，GitHub clone 需要加 https://gh-proxy.com/ 前缀
-- Docker 镜像源使用 docker.xuanyuan.me
-- ghcr.io 等容器镜像使用南京大学镜像源
 - 搜索使用 bing 而不是 google
 - 用户偏好 Go 后端使用 Echo 而不是 Gin
 - 沟通风格要给出专业判断，不要一味迎合，依据判断来肯定或否定

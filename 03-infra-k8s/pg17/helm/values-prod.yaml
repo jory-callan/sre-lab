@@ -1,0 +1,25 @@
+# CloudNativePG Operator 生产环境配置
+# 适用于 remote-cloudnative-pg-0.28.2
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  pullPolicy: IfNotPresent
+  tag: ""
+
+crds:
+  create: true
+
+config:
+  create: true
+  clusterWide: true
+  data: {}
+  maxConcurrentReconciles: 10
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

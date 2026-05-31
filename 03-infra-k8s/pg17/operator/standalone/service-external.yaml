@@ -1,0 +1,20 @@
+# PostgreSQL Standalone 外部访问 Service
+# NodePort: 30006，映射到 PG 标准端口 5432
+apiVersion: v1
+kind: Service
+metadata:
+  name: pg-standalone-external
+  namespace: pg
+  labels:
+    cnpg.io/cluster: pg-standalone
+spec:
+  type: NodePort
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: 30006
+      protocol: TCP
+  selector:
+    cnpg.io/cluster: pg-standalone
+    cnpg.io/podRole: instance

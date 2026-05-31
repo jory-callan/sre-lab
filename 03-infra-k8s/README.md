@@ -4,16 +4,16 @@
 
 ```
 03-infra-k8s/
-├── mysql/
-│   ├── dev/
-│   │   └── manifests/       # 原生 YAML（先做这个）
-│   │   ├── helm/            # Helm Chart（未来添加）
-│   │   └── kustomize/       # Kustomize（未来添加）
-│   └── prod/
-│       └── manifests/
-├── postgresql/
-│   ├── dev/
-│   └── prod/
+├── mysql8.4/
+│   ├── helm/                  # Helm Chart: ps-operator (remote- + values-prod)
+│   ├── operator/              # PerconaServerMySQL CR (standalone/cluster)
+│   ├── install.sh             # 安装脚本
+│   └── uninstall.sh           # 卸载脚本
+├── pg17/
+│   ├── helm/                  # Helm Chart: cloudnative-pg (remote- + values-prod)
+│   ├── operator/              # CNPG Cluster CR (standalone/ha)
+│   ├── install.sh             # 安装脚本
+│   └── uninstall.sh           # 卸载脚本
 ├── kite/
 │   ├── manifests/             # 原生 K8s 清单
 │   ├── helm/                  # Helm Chart
@@ -60,10 +60,13 @@ kubectl apply -f manifests/
 
 ## 📦 应用列表
 
-| 应用 | 说明 |
-|------|------|
-| [mysql/](./mysql/) | MySQL 数据库 |
-| [postgresql/](./postgresql/) | PostgreSQL 数据库 |
-| [redis/](./redis/) | Redis 缓存（已部署，NodePort:30003） |
-| [kite/](./kite/) | Kubernetes Web UI 管理面板（已部署，NodePort:30001） |
-| [monitoring/](./monitoring/) | kube-prometheus-stack 监控栈（已部署，Grafana:30002） |
+| 应用 | 说明 | 状态 |
+|------|------|------|
+| [kite/](./kite/) | Kubernetes Web UI 管理面板 | ✅ 已部署 (NodePort:30001) |
+| [monitoring/](./monitoring/) | kube-prometheus-stack 监控栈 | ✅ 已部署 (Grafana:30002) |
+| [redis/](./redis/) | Redis 缓存（operator 管理） | ✅ 已部署 (NodePort:30003/30004) |
+| [mysql8.4/](./mysql8.4/) | MySQL 8.4（Percona PS Operator） | 📦 待部署 (NodePort:30005) |
+| [pg17/](./pg17/) | PostgreSQL 17（CloudNativePG） | 📦 待部署 (NodePort:30006) |
+| | | |
+| ingress-nginx/ | Ingress Controller | ✅ 已部署 |
+| metallb/ | 负载均衡器 | ✅ 已部署 |

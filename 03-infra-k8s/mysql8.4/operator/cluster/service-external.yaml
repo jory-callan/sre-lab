@@ -1,0 +1,25 @@
+# MySQL Cluster 外部访问 Service
+# 通过 HAProxy 的 Primary 端口 3306 暴露
+# NodePort: 30005（复用的 standalone 端口，同一时刻只部署一种模式）
+# Replica 只读端口仅在集群内部使用（ClusterIP: 3307）
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-cluster-external
+  namespace: mysql
+  labels:
+    app.kubernetes.io/name: percona-server
+    app.kubernetes.io/component: haproxy
+    app.kubernetes.io/part-of: mysql-cluster
+spec:
+  type: NodePort
+  ports:
+    - name: mysql-primary
+      port: 3306
+      targetPort: 3306
+      nodePort: 30005
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: percona-server
+    app.kubernetes.io/component: haproxy
+    app.kubernetes.io/part-of: mysql-cluster

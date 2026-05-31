@@ -1,0 +1,88 @@
+# MySQL Standalone 实例 - PerconaServerMySQL CR
+# 由 percona-server-mysql-operator 管理
+# 创建单节点 MySQL 8.4 实例
+apiVersion: ps.percona.com/v1
+kind: PerconaServerMySQL
+metadata:
+  name: mysql-standalone
+  namespace: mysql
+  finalizers:
+    - percona.com/delete-mysql-pods-in-order
+spec:
+  crVersion: 1.1.0
+
+  # ================================================================
+  # MySQL 配置
+  # ================================================================
+  mysql:
+    # standalone: 单实例模式（无复制）
+    clusterType: standalone
+    size: 1
+    autoRecovery: true
+
+    image: percona/percona-server:8.4.8-8.1
+    imagePullPolicy: IfNotPresent
+
+    # 引用预定义的 Secret（operator 自动读取 root/xtrabackup/monitor/replication 字段）
+    secretsName: mysql-cluster-secrets
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # 持久化 5Gi
+    volumeSpec:
+      persistentVolumeClaim:
+        resources:
+          requests:
+            storage: 5Gi
+
+    # 内部 Service（ClusterIP，供集群内其他 Pod 访问）
+    exposePrimary:
+      enabled: true
+      type: ClusterIP
+
+    # Pod 反亲和（尽量分散到不同节点）
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+
+    # 优雅停止等待时间（秒）
+    gracePeriod: 600
+
+  # ================================================================
+  # Proxy - standalone 模式不需要
+  # ================================================================
+  proxy:
+    haproxy:
+      enabled: false
+      image: percona/haproxy:2.8.18-1
+      size: 0
+    router:
+      enabled: false
+      size: 0
+
+  # ================================================================
+  # Orchestrator - standalone 不需要
+  # ================================================================
+  orchestrator:
+    enabled: false
+    image: percona/percona-orchestrator:3.2.6-20
+    size: 0
+
+  # ================================================================
+  # Backup - 暂不配置备份
+  # ================================================================
+  backup:
+    enabled: false
+    image: percona/percona-xtrabackup:8.4.0-5.1
+
+  # ================================================================
+  # PMM - 暂不启用
+  # ================================================================
+  pmm:
+    enabled: false
+    image: percona/pmm-client:3.7.0
