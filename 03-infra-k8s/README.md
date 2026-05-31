@@ -14,6 +14,11 @@
 ├── postgresql/
 │   ├── dev/
 │   └── prod/
+├── kite/
+│   ├── manifests/             # 原生 K8s 清单
+│   ├── helm/                  # Helm Chart
+│   ├── install.sh             # 安装脚本
+│   └── uninstall.sh           # 卸载脚本
 └── redis/
     ├── dev/
     └── prod/
@@ -54,3 +59,4 @@ kubectl apply -f manifests/
 | [mysql/](./mysql/) | MySQL 数据库 |
 | [postgresql/](./postgresql/) | PostgreSQL 数据库 |
 | [redis/](./redis/) | Redis 缓存 |
+| [kite/](./kite/) | Kubernetes Web UI 管理面板 |
