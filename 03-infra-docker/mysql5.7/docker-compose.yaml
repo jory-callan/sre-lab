@@ -1,0 +1,26 @@
+version: "3.7"
+
+services:
+  mysql5:
+    image: mysql:5.7
+    restart: always
+    environment:
+      TZ: 'Asia/Shanghai'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: 'root'
+    # network_mode: host  
+    networks:
+      - env-dev
+    ports:
+     - 3306:3306 
+    volumes:
+      # 只读 时区问题
+      - /etc/timezone:/etc/timezone:ro
+      - ./conf/my.cnf:/etc/mysql/my.cnf
+      - ./logs:/var/log/mysql
+      - ./main_data:/var/lib/mysql
+      - ./files:/var/lib/mysql-files
+
+networks:
+  env-dev:
+    external: true

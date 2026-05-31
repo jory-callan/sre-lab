@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+TZ=Asia/Shanghai
+# min  hour  day  month  weekday  command
+# *    *     *    *      *        run-parts /etc/periodic/15min

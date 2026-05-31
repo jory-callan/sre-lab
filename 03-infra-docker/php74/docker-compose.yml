@@ -1,0 +1,74 @@
+#version: '3.8'
+services:
+  fpm7-4-33:
+    image: phpfpm:7.4.33
+    container_name: fpm8.2.29
+    volumes:
+      - ${CODE_FILE_DIR}:/data/app/php74:cached
+      - ${LOG_FILE_DIR}:/data1/logs/app
+    working_dir: /data/app/php74
+    networks:
+      - compose_lnmpnet
+    ports:
+      - "19000:9000"
+    restart: always
+    command: 
+      - php-fpm
+
+
+  fpm7-4-33-cron:
+    image: phpfpm:7.4.33
+    container_name: fpm8.2.29-cron
+    volumes:
+      - ${CODE_FILE_DIR}:/data/app/php74:cached
+      - ${LOG_FILE_DIR}:/data1/logs/app
+      - ${CRONTAB_DIR}:/etc/crontabs/
+    working_dir: /data/app/php74
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    restart: always
+    networks:
+      - compose_lnmpnet
+    command: |
+      sh -c "
+        # 加载定时任务
+        crontab -u root /etc/crontabs/root &&
+        crontab -u www-data /etc/crontabs/www-data &&
+        exec crond -f -l 2 -L /dev/stdout
+      "
+
+
+  fpm7-4-33-queue:
+    image: phpfpm:7.4.33
+    container_name: fpm8.2.29-queue
+    volumes:
+      - ${CODE_FILE_DIR}:/data/app/php74:cached
+      - ${LOG_FILE_DIR}:/data1/logs/app
+      - ${SUPERVISOR_CONFIG_DIR}:/etc/supervisor.d
+      - ${SUPERVISOR_LOG_DIR}:/var/log/supervisor/
+    working_dir: /data/app/php74
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    restart: always
+    networks:
+      - compose_lnmpnet
+    command: |
+      sh -c "touch /var/log/supervisor/supervisord.log &&
+      exec supervisord -c /etc/supervisor.d/supervisord.conf"
+
+
+networks:
+  compose_lnmpnet:
+    external: true
+# networks:
+#   compose_lnmpnet:
+#    driver: bridge
+#    ipam:
+#     config:
+#      - subnet: 192.158.0.0/16

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-go-tiny
+  labels:
+    app: demo-go-tiny
+spec:
+  # 副本数
+  replicas: 1
+
+  # 选择器，匹配 Pod
+  selector:
+    matchLabels:
+      app: demo-go-tiny
+
+  # Pod 模板
+  template:
+    metadata:
+      labels:
+        app: demo-go-tiny
+    spec:
+      # 容器配置
+      containers:
+      - name: demo-go-tiny
+        # 镜像：一个简单的 Go Web 服务，返回请求头
+        image: moonbuggy/demo-go-tiny:latest
+        imagePullPolicy: IfNotPresent
+
+        # 端口配置
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+
+        # 资源限制（可选）
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi

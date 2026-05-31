@@ -1,0 +1,24 @@
+- 所有远程资源必须下载到本地，使用 remote-<name>-<version> 格式命名
+- 原始远程下载的文件不得修改，如需修改创建独立的 patch 文件或 overlay 文件
+- 每个组件提供 install.sh 和 uninstall.sh 各一个，不要搞多个
+- README 中保留原始远程资源地址说明，只讲怎么用，不列出文件树
+- 应用名称使用小写字母，无空格，用数字表示版本（如 mysql5.7）
+- 多版本应用作为独立应用目录处理
+- 项目四层架构：01-physical（物理层）、02-platforms（平台层）、03-infrastructure（基础设施）、04-applications（业务应用）
+- 项目规划遵循 80/20 法则，避免过度设计，先做当前真正需要的
+- 不要搞复杂统一入口，每个方案独立完整，简单直接
+- 去掉 dev/prod 文件夹层级，通过文件名后缀区分环境（确需区分时）
+- 大多数应用不需要区分 dev/prod，直接一个配置文件即可
+- 不同部署方式（manifests/helm/kustomize）通过文件夹区分
+- 所有文件需初始化 Git，每次修改后按 type(scope): subject 格式提交
+- 提交注释最后需要展示当前提交的工具版本号和使用的模型
+- 用户在国内，GitHub clone 需要加 https://gh-proxy.com/ 前缀
+- Docker 镜像源使用 docker.xuanyuan.me
+- ghcr.io 等容器镜像使用南京大学镜像源
+- 搜索使用 bing 而不是 google
+- 用户偏好 Go 后端使用 Echo 而不是 Gin
+- 沟通风格要给出专业判断，不要一味迎合，依据判断来肯定或否定
+- 永远先确认完整计划，等待用户明确 "start" 信号后再行动
+- 用户喜欢简洁清晰的文档，包含快速开始指南和速查表
+- 对于 k8s，先从简单的 manifests 开始，后续需要时再添加 helm/kustomize
+- 避免使用 *.local 域名，统一使用 *.czw-sre.internal 域名，防止 macOS 特殊处理导致的 DNS 延迟

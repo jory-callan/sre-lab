@@ -1,0 +1,22 @@
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  # IP 地址池配置，支持多种格式：
+  # - 范围格式：192.168.5.240-192.168.5.250
+  # - CIDR 格式：192.168.5.240/28
+  # - 单个 IP：192.168.5.240/32
+  addresses:
+  - 192.168.5.240-192.168.5.250
+
+  # 是否自动分配 IP 给 LoadBalancer Service
+  # true（默认）：自动从未分配的 IP 池中分配
+  # false：必须通过 Service 的 annotations 显式指定
+  autoAssign: true
+
+  # 是否避免"有问题"的 IP
+  # true（默认）：跳过范围内的 .0 和 .255
+  # false：使用范围内所有 IP
+  avoidBuggyIPs: true

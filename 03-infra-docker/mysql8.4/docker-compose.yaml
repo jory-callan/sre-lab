@@ -1,0 +1,27 @@
+version: "3.7"
+
+services:
+  mysql8:
+    image: mysql:8.4 # LTS 版本
+    container_name: mysql8
+    restart: always
+    environment:
+      TZ: 'Asia/Shanghai'
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: 't6e3SbXJfhwMEGH5ZBjLVz'
+    # network_mode: host  
+    networks:
+      - env-dev
+    ports:
+     - 3306:3306 
+    volumes:
+      # 只读 时区问题
+      - /etc/timezone:/etc/timezone:ro
+      - ./conf/my.cnf:/etc/mysql/my.cnf
+      - ./logs:/var/log/mysql
+      - ./main_data:/var/lib/mysql
+      - ./files:/var/lib/mysql-files
+
+networks:
+  env-dev:
+    external: true

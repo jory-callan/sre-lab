@@ -1,0 +1,33 @@
+mirrors:
+  docker.io:
+    endpoint:
+      - "http://192.168.5.103:5002"
+  registry.k8s.io:
+    endpoint:
+      - "http://192.168.5.103:5003"
+  quay.io:
+    endpoint:
+      - "http://192.168.5.103:5004"
+  ghcr.io:
+    endpoint:
+      - "http://192.168.5.103:5005"
+  gcr.io:
+    endpoint:
+      - "http://192.168.5.103:5006"
+
+configs:
+  "192.168.5.103:5002":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5003":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5004":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5005":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5006":
+    tls:
+      insecure_skip_verify: true

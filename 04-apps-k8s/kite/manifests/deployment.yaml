@@ -1,0 +1,57 @@
+# Kite Deployment - 含持久化存储
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kite
+  name: kite
+  namespace: kite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kite
+  strategy:
+    type: Recreate  # 使用 Recreate 策略，避免 PVC 同时被多个 Pod 挂载
+  template:
+    metadata:
+      labels:
+        app: kite
+    spec:
+      serviceAccountName: kite
+      containers:
+        - image: ghcr.io/kite-org/kite:latest
+          imagePullPolicy: IfNotPresent
+          name: kite
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          # 健康检查
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          # 持久化卷挂载 - SQLite 数据存储在 /app/data
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      # 持久化卷定义
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kite-storage

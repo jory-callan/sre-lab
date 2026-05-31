@@ -1,0 +1,17 @@
+# Kite Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kite
+  name: kite
+  namespace: kite
+spec:
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: kite
+  type: ClusterIP  # 默认 ClusterIP，通过 ingress 访问

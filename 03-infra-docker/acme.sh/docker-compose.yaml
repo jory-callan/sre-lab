@@ -1,0 +1,19 @@
+services:
+  acmesh:
+    container_name: acmesh
+    image: neilpang/acme.sh
+    restart: always
+    environment:
+      - ACCOUNT_EMAIL=${ACCOUNT_EMAIL}
+      - Tencent_SecretId=${Tencent_SecretId}
+      - Tencent_SecretKey=${Tencent_SecretKey}
+    volumes:
+      - ./acme.sh:/acme.sh
+      - ./tools/:/tools/
+      - ${SSL_DIR}:/ssl-dir
+    network_mode: host
+    command: daemon
+
+networks:
+  env-dev:
+    external: true

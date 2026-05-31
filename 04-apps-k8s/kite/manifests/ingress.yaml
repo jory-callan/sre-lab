@@ -1,0 +1,19 @@
+# Kite Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kite
+  namespace: kite
+spec:
+  ingressClassName: nginx  # 使用 ingress-nginx
+  rules:
+    - host: kite.czw-sre.internal  # 避免 *.local 的 macOS DNS 延迟问题
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kite
+                port:
+                  number: 8080

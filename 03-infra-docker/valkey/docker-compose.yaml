@@ -1,0 +1,25 @@
+services:
+  valkey:
+    image: docker.io/bitnami/valkey:latest
+    container_name: valkey
+    network_mode: host
+    # networks:
+    #   - env-dev
+    # ports:
+    #   - "6379:6379"
+    environment:
+      - TZ=Asia/Shanghai
+      - VALKEY_DATABASE=0
+      - VALKEY_PASSWORD=valkey
+      # - ALLOW_EMPTY_PASSWORD=yes # 允许没有密码
+    volumes:
+      - ./data:/bitnami/valkey/data
+    restart: always
+
+networks:
+  env-dev:
+    external: true
+
+# 注意有权限问题
+# mkdir -p ./data
+# chmod 777 ./data

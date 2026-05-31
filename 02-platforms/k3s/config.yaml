@@ -1,0 +1,13 @@
+# 最小化配置，先跑通
+token: "k3s-ha-40yhw4NU19XyWZC5naohc5tSoPMC6wKx3nB34zXo624"
+tls-san:
+  - "192.168.5.249"
+  - "192.168.5.101"
+  - "192.168.5.100"
+  - "192.168.5.103"
+  - "kubernetes.default"
+  - "kubernetes.default.svc"
+  - "kubernetes.default.svc.cluster.local"
+disable:
+  - servicelb
+write-kubeconfig-mode: "600"

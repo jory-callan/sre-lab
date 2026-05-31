@@ -1,0 +1,231 @@
+# Kubelet 生产环境配置（优化版）
+#
+# 特点：
+#   - 严格的日志轮转
+#   - 激进的 GC 策略
+#   - 完善的资源预留
+#   - 安全加固
+#
+# 使用方式：
+#   1. 将此文件复制到 /etc/rancher/k3s/kubelet.config.yaml
+#   2. 在 config.yaml 中添加：
+#      kubelet-arg:
+#        - "config=/etc/rancher/k3s/kubelet.config.yaml"
+#   3. 重启 k3s: systemctl restart k3s
+
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+# ==============================================
+# 容器日志配置（重点！防止占满磁盘）
+# ==============================================
+
+# 单个容器日志最大大小
+containerLogMaxSize: "50Mi"
+
+# 单个容器最多保留的日志文件数
+containerLogMaxFiles: 3
+
+# ==============================================
+# 镜像管理（防止磁盘占满）
+# ==============================================
+
+# 镜像 GC 高阈值（磁盘使用率达到此值开始清理）
+imageGCHighThresholdPercent: 75
+
+# 镜像 GC 低阈值（清理到这个比例停止）
+imageGCLowThresholdPercent: 65
+
+# 镜像拉取超时
+imagePullProgressDeadline: "2m0s"
+
+# 并行拉取镜像
+serializeImagePulls: false
+
+# ==============================================
+# 资源预留（防止系统资源耗尽）
+# ==============================================
+
+# 系统组件预留资源（系统进程、sshd、监控等）
+systemReserved:
+  cpu: "1.0"
+  memory: "1.5Gi"
+  ephemeral-storage: "10Gi"
+
+# Kubernetes 组件预留资源（kubelet、containerd 等）
+kubeReserved:
+  cpu: "0.5"
+  memory: "1.0Gi"
+  ephemeral-storage: "5Gi"
+
+# 驱逐阈值（达到这些条件开始驱逐 Pod）
+evictionHard:
+  memory.available: "500Mi"
+  nodefs.available: "10%"
+  nodefs.inodesFree: "5%"
+  imagefs.available: "15%"
+
+# 软驱逐阈值（给 Pod 时间优雅退出）
+evictionSoft:
+  memory.available: "700Mi"
+  nodefs.available: "15%"
+
+# 软驱逐宽限期
+evictionSoftGracePeriod:
+  memory.available: "2m0s"
+  nodefs.available: "5m0s"
+
+# 驱逐最小回退时间
+evictionMinimumReclaim:
+  imagefs.available: "10%"
+
+# ==============================================
+# Pod 限制
+# ==============================================
+
+# 单节点最大 Pod 数（包括 k8s 系统 Pod）
+maxPods: 110
+
+# Pod PID 限制（防止 fork bomb）
+podPidsLimit: 65536
+
+# Pod 启动宽限期
+podStartupGracePeriod: "0s"
+
+# ==============================================
+# 安全配置
+# ==============================================
+
+# 保护内核默认值（禁止修改内核参数）
+protectKernelDefaults: true
+
+# 允许的不安全 sysctl（仅在需要时开启）
+allowedUnsafeSysctls: []
+  # - "net.ipv4.ip_forward"
+  # - "net.ipv6.conf.all.forwarding"
+  # - "net.core.somaxconn"
+
+# ==============================================
+# 网络配置
+# ==============================================
+
+# 集群 DNS
+clusterDNS:
+  - "10.43.0.10"
+
+# 集群域名
+clusterDomain: "cluster.local"
+
+# ==============================================
+# 服务配置
+# ==============================================
+
+# 服务节点端口范围
+serviceNodePortRange: "30000-32767"
+
+# ==============================================
+# 健康检查和状态更新
+# ==============================================
+
+# 节点状态更新频率
+nodeStatusUpdateFrequency: "10s"
+
+# 节点状态报告频率
+nodeStatusReportFrequency: "1m0s"
+
+# ==============================================
+# 特性开关
+# ==============================================
+
+# 特性门控（根据需要开启）
+featureGates: {}
+  # RotateKubeletServerCertificate: true
+  # CPUManager: true
+  # MemoryManager: true
+  # TopologyManager: true
+
+# ==============================================
+# 服务器配置
+# ==============================================
+
+# kubelet 监听地址
+address: "0.0.0.0"
+
+# kubelet 监听端口
+port: 10250
+
+# 只读端口（0 表示禁用，安全加固）
+readOnlyPort: 0
+
+# ==============================================
+# 认证和授权（安全加固）
+# ==============================================
+
+# 认证配置
+authentication:
+  x509:
+    clientCAFile: "/var/lib/rancher/k3s/server/tls/client-ca.crt"
+  webhook:
+    enabled: true
+    cacheTTL: "2m0s"
+  anonymous:
+    enabled: false  # 禁用匿名访问
+
+# 授权配置
+authorization:
+  mode: "Webhook"
+  webhook:
+    cacheAuthorizedTTL: "5m0s"
+    cacheUnauthorizedTTL: "30s"
+
+# ==============================================
+# 事件和日志
+# ==============================================
+
+# 事件 QPS 限制
+eventRecordQPS: 50
+
+# 事件 Burst
+eventBurst: 100
+
+# ==============================================
+# CGroup 配置
+# ==============================================
+
+# 按 QoS 管理 CGroup
+cgroupsPerQOS: true
+
+# CGroup 驱动（systemd 或 cgroupfs，k3s 默认 cgroupfs）
+cgroupDriver: "cgroupfs"
+
+# CGroup 根（通常不需要改）
+cgroupRoot: ""
+
+# ==============================================
+# 资源管理
+# ==============================================
+
+# CPU 管理器策略（none, static, static-policy-options, full-pcpus-only）
+cpuManagerPolicy: "none"
+
+# CPU 管理器重协调周期
+cpuManagerReconcilePeriod: "10s"
+
+# 内存管理器策略（none, static, best-effort, restricted）
+memoryManagerPolicy: "none"
+
+# 拓扑管理器策略（none, best-effort, restricted, single-numa-node）
+topologyManagerPolicy: "none"
+
+# ==============================================
+# 验证配置
+# ==============================================
+#
+# 部署后验证配置是否生效：
+#
+#   kubectl get --raw /api/v1/nodes/$(hostname)/proxy/configz | jq .
+#
+# 查看驱逐状态：
+#
+#   kubectl describe node $(hostname) | grep -A10 Allocatable
+#

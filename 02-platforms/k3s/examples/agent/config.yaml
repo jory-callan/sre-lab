@@ -1,0 +1,48 @@
+# k3s Agent 节点配置示例
+#
+# 使用方法：
+#   1. 复制此文件到 .. 目录，命名为 config.yaml
+#   2. 修改 server 和 token
+#   3. 运行 NODE_ROLE=agent ../install-k3s.sh
+
+# ==============================================
+# 基本配置
+# ==============================================
+
+# 连接到 server 节点（必填）
+server: "https://192.168.1.100:6443"
+
+# 集群认证 token（与 server 一致）
+token: "SVfhcNDTDiK6muhKCgvFDLuKhxuF892Z"
+
+# ==============================================
+# 节点配置
+# ==============================================
+
+# 节点名称（可选，默认使用 hostname）
+# node-name: "k3s-agent-01"
+
+# 节点 IP（可选，默认自动检测）
+# node-ip: "192.168.1.110"
+
+# 节点标签（可选）
+# node-label:
+#   - "node-role.kubernetes.io/worker=true"
+#   - "disktype=ssd"
+
+# 节点污点（可选）
+# node-taint:
+#   - "dedicated=app:NoSchedule"
+
+# ==============================================
+# Kubelet 配置
+# ==============================================
+
+kubelet-arg:
+  - "container-log-max-size=100Mi"
+  - "container-log-max-files=5"
+  - "image-gc-high-threshold=90"
+  - "image-gc-low-threshold=80"
+  - "system-reserved=cpu=0.5,memory=512Mi"
+  - "kube-reserved=cpu=0.2,memory=256Mi"
+  # - "max-pods=50"  # 限制单节点 pod 数量

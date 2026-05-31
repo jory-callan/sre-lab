@@ -1,0 +1,37 @@
+services:
+  victoriametrics:
+    # 镜像地址：请根据你的实际仓库地址修改，这里使用官方最新稳定版作为示例
+    image: victoriametrics/victoria-metrics:latest
+    container_name: victoriametrics
+    restart: always
+    ports:
+      - "8428:8428"
+    volumes:
+      - ./victoria-metrics-data:/victoria-metrics-data
+    command:
+      - '--storageDataPath=/victoria-metrics-data'
+      - '--httpListenAddr=:8428'
+      # 指标保留时间，这里设置为 180 天，与 Logs 保持一致
+      - '--retentionPeriod=180d'
+      # 启用数据压缩（节省磁盘空间）
+      - '--memory.allowedPercent=80'
+      # 日志格式配置
+      - '--loggerFormat=json'
+      - '--loggerOutput=stderr'
+      # 允许高并发写入
+      - '--search.maxPointsPerTimeseries=300000'
+      - '--search.maxUniqueTimeseries=300000'
+      # 限制最大内存使用（可选，防止 OOM）
+      # - '--memory.allowedBytes=4GB'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8428/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    environment:
+      - TZ=Asia/Shanghai
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
