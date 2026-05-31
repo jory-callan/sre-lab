@@ -10,7 +10,7 @@ Kubernetes 社区推荐的监控方案，包含完整的企业级监控组件。
 │                          Grafana                                 │
 │  NodePort:30002 │ Ingress: monitor.czw-sre.internal              │
 │  默认: admin / admin123                                          │
-│  数据源: Prometheus(默认) + VictoriaLogs(日志)                    │
+│  数据源: Prometheus(默认) + VictoriaLogs(日志插件)                │
 └────────┬──────────────┬──────────────────┬───────────────────────┘
          │               │                  │
     Prometheus      VictoriaLogs        告警
@@ -44,31 +44,23 @@ Kubernetes 社区推荐的监控方案，包含完整的企业级监控组件。
 ./install.sh --logs-only
 ```
 
-### 日志采集架构
+## 日志采集架构
 
 ```
-┌──────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  每个 Node    │     │                  │     │                 │
-│              │     │  VictoriaLogs     │     │    Grafana       │
-│ Fluent Bit   │────►│  StatefulSet      │────►│  VictoriaLogs    │
-│ DaemonSet    │HTTP │  10Gi PVC         │     │  数据源插件      │
-│ tail + K8s   │     │  保留 30 天       │     │  /explore?      │
-│ filter + buf │     │  1 副本           │     │  LogsQL 查询     │
-└──────────────┘     └──────────────────┘     └─────────────────┘
+每个 Node → Fluent Bit (DaemonSet) → HTTP → VictoriaLogs (StatefulSet) → Grafana (插件)
+  tail     │ K8s filter │ 2G buffer │  原生 JSON API  │ 10Gi PVC 30天    │  LogsQL
 ```
 
-| 组件 | 部署方式 | 副本 | 说明 |
-|------|---------|------|------|
-| **Fluent Bit** | DaemonSet | 每节点 1 个 | 采集所有 Pod 日志，提取 K8s 元数据 |
-| **VictoriaLogs** | StatefulSet | 1 | 日志存储，原生 JSON API，10Gi PVC 保留 30 天 |
+### 关键设计
 
-**关键设计决策：**
-
-1. **低基数 Stream Fields** — `_stream_fields=namespace,container_name`，不包含 `pod_name`（高基数会降低查询性能）
-2. **无限重试** — `Retry_Limit false`，配合 2GB 本地文件缓冲，VictoriaLogs 重启不丢日志
-3. **原生 API** — 使用 `/insert/jsonline`，不走 Loki 兼容层（已知有整数 label 等兼容问题）
-4. **CRI 多行处理** — 正确处理 containerd 的 P/F logtag，Java 异常栈等不会被打散
-5. **K8s Filter** — 自动注入 namespace/pod/container labels 到每条日志
+| 决策 | 选择 | 说明 |
+|------|------|------|
+| 采集器 | **Fluent Bit** | CNCF 毕业，~20MB/节点 |
+| 存储 | **VictoriaLogs v1.49.0** | 内存为 Loki 1/5，LogsQL 表达力强 |
+| 传输协议 | `/insert/jsonline`（原生API） | 不走 Loki 兼容层 |
+| 流划分 | `namespace,container_name` | 低基数，不含 pod_name |
+| 缓冲 | 2GB 文件缓冲 + 无限重试 | VictoriaLogs 重启不丢日志 |
+| 多行 | CRI parser | 正确合并 Java 异常栈 |
 
 ## 卸载
 
@@ -86,36 +78,29 @@ Kubernetes 社区推荐的监控方案，包含完整的企业级监控组件。
 ## 验收确认
 
 ```bash
-# 查看 Pod 状态
+# 查看组件状态
 kubectl get pods -n monitoring
-# 期望输出（带日志时为 7-10 个 Pod）：
-#   alertmanager-xxxxx                   2/2     Running
-#   prometheus-kube-prometheus-stack-*   2/2     Running
-#   grafana-xxxxx                        1/1     Running
-#   victoria-logs-0                      1/1     Running    ← 新增
-#   fluent-bit-xxxxx                     1/1     Running    ← 新增(每节点一个)
-#   kube-state-metrics-xxxxx             1/1     Running
-#   prometheus-node-exporter-xxxxx       1/1     Running
-#   prometheus-operator-xxxxx            1/1     Running
-
-# 查看 Service
 kubectl get svc -n monitoring
+kubectl get daemonset -n monitoring
 
-# 日志数据写入确认（查看 VictoriaLogs 统计）
-kubectl exec -n monitoring victoria-logs-0 -- wget -qO- http://localhost:9428/metrics | grep vl_rows_ingested_total
+# 日志写入确认
+kubectl exec -n monitoring victoria-logs-0 -- sh -c \
+  'wget -q -O- http://127.0.0.1:9428/metrics | grep vl_bytes_ingested_total'
 
-# 查看 Fluent Bit 状态
-kubectl get daemonset -n monitoring fluent-bit
-kubectl logs -n monitoring -l app.kubernetes.io/name=fluent-bit --tail=5
+# Fluent Bit 数据流确认
+kubectl logs -n monitoring -l app.kubernetes.io/name=fluent-bit --tail=3 | grep "HTTP status=200"
 
-# 查询日志（在 Grafana Explore 中切换数据源为 VictoriaLogs）
-# 示例 LogsQL 查询：
-#   error and namespace:mysql
-#   namespace:pg17 and container_name:postgres
-#   * (查看所有日志，注意限制时间范围)
+# 插件确认
+kubectl exec -n monitoring -l app.kubernetes.io/name=grafana -- sh -c \
+  'ls /var/lib/grafana/plugins/victoriametrics-logs-datasource/plugin.json'
+
+# 在 Grafana Explore 中查询日志
+# 切换数据源为 VictoriaLogs，输入 LogsQL：
+#   namespace:monitoring and error
+#   namespace:mysql
 ```
 
-### 访问地址
+## 访问地址
 
 | 服务 | 方式 | 地址 |
 |------|------|------|
@@ -125,44 +110,26 @@ kubectl logs -n monitoring -l app.kubernetes.io/name=fluent-bit --tail=5
 | VictoriaLogs | 集群内 | http://victoria-logs.monitoring:9428 |
 | Fluent Bit | 集群内 | 每节点 :2020（HTTP 监控端口） |
 
-### Grafana 预置仪表板
-
-安装后自动部署的 K8s 仪表板（在 Grafana 中搜索）：
-
-| 仪表板 | 说明 |
-|--------|------|
-| Kubernetes / Views | 集群概览 |
-| Kubernetes / Nodes | 节点资源使用 |
-| Kubernetes / Pods | Pod 资源使用 |
-| Kubernetes / API Server | API Server 状态 |
-| Node Exporter / Nodes | 节点系统指标 |
-| Node Exporter / USE Method | 节点 USE 方法 |
-
 ## 日志查询快速入门（LogsQL）
 
-VictoriaLogs 使用 **LogsQL** 查询语言，示例：
-
 ```logsql
-# 查看某个命名空间的错误日志
+# 基本过滤
 error and namespace:mysql
-
-# 使用过滤字段
-namespace:pg17 and container_name:postgres and "ERROR"
-
-# 排除特定内容
+namespace:pg17 and "ERROR"
 namespace:monitoring and not "healthcheck"
 
-# 查看 Fluent Bit 自身的日志
+# 查看特定容器
 container_name:fluent-bit
+container_name:victoria-logs and "error"
 
-# 时间范围（Grafana 时间选择器控制）
-# VictoriaLogs 支持 _time 字段过滤
+# 时间范围（配合 Grafana 时间选择器）
 ```
 
-## 注意
+## 重要说明
 
-- 首次部署 CRD 安装需要 1-2 分钟，`--wait` 等待超时可手动 `kubectl get pods -n monitoring` 观察
+- 详细部署记录和踩坑日志见 **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+- VictoriaLogs v1.49.0 起**已移除 Loki 兼容接口**，必须用官方 Grafana 插件
+- 插件为未签名，已配置 `allow_loading_unsigned_plugins`
+- 首次部署若插件未自动安装，运行 `./plugins/download-plugin.sh --install`
+- 全部组件幂等部署，重复执行不会破坏现有配置
 - Grafana 默认密码 `admin123`，首次部署后请及时修改
-- VictoriaLogs 插件需等待 Grafana 重启后生效（首次部署会自动重启）
-- 3 节点集群总资源消耗约：CPU < 1.5 核，内存 < 3Gi（含日志组件）
-- Fluent Bit DaemonSet 每个节点额外占用约 CPU 50m + 内存 100Mi
