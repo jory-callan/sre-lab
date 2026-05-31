@@ -1,11 +1,11 @@
 #!/bin/bash
-# Redis 安装脚本 - 部署 redis-operator + 创建 Redis standalone 实例
+# Redis 安装脚本
 #
-# 流程：
-#   1. 安装 redis-operator（Helm Chart，含 CRDs）
-#   2. 等待 operator Pod 就绪
-#   3. 创建 Redis 实例 CR（standalone 模式）
-#   4. 创建外部访问 NodePort Service
+# 用法:
+#   ./install.sh                  # 安装 operator + standalone（默认）
+#   ./install.sh standalone       # 同上
+#   ./install.sh sentinel-ha      # 安装 operator(已装则跳过) + sentinel HA
+#   ./install.sh cluster          # 安装 operator(已装则跳过) + cluster
 
 set -e
 
@@ -15,52 +15,121 @@ CHART_DIR="$HELM_DIR/remote-redis-operator-0.24.0"
 VALUES="$HELM_DIR/values-prod.yaml"
 OPERATOR_NS="redis-operator"
 REDIS_NS="redis"
+RELEASE="redis-operator"
 
-echo "📦 步骤 1/3：安装 redis-operator..."
-echo "   Chart: redis-operator 0.24.0"
-echo "   Namespace: $OPERATOR_NS"
-
-# 校验离线 Chart 存在
-if [ ! -d "$CHART_DIR" ]; then
-  echo "❌ 未找到离线 Chart 目录: $CHART_DIR"
+# 参数检测
+MODE="${1:-standalone}"
+VALID_MODES="standalone sentinel-ha cluster"
+if ! echo "$VALID_MODES" | grep -qw "$MODE"; then
+  echo "❌ 无效模式: $MODE"
+  echo "   用法: $0 [standalone|sentinel-ha|cluster]"
   exit 1
 fi
 
-# 安装 operator
-helm upgrade --install redis-operator "$CHART_DIR" \
-  --namespace "$OPERATOR_NS" \
-  --create-namespace \
-  --values "$VALUES" \
-  --timeout 5m \
-  --wait
+echo "📦 部署模式: $MODE"
+echo ""
+
+# ============================================================
+# 安装 operator（只装一次）
+# ============================================================
+install_operator() {
+  if helm list -n "$OPERATOR_NS" 2>/dev/null | grep -qw "$RELEASE"; then
+    echo "✅ redis-operator 已安装，跳过"
+    return
+  fi
+
+  echo "📦 安装 redis-operator..."
+  if [ ! -d "$CHART_DIR" ]; then
+    echo "❌ 未找到离线 Chart 目录: $CHART_DIR"
+    exit 1
+  fi
+
+  helm upgrade --install "$RELEASE" "$CHART_DIR" \
+    --namespace "$OPERATOR_NS" \
+    --create-namespace \
+    --values "$VALUES" \
+    --timeout 5m \
+    --wait
+}
+
+# ============================================================
+# 安装 Redis 实例（按模式）
+# ============================================================
+install_instance() {
+  local mode="$1"
+  local cr_dir="$SCRIPT_DIR/operator/$mode"
+
+  # 先确保命名空间存在
+  kubectl create namespace "$REDIS_NS" --dry-run=client -o yaml | kubectl apply -f -
+
+  # 应用公共资源（Secret 等）
+  kubectl apply -f "$SCRIPT_DIR/operator/common/"
+
+  # 应用模式专属 CR
+  if [ -d "$cr_dir" ]; then
+    kubectl apply -f "$cr_dir/"
+  else
+    echo "❌ 未找到模式目录: $cr_dir"
+    exit 1
+  fi
+
+  # 等待就绪
+  echo ""
+  echo "⏳ 等待 Redis ($mode) 就绪..."
+  sleep 10
+
+  # 根据模式显示不同的输出
+  case "$mode" in
+    standalone)
+      echo ""
+      echo "✅ Redis Standalone 部署完成！"
+      echo ""
+      echo "📝 连接方式："
+      echo "   集群外: redis-cli -h <任一节点IP> -p 30003 -a 'redis@czw'"
+      echo "   集群内: redis-cli -h redis-standalone.redis.svc.cluster.local -p 6379 -a 'redis@czw'"
+      echo "   密码: redis@czw"
+      ;;
+    sentinel-ha)
+      echo ""
+      echo "✅ Redis Sentinel HA 部署完成！"
+      echo ""
+      echo "📝 连接方式："
+      echo "   Sentinel: <任一节点IP>:30004"
+      echo "   主节点写: redis-standalone-node.redis.svc.cluster.local:6379"
+      echo "   密码: redis@czw"
+      echo ""
+      echo "⚠️  注意：先等 Replication 就绪，再等 Sentinel 接入"
+      echo "   kubectl get pods -n redis -w"
+      ;;
+    cluster)
+      echo ""
+      echo "✅ Redis Cluster 部署完成！"
+      echo ""
+      echo "📝 连接方式："
+      echo "   集群内: redis-cli -h redis-cluster.redis.svc.cluster.local -p 6379 -c -a 'redis@czw'"
+      echo "   密码: redis@czw"
+      echo ""
+      echo "⚠️  注意：集群初始化需等待所有节点就绪（6 个实例）"
+      echo "   kubectl get pods -n redis -w"
+      ;;
+  esac
+
+  echo ""
+  echo "🔍 查看状态："
+  echo "   kubectl get pods -n $REDIS_NS"
+  echo "   kubectl get $MODE_CRD -n $REDIS_NS"
+}
+
+# 模式对应的 CRD 类型
+case "$MODE" in
+  standalone)   MODE_CRD="redis" ;;
+  sentinel-ha)  MODE_CRD="redissentinel,redisreplication" ;;
+  cluster)      MODE_CRD="rediscluster" ;;
+esac
+
+install_operator
+install_instance "$MODE"
 
 echo ""
-echo "📦 步骤 2/3：创建 Redis standalone 实例..."
-
-# 先创建命名空间，再应用 CR
-kubectl create namespace "$REDIS_NS" --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "$SCRIPT_DIR/operator/"
-
-# 等待 Redis 实例就绪
-echo ""
-echo "⏳ 等待 Redis 实例就绪..."
-sleep 10
-kubectl wait --for=condition=Ready --timeout=120s \
-  -n "$REDIS_NS" \
-  redis/redis-standalone 2>/dev/null || echo "   （CR 状态等待超时，请手动检查 Pod 状态）"
-
-echo ""
-echo "✅ Redis 安装完成！"
-echo ""
-echo "📝 连接方式："
-echo "   集群外: redis-cli -h <任一节点IP> -p 30003 -a 'redis@czw'"
-echo "   集群内: redis-cli -h redis-standalone.redis.svc.cluster.local -p 6379 -a 'redis@czw'"
-echo ""
-echo "🔍 查看状态："
-echo "   kubectl get pods -n redis-operator"
-echo "   kubectl get pods -n redis"
-echo "   kubectl get redis -n redis"
-echo ""
-echo "⚠️  请修改默认密码！"
-echo "   kubectl edit secret redis-auth -n redis"
-echo "   （修改后需重启 Pod: kubectl delete pod -n redis -l app=redis-standalone）"
+echo "📊 当前集群 Redis 实例："
+kubectl get redis,redisreplication,redissentinel,rediscluster -n "$REDIS_NS" 2>/dev/null || true

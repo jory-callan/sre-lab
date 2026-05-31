@@ -1,119 +1,90 @@
 # Redis - 内存缓存/数据库（Operator 方式）
 
 基于 [OT-CONTAINER-KIT/redis-operator](https://github.com/OT-CONTAINER-KIT/redis-operator) 部署，
-支持 standalone / sentinel HA / cluster 三种模式切换。
+支持三种模式切换，安装时指定即可。
 
 ## 部署架构
 
 ```
 ┌────────────────────────────────────────────┐
-│  Namespace: redis-operator                 │
-│  ┌──────────────────────────────────────┐  │
-│  │  Pod: redis-operator (controller)    │  │
-│  └──────────────┬───────────────────────┘  │
-└─────────────────┼──────────────────────────┘
-                  │ 管理 CR
-┌─────────────────▼──────────────────────────┐
-│  Namespace: redis                           │
-│  ┌──────────────────────────────────────┐  │
-│  │  CR: Redis/redis-standalone          │  │
-│  │  ├── StatefulSet: redis-standalone   │  │
-│  │  │   └── redis:7.2-alpine           │  │
-│  │  ├── Service: redis-standalone       │  │
-│  │  │   └── ClusterIP:6379             │  │
-│  │  ├── Service: redis-external        │  │
-│  │  │   └── NodePort:30003             │  │
-│  │  └── PVC: redis-standalone (1Gi)    │  │
-│  └──────────────────────────────────────┘  │
-└────────────────────────────────────────────┘
+│  namespace: redis-operator                 │
+│  redis-operator (Pod) — 管理所有 Redis CR  │
+└────────────────────┬───────────────────────┘
+                     │ 声明式 CR
+    ┌────────────────┼────────────────┐
+    ▼                ▼                ▼
+ standalone     sentinel-ha       cluster
+ NodePort:30003  NodePort:30004    (无 NodePort)
 ```
 
-- **operator**: `quay.io/opstree/redis-operator:v0.24.0`
-- **Redis 镜像**: `quay.io/opstree/redis:v7.0.15`
-  - 必须使用 operator 定制镜像（负责密码注入、配置合并等 hook）
-  - v7.0.x 仍为 BSD 开源协议（v7.4+ 改为 SSPL/RSAL）
-- **持久化**: 1Gi PVC (local-path)
-- **认证**: Secret 注入密码 `redis@czw`
-- **端口**: 6379(ClusterIP) + 30003(NodePort)
+| 模式 | 适用场景 | 实例数 | 高可用 |
+|------|---------|--------|--------|
+| **standalone** | 开发/轻量缓存 | 1 | ❌ |
+| **sentinel-ha** | 生产高可用 | 3 主从 + 3 sentinel | ✅ 自动故障转移 |
+| **cluster** | 大规模数据分片 | 6 (3主3从) | ✅ 分片 + 故障转移 |
 
 ## 快速开始
 
 ```bash
-# 安装（先装 operator，再创建 Redis 实例）
+# 安装 operator + standalone（默认）
 ./install.sh
 
-# 卸载
-./uninstall.sh
+# 指定模式
+./install.sh standalone       # 单实例
+./install.sh sentinel-ha      # Sentinel 高可用
+./install.sh cluster          # 集群模式
+
+# 卸载（只删指定模式，保留 operator）
+./uninstall.sh standalone
+./uninstall.sh sentinel-ha
+./uninstall.sh cluster
+
+# 卸载全部（含 operator）
+./uninstall.sh all
 ```
 
 ## 验收确认
 
 ```bash
-# 查看 operator Pod
+# 查看 operator
 kubectl get pods -n redis-operator
-# 期望输出：redis-operator-xxxxx   1/1   Running
 
-# 查看 Redis 实例 Pod
+# 查看 Redis 实例
 kubectl get pods -n redis
-# 期望输出：redis-standalone-0   1/1   Running
+kubectl get redis,redisreplication,redissentinel,rediscluster -n redis
 
-# 查看 CR
-kubectl get redis -n redis
-# 期望输出：redis-standalone   reconciled
-
-# 查看 Service
-kubectl get svc -n redis
-# redis-standalone   ClusterIP   6379/TCP
-# redis-external     NodePort    6379:30003/TCP
-
-# 查看 PVC
-kubectl get pvc -n redis
-# redis-standalone   Bound   1Gi   RWO   local-path
+# standalone 连接测试
+redis-cli -h <节点IP> -p 30003 -a 'redis@czw' ping
 ```
 
-### 连接测试
+## 目录结构
 
-```bash
-# 集群外
-redis-cli -h 192.168.5.249 -p 30003 -a 'redis@czw' ping
-# 期望输出：PONG
-
-# 集群内
-kubectl exec -n redis deploy/redis-standalone -- redis-cli -a 'redis@czw' ping
-# 期望输出：PONG
 ```
-
-### 访问地址
-
-| 方式 | 地址 |
-|------|------|
-| NodePort | `<节点IP>:30003` |
-| 集群内 DNS | `redis-standalone.redis.svc.cluster.local:6379` |
-| 密码 | `redis@czw` |
-
-## 切换其他模式
-
-operator 支持多种模式，operator/ 目录中已预置 standalone CR。
-如需切换为 sentinel 或 cluster，创建对应的 CR 即可：
-
-```bash
-# Sentinel HA 模式（参考 operator 官方示例）
-kubectl apply -f sentinel-cr.yaml
-
-# Cluster 模式
-kubectl apply -f cluster-cr.yaml
-```
-
-参考：https://github.com/OT-CONTAINER-KIT/redis-operator/tree/main/example/v1beta2
-
-## 卸载
-
-```bash
-./uninstall.sh
+redis/
+├── helm/                              # redis-operator Chart
+│   ├── remote-redis-operator-0.24.0/  # 离线 Chart（禁止修改）
+│   ├── values-prod.yaml               # operator 资源配置
+│   └── README.md                      # 离线安装说明
+├── operator/
+│   ├── common/                        # 所有模式共享资源
+│   │   └── 00-secret.yaml             # 认证密码
+│   ├── standalone/                    # 单实例模式
+│   │   ├── redis-cr.yaml
+│   │   └── service-external.yaml      # NodePort:30003
+│   ├── sentinel-ha/                   # Sentinel 高可用
+│   │   ├── replication-cr.yaml        # 1主2从
+│   │   ├── sentinel-cr.yaml           # 3 sentinel
+│   │   └── service-external.yaml      # NodePort:30004
+│   └── cluster/                       # 集群模式
+│       └── redis-cluster-cr.yaml      # 3主3从
+├── install.sh                         # 安装入口
+├── uninstall.sh                       # 卸载入口
+└── README.md
 ```
 
 ## 注意
 
+- operator 只装一次，切换模式只需 `./install.sh <模式>`
+- 同时部署多种模式也可以（会拉不同 CR，占用更多资源）
 - 默认密码 `redis@czw`，部署后请修改
-- 修改密码后需重启 Pod 生效
-- operator 安装在 `redis-operator` 命名空间，Redis 数据实例在 `redis` 命名空间
+- `quay.io/opstree/redis:v7.0.15` 为 BSD 协议（v7.4+ 改为 SSPL/RSAL）

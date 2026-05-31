@@ -1,0 +1,46 @@
+# Redis Replication CR（主从复制）
+# 由 redis-operator 管理，创建 1 主 2 从的 Redis 主从复制组
+# Sentinel HA 模式下 sentinel 会监控此 replication 并自动故障转移
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisReplication
+metadata:
+  name: redis-replication
+  namespace: redis
+spec:
+  # 总副本数（1主 + 2从 = 3）
+  clusterSize: 3
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    # 密码认证
+    redisSecret:
+      name: redis-auth
+      key: password
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # 持久化存储
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+  # Redis Exporter
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+    imagePullPolicy: IfNotPresent

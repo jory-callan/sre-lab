@@ -1,0 +1,59 @@
+# Redis Cluster CR（集群模式）
+# 由 redis-operator 管理，创建 3 主 3 从的 Redis 集群
+# 每个实例 1Gi PVC，支持自动分片和故障转移
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisCluster
+metadata:
+  name: redis-cluster
+  namespace: redis
+spec:
+  # 集群节点数（3 主，会自动为每个主分配 1 从 = 6 实例）
+  clusterSize: 3
+  clusterVersion: v7
+
+  # 启用持久化
+  persistenceEnabled: true
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 200m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    # 密码认证
+    redisSecret:
+      name: redis-auth
+      key: password
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # 数据存储
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+    # 节点配置存储
+    nodeConfVolume: true
+    nodeConfVolumeClaimTemplate:
+      spec:
+        storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+  # Redis Exporter
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+    imagePullPolicy: IfNotPresent
