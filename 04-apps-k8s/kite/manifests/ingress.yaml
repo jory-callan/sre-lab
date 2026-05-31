@@ -1,19 +1,23 @@
 # Kite Ingress
+# 通过 ingress-nginx 将 kite.czw-sre.internal 暴露到集群外部
+# 域名使用 .internal 后缀而非 .local，避免 macOS 对 *.local 域名的特殊 DNS 处理（5 秒延迟）
+# 需要在客户端 hosts 文件中手动配置域名解析：
+#   192.168.5.240 kite.czw-sre.internal
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: kite
   namespace: kite
 spec:
-  ingressClassName: nginx  # 使用 ingress-nginx
+  ingressClassName: nginx  # 使用 ingress-nginx 作为入口控制器
   rules:
-    - host: kite.czw-sre.internal  # 避免 *.local 的 macOS DNS 延迟问题
+    - host: kite.czw-sre.internal  # 访问域名，由 ingress-nginx 的 LoadBalancer IP 提供服务
       http:
         paths:
           - path: /
-            pathType: Prefix
+            pathType: Prefix  # 所有路径都转发到 kite Service
             backend:
               service:
                 name: kite
                 port:
-                  number: 8080
+                  number: 8080  # 对应 Service 的端口
