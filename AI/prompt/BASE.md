@@ -1,3 +1,5 @@
+语言：简体中文
+规则：
 - Git规范：所有文件需初始化Git，每次修改后按 type(scope): subject 格式提交,注释最后需要展示当前提交的工具版本号和使用的模型
 - 无法直接访问很多国外网站，搜索要用 bing 而不是 google
 - GitHub clone 需要加 https://gh-proxy.com/ 前缀
