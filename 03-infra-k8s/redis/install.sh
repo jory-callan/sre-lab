@@ -95,11 +95,11 @@ install_instance() {
       echo ""
       echo "📝 连接方式："
       echo "   Sentinel: <任一节点IP>:30004"
-      echo "   主节点写: redis-standalone-node.redis.svc.cluster.local:6379"
+      echo "   主节点地址: redis-replication-0.redis-replication-headless.redis.svc.cluster.local:6379"
       echo "   密码: redis@czw"
       echo ""
-      echo "⚠️  注意：先等 Replication 就绪，再等 Sentinel 接入"
-      echo "   kubectl get pods -n redis -w"
+      echo "⚠️  Sentinel 由 replication controller 自动管理，不单独创建 CR"
+      echo "   查看: kubectl get pods -n redis -w"
       ;;
     cluster)
       echo ""
@@ -123,7 +123,7 @@ install_instance() {
 # 模式对应的 CRD 类型
 case "$MODE" in
   standalone)   MODE_CRD="redis" ;;
-  sentinel-ha)  MODE_CRD="redissentinel,redisreplication" ;;
+  sentinel-ha)  MODE_CRD="redisreplication" ;;
   cluster)      MODE_CRD="rediscluster" ;;
 esac
 
