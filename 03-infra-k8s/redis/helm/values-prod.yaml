@@ -1,0 +1,42 @@
+# =============================================================================
+# redis-operator 自定义 values - 适配 k3s 集群环境
+# =============================================================================
+# 部署内容：redis-operator 控制器 + CRDs
+# 部署后通过 operator/ 目录中的 CR YAML 创建 Redis 实例
+# =============================================================================
+
+redisOperator:
+  name: redis-operator
+  imageName: quay.io/opstree/redis-operator
+  imageTag: v0.24.0
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets: []
+
+  # 小集群，单副本即可
+  replicas: 1
+
+  # operator 资源限制
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  # 监控指标
+  metrics:
+    enabled: true
+    bindAddress: ":8080"
+
+  # 不需要 webhook（需要 cert-manager）
+  webhook: false
+
+  rbac:
+    enabled: true
+
+  # 默认监控全部命名空间
+  watchNamespace: ""
+
+  # k3s 集群 DNS 域
+  serviceDNSDomain: "cluster.local"

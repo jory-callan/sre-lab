@@ -24,7 +24,8 @@
 │   ├── install.sh             # 安装脚本
 │   └── uninstall.sh           # 卸载脚本
 ├── redis/
-│   ├── manifests/             # 原生 K8s 清单
+│   ├── helm/                  # Helm Chart: redis-operator (remote- + values-prod)
+│   ├── operator/              # Redis CR 定义 (standalone/sentinel/cluster)
 │   ├── install.sh             # 安装脚本
 │   └── uninstall.sh           # 卸载脚本
 ```

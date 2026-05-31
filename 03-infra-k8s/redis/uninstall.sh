@@ -4,17 +4,22 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAMESPACE="redis"
+OPERATOR_NS="redis-operator"
+REDIS_NS="redis"
 
-echo "🗑️  卸载 Redis..."
+echo "🗑️  步骤 1/2：删除 Redis 实例 CR..."
 
-# 删除资源（逆向顺序）
-kubectl delete -f "$SCRIPT_DIR/manifests/service.yaml" 2>/dev/null || true
-kubectl delete -f "$SCRIPT_DIR/manifests/deployment.yaml" 2>/dev/null || true
-kubectl delete -f "$SCRIPT_DIR/manifests/pvc.yaml" 2>/dev/null || true
-kubectl delete -f "$SCRIPT_DIR/manifests/secret.yaml" 2>/dev/null || true
-kubectl delete -f "$SCRIPT_DIR/manifests/namespace.yaml" 2>/dev/null || true
+# 删除 CR（触发 operator 清理 StatefulSet + PVC）
+kubectl delete -f "$SCRIPT_DIR/operator/" 2>/dev/null || true
+kubectl delete namespace "$REDIS_NS" --ignore-not-found 2>/dev/null || true
 
 echo ""
-echo "⚠️  PVC 已随命名空间删除。如需保留数据请提前备份。"
-echo "✅ Redis 卸载完成"
+echo "🗑️  步骤 2/2：卸载 redis-operator..."
+helm uninstall redis-operator --namespace "$OPERATOR_NS" 2>/dev/null || true
+kubectl delete namespace "$OPERATOR_NS" --ignore-not-found 2>/dev/null || true
+
+echo ""
+echo "⚠️  CRD 未自动删除。如需清理："
+echo "   kubectl delete crd -l app.kubernetes.io/managed-by=redis-operator"
+echo ""
+echo "✅ 卸载完成"
