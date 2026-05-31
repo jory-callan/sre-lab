@@ -64,22 +64,6 @@ spec:
     volumeSnapshot:
       className: ~
 
-  # ================================================================
-  # 亲和性
-  # ================================================================
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector:
-              matchExpressions:
-                - key: postgresql
-                  operator: In
-                  values:
-                    - cnpg
-            topologyKey: kubernetes.io/hostname
-
   # # ================================================================
   # # 节点维护窗口（可选）
   # # ================================================================

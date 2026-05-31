@@ -2,36 +2,30 @@
 
 ## 部署架构
 
+### Standalone 模式（原生 manifests）
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Percona PS Operator                         │
-│              percona-server-mysql-operator:1.1.0                │
-│         监听 PerconaServerMySQL CR，自动管理 MySQL 实例          │
-└─────────────────────────────────────────────────────────────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    ▼                     ▼
-     ┌──────────────────────┐  ┌──────────────────────────┐
-     │  Standalone Mode     │  │  Cluster Mode             │
-     │  ┌────────────────┐  │  │  ┌────────────────────┐  │
-     │  │  MySQL 8.4 x1  │  │  │  │  MySQL 8.4 x3      │  │
-     │  │  5Gi PVC       │  │  │  │  (group-replication)│  │
-     │  └────────────┬───┘  │  │  │  5Gi PVC × 3       │  │
-     │               │       │  │  └────────┬───────────┘  │
-     │  NodePort:30005│       │  │  ┌────────────────────┐  │
-     │               │       │  │  │  HAProxy x3        │  │
-     │               │       │  │  │  (读写分离)         │  │
-     │               │       │  │  └────────┬───────────┘  │
-     │               │       │  │  ┌────────────────────┐  │
-     │               │       │  │  │  MySQL Router x3   │  │
-     │               │       │  │  └────────────────────┘  │
-     │               │       │  │  NodePort:30005          │
-     └───────────────┼───────┘  └────────┬─────────────────┘
-                     ▼                   ▼
-              ┌──────────────┐ ┌──────────────────────┐
-              │ 集群外访问    │ │ 集群外访问（主库）    │
-              │ mysql -P30005│ │ mysql -P30005         │
-              └──────────────┘ └──────────────────────┘
+┌────────────────────────────────┐
+│   MySQL 8.4 单实例             │
+│   percona/percona-server:8.4.8 │
+│   5Gi PVC (local-path)         │
+│   NodePort: 30005              │
+│   部署方式: kubectl apply       │
+└────────────────────────────────┘
+```
+
+### Cluster 模式（Percona Operator）
+```
+┌─────────────────────────────────────────────┐
+│         Percona PS Operator v1.1.0          │
+└─────────────────────────────────────────────┘
+                     │
+         ┌───────────┴───────────┐
+         │  InnoDB Cluster x3   │
+         │  group-replication    │
+         │  5Gi PVC × 3         │
+         │  HAProxy + Router    │
+         │  NodePort: 30005     │
+         └──────────────────────┘
 ```
 
 ## 快速开始
@@ -40,23 +34,19 @@
 # Standalone 模式（默认）
 ./install.sh
 
-# 或 InnoDB Cluster 模式
+# Cluster 模式
 ./install.sh cluster
 ```
 
 ## 验收确认
 
 ```bash
-# 查看 CR 状态
-kubectl get perconaservermysql -n mysql
-
-# 查看 Pod
+# Standalone
 kubectl get pods -n mysql
-
-# 连接测试（standalone）
 mysql -h <节点IP> -P 30005 -u root -p'mysql@czw' -e "SELECT VERSION();"
 
-# 连接测试（cluster）
+# Cluster
+kubectl get perconaservermysql -n mysql
 mysql -h <节点IP> -P 30005 -u root -p'mysql@czw' -e "SELECT * FROM performance_schema.replication_group_members;"
 ```
 
@@ -65,24 +55,21 @@ mysql -h <节点IP> -P 30005 -u root -p'mysql@czw' -e "SELECT * FROM performance
 | 用户 | 密码 | 说明 |
 |------|------|------|
 | root | mysql@czw | 超级管理员 |
-| monitor | mysql@czw | 监控用户 |
-| operator | mysql@czw | Operator 管理用户 |
-| replication | mysql@czw | 复制用户 |
 
 ## 连接地址
 
 | 模式 | 类型 | 地址 | 端口 |
 |------|------|------|------|
 | Standalone | 集群外 NodePort | `<节点IP>` | 30005 |
-| Standalone | 集群内 | `mysql-standalone-primary.mysql.svc.cluster.local` | 3306 |
-| Cluster | 集群外 NodePort | `<节点IP>` | 30005 |
+| Standalone | 集群内 | `mysql.mysql.svc.cluster.local` | 3306 |
+| Cluster 主库 | 集群外 NodePort | `<节点IP>` | 30005 |
 | Cluster 主库 | 集群内 | `mysql-cluster-haproxy.mysql.svc.cluster.local` | 3306 |
 | Cluster 只读 | 集群内 | `mysql-cluster-haproxy.mysql.svc.cluster.local` | 3307 |
 
 ## 卸载
 
 ```bash
-./uninstall.sh           # 卸载 standalone CR，保留 operator
-./uninstall.sh cluster   # 卸载 cluster CR，保留 operator
-./uninstall.sh all       # 卸载全部（含 operator）
+./uninstall.sh           # 卸载 standalone
+./uninstall.sh cluster   # 卸载 cluster（含 operator）
+./uninstall.sh all       # 卸载全部
 ```

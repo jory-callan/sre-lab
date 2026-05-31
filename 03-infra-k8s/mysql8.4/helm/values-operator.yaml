@@ -1,0 +1,30 @@
+# Percona Operator for MySQL 配置
+# 仅用于 cluster 模式（group-replication）
+# 部署方式:
+#   helm upgrade --install ps-operator ./remote-ps-operator-1.1.0 \
+#     -n mysql-operator --create-namespace \
+#     -f ./values-operator.yaml
+
+replicaCount: 1
+
+# 部署名为 mysql-operator，更直观
+fullnameOverride: mysql-operator
+
+image:
+  repository: percona/percona-server-mysql-operator
+  tag: 1.1.0
+  pullPolicy: IfNotPresent
+
+watchAllNamespaces: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi
+
+env:
+  logStructured: false
+  logLevel: "INFO"

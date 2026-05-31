@@ -1,0 +1,22 @@
+# MySQL 配置文件
+# 挂载到 /etc/mysql/conf.d/my.cnf
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+  namespace: mysql
+data:
+  my.cnf: |
+    [mysqld]
+    max_connections=200
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_unicode_ci
+    # MySQL 8.4 已移除 default_authentication_plugin，默认 caching_sha2_password
+    sql-mode=STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
+    innodb_buffer_pool_size=256M
+    innodb_log_file_size=64M
+    # expire_logs_days 在 MySQL 8.4 已移除，改用 binlog_expire_logs_seconds
+    binlog_expire_logs_seconds=604800
+    slow_query_log=1
+    slow_query_log_file=/var/log/mysql/slow.log
+    long_query_time=3

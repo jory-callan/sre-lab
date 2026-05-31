@@ -1,0 +1,14 @@
+# MySQL 持久化存储
+# 5Gi 本地存储 (local-path)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data
+  namespace: mysql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi

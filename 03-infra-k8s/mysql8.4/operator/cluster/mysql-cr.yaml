@@ -1,6 +1,6 @@
-# MySQL 集群实例 - PerconaServerMySQL CR（InnoDB Cluster）
+# MySQL InnoDB Cluster - PerconaServerMySQL CR（group-replication）
 # 由 percona-server-mysql-operator 管理
-# 创建 3 节点 MySQL InnoDB Cluster（group-replication）
+# 创建 3 节点 MySQL InnoDB Cluster，自动 HAProxy + Router 读写分离
 apiVersion: ps.percona.com/v1
 kind: PerconaServerMySQL
 metadata:
@@ -11,19 +11,19 @@ metadata:
 spec:
   crVersion: 1.1.0
 
+  # 引用预定义的 Secret
+  secretsName: mysql-cluster-secrets
+
   # ================================================================
-  # MySQL 配置
+  # MySQL 配置 - 3 节点 InnoDB Cluster
   # ================================================================
   mysql:
-    # group-replication: 3 节点 InnoDB Cluster
     clusterType: group-replication
     size: 3
     autoRecovery: true
 
     image: percona/percona-server:8.4.8-8.1
     imagePullPolicy: IfNotPresent
-
-    secretsName: mysql-cluster-secrets
 
     podDisruptionBudget:
       maxUnavailable: 1
@@ -34,7 +34,7 @@ spec:
         memory: 256Mi
       limits:
         cpu: 500m
-        memory: 512Mi
+        memory: 1Gi
 
     # 持久化 5Gi × 3 个实例
     volumeSpec:
@@ -43,21 +43,20 @@ spec:
           requests:
             storage: 5Gi
 
-    # 内部 Service（ClusterIP，供集群内其他 Pod 访问）
+    # 内部 Service（ClusterIP）
     exposePrimary:
       enabled: true
       type: ClusterIP
 
-    # 反亲和 - 尽量分散到不同节点
     affinity:
       antiAffinityTopologyKey: "kubernetes.io/hostname"
 
     gracePeriod: 600
 
   # ================================================================
-  # Proxy - HAProxy 提供读写分离
-  #   - 3306: Primary (read-write)
-  #   - 3307: Replicas (read-only)
+  # Proxy - HAProxy + Router 提供读写分离
+  #   HAProxy: 3306(主库读写) / 3307(从库只读)
+  #   Router: 自动路由，面向应用
   # ================================================================
   proxy:
     haproxy:
@@ -65,10 +64,8 @@ spec:
       size: 3
       image: percona/haproxy:2.8.18-1
       imagePullPolicy: IfNotPresent
-
       podDisruptionBudget:
         maxUnavailable: 1
-
       resources:
         requests:
           cpu: 100m
@@ -76,10 +73,8 @@ spec:
         limits:
           cpu: 300m
           memory: 256Mi
-
       affinity:
         antiAffinityTopologyKey: "kubernetes.io/hostname"
-
       gracePeriod: 30
 
     router:
@@ -87,10 +82,8 @@ spec:
       size: 3
       image: percona/percona-mysql-router:8.4.8
       imagePullPolicy: IfNotPresent
-
       podDisruptionBudget:
         maxUnavailable: 1
-
       resources:
         requests:
           cpu: 100m
@@ -98,30 +91,35 @@ spec:
         limits:
           cpu: 300m
           memory: 256Mi
-
       affinity:
         antiAffinityTopologyKey: "kubernetes.io/hostname"
-
       gracePeriod: 30
 
   # ================================================================
-  # Orchestrator - group-replication 不需要
+  # Toolkit
   # ================================================================
-  orchestrator:
-    enabled: false
-    image: percona/percona-orchestrator:3.2.6-20
-    size: 0
+  toolkit:
+    image: percona/percona-toolkit:3.7.1
+    imagePullPolicy: IfNotPresent
 
   # ================================================================
-  # Backup - 暂不配置
+  # Backup
   # ================================================================
   backup:
     enabled: false
     image: percona/percona-xtrabackup:8.4.0-5.1
 
   # ================================================================
-  # PMM - 暂不启用
+  # PMM
   # ================================================================
   pmm:
     enabled: false
     image: percona/pmm-client:3.7.0
+
+  # ================================================================
+  # Orchestrator（group-replication 不需要）
+  # ================================================================
+  orchestrator:
+    enabled: false
+    image: percona/percona-orchestrator:3.2.6-20
+    size: 0

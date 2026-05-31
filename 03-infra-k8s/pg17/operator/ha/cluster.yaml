@@ -82,17 +82,8 @@ spec:
   # 亲和性 - 确保 3 个实例分到不同节点
   # ================================================================
   affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - labelSelector:
-            matchExpressions:
-              - key: postgresql
-                operator: In
-                values:
-                  - cnpg
-          topologyKey: kubernetes.io/hostname
-    # 尽量跨节点分布
     topologyKey: kubernetes.io/hostname
+    tolerations: []
 
   # ================================================================
   # 自动故障转移
