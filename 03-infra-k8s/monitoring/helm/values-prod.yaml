@@ -113,7 +113,7 @@ grafana:
   persistence:
     enabled: true
     type: pvc
-    storageClassName: local-path
+    storageClassName: nfs-storage
     accessModes: [ReadWriteOnce]
     size: 5Gi
 
@@ -155,6 +155,10 @@ grafana:
   # plugins:
   #   - victoriametrics-logs-datasource
 
+  # 节点调度 - 强制调度到 k3s-server-3（预缓存了 grafana+sidecar 镜像）
+  nodeSelector:
+    kubernetes.io/hostname: k3s-server-3
+
   # 通过 sidecar 自动发现仪表板和 datasource
   sidecar:
     dashboards:
@@ -195,7 +199,7 @@ prometheus:
     storageSpec:
       volumeClaimTemplate:
         spec:
-          storageClassName: local-path
+          storageClassName: nfs-storage
           accessModes: [ReadWriteOnce]
           resources:
             requests:

@@ -1,0 +1,21 @@
+# nfs-storage StorageClass
+# 使用 NFS 服务器 192.168.5.249:/srv/nfs/k8s 作为动态存储后端
+# 每个 PVC 在 NFS 上自动创建子目录，命名格式: {namespace}-{pvcName}-{pvName}
+#
+# 使用方式:
+#   storageClassName: nfs-storage
+#
+# 注意事项:
+# - ReclaimPolicy: Delete（PVC 删除时自动清理 NFS 上的子目录）
+# - mountOptions: hard,intr（硬挂载，NFS 服务器重启时自动重连）
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-storage
+provisioner: nfs-storage
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+mountOptions:
+  - hard
+  - intr

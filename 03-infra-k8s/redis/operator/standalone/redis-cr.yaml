@@ -41,7 +41,7 @@ spec:
   storage:
     volumeClaimTemplate:
       spec:
-        storageClassName: local-path
+        storageClassName: nfs-storage
         accessModes: ["ReadWriteOnce"]
         resources:
           requests:

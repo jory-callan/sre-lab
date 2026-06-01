@@ -14,4 +14,4 @@ spec:
   resources:
     requests:
       storage: 1Gi  # 1GB 足够存储 Kite 的 SQLite 数据和配置
-  storageClassName: local-path  # k3s 默认的 local-path StorageClass，提供本地存储
+  storageClassName: nfs-storage  # NFS 共享存储，Pod 调度到任意节点数据不丢失
