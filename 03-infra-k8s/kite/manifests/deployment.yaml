@@ -55,11 +55,18 @@ spec:
           ports:
             - containerPort: 8080  # Kite 默认监听端口
               protocol: TCP
+          # 数据库环境变量 - 必须设置，否则 kite 使用内存数据库（重启丢数据）
+          # DB_TYPE=sqlite: 开启 SQLite 持久化
+          # DB_DSN:       SQLite 数据库文件路径（与 volumeMounts mountPath 一致）
+          env:
+            - name: DB_TYPE
+              value: sqlite
+            - name: DB_DSN
+              value: /app/data/kite.db
           # 持久化卷挂载 - SQLite 数据库文件存储在 PVC 上
-          # Kite 默认数据库路径为 /app/data/kite.db
           volumeMounts:
             - name: data
-              mountPath: /app/data  # SQLite 数据目录
+              mountPath: /app/data
       # 持久化卷定义 - 引用 PVC
       volumes:
         - name: data
