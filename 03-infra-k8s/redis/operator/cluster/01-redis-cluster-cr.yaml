@@ -36,14 +36,14 @@ spec:
     image: quay.io/opstree/redis:v7.0.15
     imagePullPolicy: IfNotPresent
 
-    # 生产资源限制
+    # 资源限制（2C 节点集群，调整适应）
     resources:
       requests:
-        cpu: 500m
-        memory: 512Mi
+        cpu: 200m
+        memory: 256Mi
       limits:
-        cpu: 2
-        memory: 2Gi
+        cpu: 1
+        memory: 1Gi
 
     # 密码认证
     redisSecret:
@@ -61,20 +61,6 @@ spec:
   podSecurityContext:
     runAsUser: 1000
     fsGroup: 1000
-
-  # Pod 反亲和 — 主从尽量跨节点
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector:
-              matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                    - redis-cluster
-            topologyKey: kubernetes.io/hostname
 
   # 数据存储
   storage:
