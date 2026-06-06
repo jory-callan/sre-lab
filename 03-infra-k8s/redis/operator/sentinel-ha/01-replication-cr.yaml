@@ -1,0 +1,112 @@
+# Redis Replication CR with Sentinel HA（主从复制 + 哨兵高可用）
+# 由 redis-operator 管理，创建：
+#   - 1 主 2 从 Redis 主从复制组（3 个 StatefulSet Pod）
+#   - 3 个 Sentinel Pod（自动创建，监控主从组）
+#
+# ⚠️ sentinel 不由独立的 RedisSentinel CR 管理
+#    而是通过 spec.sentinel 内嵌在 replication 中
+#    独立 RedisSentinel CR 不支持密码认证！踩坑记录见 踩坑记录.md
+#
+# 配置:
+#   - AOF everysec + RDB 持久化
+#   - maxmemory = 内存 limit 的 80%
+#   - noeviction 逐出策略（生产安全）
+#   - Sentinel quorum=2，故障自动转移
+#   - Redis Exporter 开启
+#   - podAntiAffinity 倾向跨节点分散
+#
+# 适用场景: 生产高可用（自动故障转移，推荐默认选择）
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisReplication
+metadata:
+  name: redis-replication
+  namespace: redis
+spec:
+  # 总副本数（1 主 + 2 从 = 3）
+  clusterSize: 3
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+
+    # 生产资源限制
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2
+        memory: 2Gi
+
+    # 密码认证 — sentinel 自动继承此 Secret，注入 MASTER_PASSWORD
+    redisSecret:
+      name: redis-auth
+      key: password
+
+  # Redis 配置
+  redisConfig:
+    dynamicConfig:
+      - "appendonly yes"
+      - "appendfsync everysec"
+      - "maxmemory-policy noeviction"
+    maxMemoryPercentOfLimit: 80
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # Pod 反亲和 — 倾向跨节点分散，3 个副本尽量分布在不同节点
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - redis-replication
+            topologyKey: kubernetes.io/hostname
+
+  # 持久化存储
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: nfs-storage
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+
+  # Redis Exporter
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+    imagePullPolicy: IfNotPresent
+
+  # ================================================================
+  # Sentinel 配置（内嵌在 RedisReplication CR 中）
+  # 由 replication controller 自动创建 sentinel Pod
+  # 密码从 kubernetesConfig.redisSecret 自动注入 MASTER_PASSWORD
+  # 不需要创建独立的 RedisSentinel CR！
+  # ================================================================
+  sentinel:
+    # Sentinel Pod 数量（生产至少 3 个）
+    size: 3
+
+    image: quay.io/opstree/redis-sentinel:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+
+    # ⚠️ 所有数值字段必须使用字符串类型（operator CRD 要求）
+    quorum: "2"                    # 判定主节点客观下线所需同意数
+    parallelSyncs: "1"             # 故障转移后同时同步的新从节点数
+    failoverTimeout: "10000"       # 故障转移超时（毫秒）
+    downAfterMilliseconds: "5000"  # 判定节点下线时间（毫秒）

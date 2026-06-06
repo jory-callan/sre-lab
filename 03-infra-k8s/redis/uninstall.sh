@@ -1,5 +1,6 @@
 #!/bin/bash
 # Redis 卸载脚本
+# 每个模式完全自包含，按模式独立卸载
 #
 # 用法:
 #   ./uninstall.sh                  # 删除所有 Redis 实例 + operator
@@ -9,7 +10,7 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 OPERATOR_NS="redis-operator"
 REDIS_NS="redis"
 
@@ -32,7 +33,7 @@ delete_instance() {
   local cr_dir="$SCRIPT_DIR/operator/$mode"
 
   if [ -d "$cr_dir" ]; then
-    echo "→ 删除 $mode CR..."
+    echo "→ 删除 $mode 实例..."
     kubectl delete -f "$cr_dir/" 2>/dev/null || true
   fi
 }
@@ -53,10 +54,6 @@ case "$MODE" in
     ;;
   standalone)
     delete_instance standalone
-    # 如果只剩 standalone 一个模式了就顺便清 common
-    if ! ls "$SCRIPT_DIR/operator/"*/ -d 2>/dev/null | grep -v common >/dev/null 2>&1; then
-      kubectl delete -f "$SCRIPT_DIR/operator/common/" 2>/dev/null || true
-    fi
     echo ""
     echo "✅ standalone 实例已删除，operator 保留"
     ;;
@@ -74,4 +71,4 @@ esac
 
 echo ""
 echo "📊 剩余 Redis 实例："
-kubectl get redis,redisreplication,redissentinel,rediscluster -n "$REDIS_NS" 2>/dev/null || echo "   (无)"
+kubectl get redis,redisreplication,rediscluster -n "$REDIS_NS" 2>/dev/null || echo "   (无)"

@@ -1,0 +1,93 @@
+# Redis Standalone CR — 单实例模式
+# 由 redis-operator 管理，创建 1 个 Redis Pod + ClusterIP Service
+#
+# 镜像: quay.io/opstree/redis:v7.0.15
+#   ⚠️ 必须使用 operator 定制镜像（含自定义 entrypoint，负责密码注入、配置合并等）
+#     官方 redis 镜像没有这些 hook，会导致 redisSecret 密码认证失效
+#   ⚠️ v7.0.x 仍为 BSD 开源协议（v7.4+ 改为 SSPL/RSAL）
+#
+# 配置:
+#   - AOF everysec + RDB 持久化
+#   - maxmemory = 内存 limit 的 80%
+#   - noeviction 逐出策略（生产安全，缓存场景改为 allkeys-lru）
+#   - Redis Exporter 开启（Prometheus 指标）
+#   - podAntiAffinity 倾向分散调度
+#
+# 适用场景: 开发/轻量缓存（无高可用，单点故障风险）
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: Redis
+metadata:
+  name: redis-standalone
+  namespace: redis
+spec:
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+
+    # 生产资源限制（缓存场景可降低）
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+
+    # 密码认证 - 引用 Secret 中的 password 字段
+    redisSecret:
+      name: redis-auth
+      key: password
+
+    # 默认服务类型为 ClusterIP，外部访问通过 02-service-external.yaml（NodePort）
+    service:
+      serviceType: ClusterIP
+
+  # Redis 配置
+  redisConfig:
+    dynamicConfig:
+      - "appendonly yes"
+      - "appendfsync everysec"
+      - "maxmemory-policy noeviction"
+    maxMemoryPercentOfLimit: 80
+
+  # Pod 安全上下文
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # Pod 反亲和 — 倾向分散到不同节点
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - redis-standalone
+            topologyKey: kubernetes.io/hostname
+
+  # 持久化存储（生产建议至少 5Gi，按需调整）
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: nfs-storage
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+
+  # Redis Exporter — 暴露 Prometheus 指标
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi

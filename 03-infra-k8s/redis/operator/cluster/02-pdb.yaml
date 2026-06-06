@@ -1,0 +1,13 @@
+# PodDisruptionBudget — 保障集群不被整体驱逐
+# 6 个 Redis Cluster Pod（3 主 3 从），至少 3 个可用
+# 保证每个主节点至少有一个存活
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-cluster-pdb
+  namespace: redis
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      redis_cluster: redis-cluster

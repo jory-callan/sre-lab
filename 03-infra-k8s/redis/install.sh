@@ -1,15 +1,21 @@
 #!/bin/bash
 # Redis 安装脚本
+# 每个模式完全自包含，不依赖公共资源
 #
 # 用法:
 #   ./install.sh                  # 安装 operator + standalone（默认）
-#   ./install.sh standalone       # 同上
-#   ./install.sh sentinel-ha      # 安装 operator(已装则跳过) + sentinel HA
-#   ./install.sh cluster          # 安装 operator(已装则跳过) + cluster
+#   ./install.sh standalone       # 单节点
+#   ./install.sh sentinel-ha      # Sentinel 高可用（生产推荐）
+#   ./install.sh cluster          # 集群模式
+#
+# 注意事项:
+#   - operator 只装一次，切换模式只需 ./install.sh <模式>
+#   - 不同模式可以同时部署（各自独立 CR，不冲突）
+#   - 每个模式目录包含完整资源（secret + CR + service + PDB）
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 HELM_DIR="$SCRIPT_DIR/helm"
 CHART_DIR="$HELM_DIR/remote-redis-operator-0.24.0"
 VALUES="$HELM_DIR/values-prod.yaml"
@@ -53,19 +59,16 @@ install_operator() {
 }
 
 # ============================================================
-# 安装 Redis 实例（按模式）
+# 安装 Redis 实例（按模式，完全自包含）
 # ============================================================
 install_instance() {
   local mode="$1"
   local cr_dir="$SCRIPT_DIR/operator/$mode"
 
-  # 先确保命名空间存在
+  # 确保命名空间存在
   kubectl create namespace "$REDIS_NS" --dry-run=client -o yaml | kubectl apply -f -
 
-  # 应用公共资源（Secret 等）
-  kubectl apply -f "$SCRIPT_DIR/operator/common/"
-
-  # 应用模式专属 CR
+  # 应用模式目录下所有资源（自包含：secret + CR + service + PDB）
   if [ -d "$cr_dir" ]; then
     kubectl apply -f "$cr_dir/"
   else
@@ -78,7 +81,6 @@ install_instance() {
   echo "⏳ 等待 Redis ($mode) 就绪..."
   sleep 10
 
-  # 根据模式显示不同的输出
   case "$mode" in
     standalone)
       echo ""
@@ -94,11 +96,11 @@ install_instance() {
       echo "✅ Redis Sentinel HA 部署完成！"
       echo ""
       echo "📝 连接方式："
-      echo "   Sentinel: <任一节点IP>:30004"
-      echo "   主节点地址: redis-replication-0.redis-replication-headless.redis.svc.cluster.local:6379"
+      echo "   Sentinel 外部: <任一节点IP>:30004"
+      echo "   集群内主节点: redis-replication-0.redis-replication-headless.redis.svc.cluster.local:6379"
       echo "   密码: redis@czw"
       echo ""
-      echo "⚠️  Sentinel 由 replication controller 自动管理，不单独创建 CR"
+      echo "⚠️  Sentinel 由 replication controller 自动管理"
       echo "   查看: kubectl get pods -n redis -w"
       ;;
     cluster)
@@ -111,16 +113,17 @@ install_instance() {
       echo ""
       echo "⚠️  注意：集群初始化需等待所有节点就绪（6 个实例）"
       echo "   kubectl get pods -n redis -w"
+      echo ""
+      echo "⚠️  Cluster 不暴露 NodePort（建议集群内访问）"
       ;;
   esac
 
   echo ""
   echo "🔍 查看状态："
   echo "   kubectl get pods -n $REDIS_NS"
-  echo "   kubectl get $MODE_CRD -n $REDIS_NS"
+  echo "   kubectl get redis,redisreplication,rediscluster -n $REDIS_NS"
 }
 
-# 模式对应的 CRD 类型
 case "$MODE" in
   standalone)   MODE_CRD="redis" ;;
   sentinel-ha)  MODE_CRD="redisreplication" ;;
@@ -132,4 +135,4 @@ install_instance "$MODE"
 
 echo ""
 echo "📊 当前集群 Redis 实例："
-kubectl get redis,redisreplication,redissentinel,rediscluster -n "$REDIS_NS" 2>/dev/null || true
+kubectl get redis,redisreplication,rediscluster -n "$REDIS_NS" 2>/dev/null || true

@@ -1,0 +1,103 @@
+# Redis Cluster CR（集群模式 — 分片 + 副本）
+# 由 redis-operator 管理，创建 3 主 3 从的 Redis 集群
+# 每个实例独立 PVC，支持自动分片和故障转移
+#
+# 配置:
+#   - 3 master + 3 replica
+#   - AOF everysec + RDB 持久化
+#   - maxmemory = 内存 limit 的 80%
+#   - noeviction 逐出策略（生产安全）
+#   - node.conf 使用独立 PVC 持久化（避免重启后集群拓扑丢失）
+#   - Redis Exporter 开启
+#
+# 适用场景:
+#   - 大规模数据（单机内存不够，需分片）
+#   - 客户端支持 Redis Cluster（go-redis 的 ClusterClient）
+#   - 不适合小数据集和简单缓存场景
+#
+# ⚠️ 注意:
+#   - 不支持跨集群 NodePort 外部访问，优先集群内 Service
+#   - 客户端必须支持 cluster slot redirect
+#   - 生产建议至少 5 节点集群（6 Pod 分散调度）
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisCluster
+metadata:
+  name: redis-cluster
+  namespace: redis
+spec:
+  # 集群主节点数（3 主 = 自动分配 3 从，共 6 实例）
+  clusterSize: 3
+  clusterVersion: v7
+
+  # 启用持久化
+  persistenceEnabled: true
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v7.0.15
+    imagePullPolicy: IfNotPresent
+
+    # 生产资源限制
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2
+        memory: 2Gi
+
+    # 密码认证
+    redisSecret:
+      name: redis-auth
+      key: password
+
+  # Redis 配置
+  redisConfig:
+    dynamicConfig:
+      - "appendonly yes"
+      - "appendfsync everysec"
+      - "maxmemory-policy noeviction"
+    maxMemoryPercentOfLimit: 80
+
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # Pod 反亲和 — 主从尽量跨节点
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                    - redis-cluster
+            topologyKey: kubernetes.io/hostname
+
+  # 数据存储
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: nfs-storage
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+    # 集群节点配置持久化（避免重启后节点拓扑信息丢失）
+    nodeConfVolume: true
+    nodeConfVolumeClaimTemplate:
+      spec:
+        storageClassName: nfs-storage
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+  # Redis Exporter
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:v1.44.0
+    imagePullPolicy: IfNotPresent
