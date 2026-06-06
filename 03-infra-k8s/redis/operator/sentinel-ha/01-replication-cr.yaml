@@ -51,13 +51,13 @@ spec:
     imagePullPolicy: IfNotPresent
 
     # 生产资源限制（2C 节点按需下调）
-    resources:
-      requests:
-        cpu: 500m
-        memory: 512Mi
-      limits:
-        cpu: 2
-        memory: 2Gi
+    # resources:
+    #   requests:
+    #     cpu: 500m
+    #     memory: 512Mi
+    #   limits:
+    #     cpu: 2
+    #     memory: 2Gi
 
     # 密码认证 — sentinel 自动继承此 Secret，注入 MASTER_PASSWORD
     redisSecret:

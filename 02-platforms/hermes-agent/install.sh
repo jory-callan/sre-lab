@@ -5,6 +5,9 @@ set -e
 # 192.168.5.104 Ubuntu 26.04，root 免密 SSH。
 # 安装 uv（清华源）+ Hermes Agent v0.16.0（官方脚本，FHS 布局）。
 
+apt update
+apt install -y python3-venv python3-full
+
 echo "==> 安装 uv"
 curl -fsSL https://astral.sh/uv/install.sh | bash
 source "$HOME/.local/bin/env"
