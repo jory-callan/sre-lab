@@ -1,0 +1,13 @@
+---
+# Standalone 额外 Redis 配置
+# 此 ConfigMap 被 standalone CR 的 additionalRedisConfig 引用
+# 由 operator entrypoint 读取并通过 CONFIG SET 应用
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-external-config-standalone
+  namespace: redis
+data:
+  redis-additional.conf: |
+    # 网络稳定性 — 快速检测死连接
+    tcp-keepalive 60

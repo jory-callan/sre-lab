@@ -44,6 +44,8 @@ spec:
 
   # Redis 配置
   redisConfig:
+    # 引用外部 ConfigMap（包含额外配置，通过 CONFIG SET 生效）
+    additionalRedisConfig: redis-external-config-standalone
     dynamicConfig:
       - "appendonly yes"
       - "appendfsync everysec"

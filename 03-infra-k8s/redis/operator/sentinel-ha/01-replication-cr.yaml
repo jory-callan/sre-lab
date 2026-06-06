@@ -3,19 +3,39 @@
 #   - 1 主 2 从 Redis 主从复制组（3 个 StatefulSet Pod）
 #   - 3 个 Sentinel Pod（自动创建，监控主从组）
 #
-# ⚠️ sentinel 不由独立的 RedisSentinel CR 管理
-#    而是通过 spec.sentinel 内嵌在 replication 中
-#    独立 RedisSentinel CR 不支持密码认证！踩坑记录见 踩坑记录.md
-#
-# 配置:
-#   - AOF everysec + RDB 持久化
-#   - maxmemory = 内存 limit 的 80%
-#   - noeviction 逐出策略（生产安全）
-#   - Sentinel quorum=2，故障自动转移
-#   - Redis Exporter 开启
-#   - podAntiAffinity 倾向跨节点分散
-#
 # 适用场景: 生产高可用（自动故障转移，推荐默认选择）
+#
+# ════════════════════════════════════════════════════════════════
+# ⚠️  脑裂风险说明
+# ════════════════════════════════════════════════════════════════
+# Sentinel 脑裂的路径：
+#   网络分区 → 一侧哨兵凑够 quorum → 选新 master → 分区恢复 → 两个 master
+#
+# 本配置通过以下多层机制将脑裂概率降到接近 0：
+#
+# 1) downAfterMilliseconds=15000（不是默认 5000）
+#    网络短暂抖动（几秒的丢包）不会触发不必要的 failover
+#
+# 2) quorum=2（3 个哨兵中至少 2 个同意）
+#    单点哨兵无法独立触发 failover，避免哨兵自身故障导致误判
+#
+# 3) min-replicas-to-write=1（Redis 端兜底）
+#    如果所有 replica 都失联（分区），master 拒绝写入
+#    这是防脑裂最关键的一行：分区期间不会产生新数据
+#
+# 4) min-replicas-max-lag=10（Redis 端兜底）
+#    replica 延迟超过 10 秒 → master 拒绝写入
+#    防止 replica 落后太多时的数据不一致
+#
+# 5) tcp-keepalive=60（TCP 层）
+#    60 秒发送探测包，及时发现死连接
+#    避免 sentinel 因为 TCP 连接假死而误判节点状态
+#
+# 6) repl-backlog-size=100mb（网络波动缓冲）
+#    网络短暂中断后，replica 重连可以从 backlog 增量同步
+#    不需要全量 RDB 同步，降低带宽压力
+#
+# ════════════════════════════════════════════════════════════════
 apiVersion: redis.redis.opstreelabs.in/v1beta2
 kind: RedisReplication
 metadata:
@@ -23,13 +43,14 @@ metadata:
   namespace: redis
 spec:
   # 总副本数（1 主 + 2 从 = 3）
+  # 3 个副本配合 quorum=2：任意 1 个节点掉线不影响集群运作
   clusterSize: 3
 
   kubernetesConfig:
     image: quay.io/opstree/redis:v7.0.15
     imagePullPolicy: IfNotPresent
 
-    # 生产资源限制
+    # 生产资源限制（2C 节点按需下调）
     resources:
       requests:
         cpu: 500m
@@ -43,19 +64,32 @@ spec:
       name: redis-auth
       key: password
 
-  # Redis 配置
+  # ══════════════════════════════════════════════════════════════
+  # Redis 运行时配置
+  # 说明：
+  #   additionalRedisConfig → 引用 ConfigMap，由 entrypoint 通过 CONFIG SET 应用
+  #   dynamicConfig → 基础配置项（operator 确认生效的部分）
+  # ══════════════════════════════════════════════════════════════
   redisConfig:
+    # 引用外部 ConfigMap（防脑裂、网络稳定性等额外配置）
+    additionalRedisConfig: redis-external-config-sentinel
     dynamicConfig:
       - "appendonly yes"
       - "appendfsync everysec"
       - "maxmemory-policy noeviction"
+
+    # maxmemory 自动计算：内存 limit 的 80%
+    # 当内存 limit 为 2Gi 时，maxmemory = 1.6Gi
     maxMemoryPercentOfLimit: 80
 
   podSecurityContext:
     runAsUser: 1000
     fsGroup: 1000
 
-  # Pod 反亲和 — 倾向跨节点分散，3 个副本尽量分布在不同节点
+  # Pod 反亲和 — 倾向跨节点分散
+  # 作用：尽量让 3 个副本分布在不同的物理节点
+  #        避免单节点宕机导致所有副本丢失
+  # 注意：preferred（软约束）→ 尽力调度，不阻塞创建
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -69,7 +103,7 @@ spec:
                     - redis-replication
             topologyKey: kubernetes.io/hostname
 
-  # 持久化存储
+  # 持久化存储（生产建议至少 5Gi）
   storage:
     volumeClaimTemplate:
       spec:
@@ -79,20 +113,21 @@ spec:
           requests:
             storage: 5Gi
 
-  # Redis Exporter
+  # Redis Exporter — Prometheus 指标
   redisExporter:
     enabled: true
     image: quay.io/opstree/redis-exporter:v1.44.0
     imagePullPolicy: IfNotPresent
 
-  # ================================================================
+  # ══════════════════════════════════════════════════════════════
   # Sentinel 配置（内嵌在 RedisReplication CR 中）
   # 由 replication controller 自动创建 sentinel Pod
   # 密码从 kubernetesConfig.redisSecret 自动注入 MASTER_PASSWORD
   # 不需要创建独立的 RedisSentinel CR！
-  # ================================================================
+  # ══════════════════════════════════════════════════════════════
   sentinel:
     # Sentinel Pod 数量（生产至少 3 个）
+    # 3 个 + quorum=2：容忍 1 个哨兵故障
     size: 3
 
     image: quay.io/opstree/redis-sentinel:latest
@@ -106,7 +141,42 @@ spec:
         memory: 128Mi
 
     # ⚠️ 所有数值字段必须使用字符串类型（operator CRD 要求）
-    quorum: "2"                    # 判定主节点客观下线所需同意数
-    parallelSyncs: "1"             # 故障转移后同时同步的新从节点数
-    failoverTimeout: "10000"       # 故障转移超时（毫秒）
-    downAfterMilliseconds: "5000"  # 判定节点下线时间（毫秒）
+    # ⚠️ 修改后不会自动重建 sentinel Pod，需手动删除重启
+
+    quorum: "2"
+    # Sentinel quorum（法定同意数）
+    # 判定 master 客观下线（ODOWN）所需的最少 sentinel 同意数
+    # 3 个哨兵 + quorum=2：至少 2 个哨兵同意才触发 failover
+    #     调低风险（1）：单个哨兵就能触发 failover（网络误判风险）
+    #     调高风险（3）：需要全部 3 个哨兵同意（可能无法 failover）
+    # 推荐：2
+
+    parallelSyncs: "1"
+    # 故障转移后，同时与新 master 同步的 replica 数
+    # 1：逐个同步，避免带宽骤增（推荐）
+    # >1：并行同步，切换更快但带宽压力大
+    # 推荐：1（网络不稳定环境保持 1）
+
+    failoverTimeout: "30000"
+    # 故障转移超时（毫秒）
+    # 从触发 failover 到完成的最大等待时间
+    # 默认 10000ms 偏紧，网络不稳时易超时导致切换失败
+    # 推荐：30000ms（30 秒），容忍网络波动
+
+    downAfterMilliseconds: "15000"
+    # 判定节点下线的时间（毫秒）
+    # 这是 Sentinel 防脑裂最关键的参数
+    # 如果设太短：网络短暂丢包 → 哨兵误判 master down → 无用的 failover
+    # 如果设太长：节点真宕机 → 哨兵反应慢 → 切换延迟大
+    # 默认 5000ms 在网络波动环境偏短，容易误触发
+    # 推荐：15000ms（15 秒）。网络极差可设 30000
+
+    # 额外 Sentinel 配置（通过 CRD 未覆盖的自定义项）
+    # 可以加的内容举例：
+    #   notification-script  → failover 时发告警
+    #   client-reconfig-script → failover 后更新 DNS/service
+    # 留空，生产按需填入
+    additionalSentinelConfig: ""
+
+    # Sentinel 连通性校验 — 是否定期使用 PING 检查节点存活
+    # sentinel resolve-hostnames no  # 默认不解析主机名（用 IP）
