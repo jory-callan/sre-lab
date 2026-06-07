@@ -28,7 +28,7 @@ spec:
     spec:
       serviceAccountName: kite  # 绑定拥有 cluster-admin 权限的 ServiceAccount
       containers:
-        - image: ghcr.io/kite-org/kite:latest
+        - image: ghcr.io/kite-org/kite:v0.12.3
           imagePullPolicy: IfNotPresent  # 本地已有镜像则不再拉取
           name: kite
           resources:

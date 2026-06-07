@@ -2,6 +2,10 @@
 # 启用持久化和 Ingress，适配 k3s local-path 存储和 ingress-nginx
 # 在 install.sh helm 模式下通过 -f 加载此文件
 
+# 镜像标签 - 覆盖 Chart.yaml appVersion，指定确切版本
+image:
+  tag: v0.12.3
+
 # 部署策略 - 使用 Recreate 避免 PVC 挂载冲突
 # 原因：SQLite + ReadWriteOnce PVC，RollingUpdate 会导致新 Pod pending
 deploymentStrategy:
