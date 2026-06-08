@@ -3,6 +3,10 @@
 !.vscode/settings.json
 .idea
 
+.claude
+.pi
+.hermes
+
 data
 
 logs
