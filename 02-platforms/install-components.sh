@@ -10,7 +10,8 @@ echo "选择要安装的组件："
 echo "1) ingress-nginx"
 echo "2) MetalLB"
 echo "3) demo-go-tiny"
-echo "4) 安装所有"
+echo "4) kubectl + helm"
+echo "5) 安装所有"
 echo "q) 退出"
 echo ""
 read -p "请输入选项: " choice
@@ -36,7 +37,15 @@ case $choice in
     ;;
   4)
     echo ""
+    echo "安装 kubectl + helm..."
+    cd "$SCRIPT_DIR/kubectl-helm"
+    ./install.sh
+    ;;
+  5)
+    echo ""
     echo "安装所有组件..."
+    cd "$SCRIPT_DIR/kubectl-helm"
+    ./install.sh
     cd "$SCRIPT_DIR/../03-infra-k8s/ingress-nginx/dev"
     ./install.sh
     cd "$SCRIPT_DIR/../03-infra-k8s/metallb/dev"
