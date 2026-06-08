@@ -148,7 +148,7 @@ install_helm() {
     
     log_info "安装 helm..."
     
-    curl -fsSL -o /tmp/get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    curl -fsSL -o /tmp/get_helm.sh https://gh-proxy.com/https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
     chmod 700 /tmp/get_helm.sh
     /tmp/get_helm.sh
     rm -f /tmp/get_helm.sh

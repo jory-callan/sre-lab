@@ -5,8 +5,38 @@ set -e
 # 192.168.5.104 Ubuntu 26.04，root 免密 SSH。
 # 安装 fnm + Node.js LTS，配置 npmmirror 国内镜像源。
 
-echo "==> 安装 fnm"
-curl -fsSL https://gh-proxy.com/https://github.com/Schniz/fnm/raw/master/.ci/install.sh | bash -s -- --install-dir /usr/local/bin
+proxy_github_urls() {
+  local file="$1"
+
+  # 先归一化，避免重复代理成 gh-proxy.com/https://gh-proxy.com/...
+  sed -i \
+    -e 's#https://gh-proxy.com/https://github.com/#https://github.com/#g' \
+    -e 's#https://gh-proxy.com/https://raw.githubusercontent.com/#https://raw.githubusercontent.com/#g' \
+    -e 's#https://gh-proxy.com/https://api.github.com/#https://api.github.com/#g' \
+    "$file"
+
+  # fnm 官方安装脚本内部还会访问 GitHub release / raw / API，需要执行前批量代理
+  sed -i \
+    -e 's#https://github.com/#https://gh-proxy.com/https://github.com/#g' \
+    -e 's#https://raw.githubusercontent.com/#https://gh-proxy.com/https://raw.githubusercontent.com/#g' \
+    -e 's#https://api.github.com/#https://gh-proxy.com/https://api.github.com/#g' \
+    "$file"
+}
+
+echo "==> 下载 fnm 安装脚本"
+FNM_INSTALL_SCRIPT="$(mktemp /tmp/fnm-install.XXXXXX.sh)"
+trap 'rm -f "$FNM_INSTALL_SCRIPT"' EXIT
+curl -fsSL https://gh-proxy.com/https://github.com/Schniz/fnm/raw/master/.ci/install.sh -o "$FNM_INSTALL_SCRIPT"
+
+proxy_github_urls "$FNM_INSTALL_SCRIPT"
+
+if grep -nE 'https://(github.com|raw.githubusercontent.com|api.github.com)/' "$FNM_INSTALL_SCRIPT" | grep -v 'https://gh-proxy.com/'; then
+  echo "ERROR: fnm 安装脚本仍存在未代理的 GitHub URL"
+  exit 1
+fi
+
+echo "==> 执行 fnm 安装脚本"
+bash "$FNM_INSTALL_SCRIPT" --install-dir /usr/local/bin
 
 echo "==> 写入系统级 fnm 环境变量"
 cat > /etc/profile.d/fnm.sh << 'EOF'

@@ -73,7 +73,7 @@ install_etcdctl() {
     
     log_info "下载 etcdctl $ETCD_VERSION ..."
     
-    curl -sL "https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-${ARCH}.tar.gz" | \
+    curl -sL "https://gh-proxy.com/https://github.com/etcd-io/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-${ARCH}.tar.gz" | \
         tar -zx -C /tmp --strip-components=1 "etcd-${ETCD_VERSION}-linux-${ARCH}/etcdctl"
     
     mv /tmp/etcdctl /usr/local/bin/
