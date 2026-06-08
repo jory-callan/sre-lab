@@ -15,7 +15,7 @@ set -e
 #   FORCE=true KUBECTL_VERSION=1.31.13 HELM_VERSION=3.17.2 bash install.sh
 #
 # 说明:
-#   - kubectl 从阿里云镜像下载（国内快）
+#   - kubectl 优先尝试清华源，失败后自动 fallback 到官方源
 #   - helm 从 GitHub releases 下载（经 gh-proxy.com 代理）
 #   - 安装到 /usr/local/bin/
 
@@ -27,6 +27,28 @@ HELM_VERSION="${HELM_VERSION:-3.17.2}"
 ARCH="${ARCH:-amd64}"
 OS="${OS:-linux}"
 FORCE="${FORCE:-false}"
+
+download_file_with_fallback() {
+  local output="$1"
+  shift
+
+  local url
+  local tried_urls=""
+
+  for url in "$@"; do
+    tried_urls="${tried_urls}  - ${url}\n"
+    echo "   尝试下载: $url"
+    if curl -fsSL -o "$output" "$url"; then
+      echo "   下载成功: $url"
+      return 0
+    fi
+    echo "   下载失败，尝试下一个源"
+  done
+
+  echo "ERROR: 下载失败，已尝试以下地址:"
+  printf "%b" "$tried_urls"
+  return 1
+}
 
 # ==============================================
 # 安装 kubectl
@@ -41,12 +63,22 @@ install_kubectl() {
 
   echo "==> 安装 kubectl v${KUBECTL_VERSION} (${OS}/${ARCH})"
 
-  # 阿里云镜像（国内快），若需要可改为官方地址
-  #  官方: https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl
-  local url="https://mirrors.aliyun.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl"
+  # 清华源优先；清华源未同步该版本时 fallback 到官方源。
+  # 阿里云 kubernetes-release 镜像对较新 patch 版本经常缺失，放在最后兜底。
+  local tmp_file
+  tmp_file="$(mktemp /tmp/kubectl.XXXXXX)"
 
-  curl -fsSL -o /usr/local/bin/kubectl "$url"
-  chmod +x /usr/local/bin/kubectl
+  if ! download_file_with_fallback "$tmp_file" \
+    "https://mirrors.tuna.tsinghua.edu.cn/kubernetes/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" \
+    "https://mirrors.tuna.tsinghua.edu.cn/kubernetes-release/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" \
+    "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl" \
+    "https://mirrors.aliyun.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/${OS}/${ARCH}/kubectl"; then
+    rm -f "$tmp_file"
+    exit 1
+  fi
+
+  install -m 0755 "$tmp_file" /usr/local/bin/kubectl
+  rm -f "$tmp_file"
 
   echo "   kubectl v${KUBECTL_VERSION} -> /usr/local/bin/kubectl"
 }

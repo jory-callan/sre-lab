@@ -40,5 +40,9 @@ helm version
 
 ## 镜像源
 
-- kubectl: 阿里云镜像 `mirrors.aliyun.com/kubernetes-release/release/`（国内快）
+- kubectl: 优先清华源，失败后自动 fallback 到官方 `dl.k8s.io`，最后尝试阿里云镜像
+  - 清华源常见路径：`mirrors.tuna.tsinghua.edu.cn/kubernetes/release/`
+  - 官方源：`dl.k8s.io/release/`
+  - 阿里云源：`mirrors.aliyun.com/kubernetes-release/release/`
+  - 注意：部分镜像源可能没有同步较新的 patch 版本，例如 `v1.31.13`，脚本会自动尝试下一个源
 - helm: GitHub releases via `gh-proxy.com`
