@@ -153,17 +153,37 @@ NFS Provisioner 同时支持 RWO 和 RWX。指定 `accessModes: [ReadWriteOnce]`
 
 ---
 
-## 6. 快速开始
+## 快速开始
+
+> **推荐使用 Helm 部署**（功能最完整，支持 ConfigMap 自定义配置）：
 
 ```bash
-# 创建 namespace + Secret + PVC + Deployment + Service + PDB
-./install.sh
+# 创建 namespace
+kubectl create namespace redis-deployment
 
-# 验证
-kubectl get pods -n redis-deployment -w
-redis-cli -h <节点IP> -p 30007 ping
-redis-cli -h <节点IP> -p 30007 -a 'redis@czw' SET foo bar
-redis-cli -h <节点IP> -p 30007 -a 'redis@czw' GET foo
+# Helm 部署（支持自定义配置）
+helm upgrade --install redis-standalone ./helm \
+  --namespace redis-deployment \
+  --create-namespace \
+  --timeout 3m \
+  --wait
+```
+
+或使用安装脚本：
+
+```bash
+./helm/install.sh
+```
+
+### 自定义 Redis 配置
+
+编辑 `helm/values.yaml` 中的 `config.files.redis.conf`，然后升级：
+
+```bash
+helm upgrade redis-standalone ./helm --namespace redis-deployment
+```
+
+### 验证
 ```
 
 ## 7. 卸载
