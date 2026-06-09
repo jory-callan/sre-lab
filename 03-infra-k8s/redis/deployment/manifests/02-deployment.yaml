@@ -33,10 +33,7 @@ spec:
       - name: redis
         image: redis:7.0-alpine
         imagePullPolicy: IfNotPresent
-        command:
-        - redis-server
         args:
-        - /etc/redis/redis.conf
         - --requirepass
         - $(REDIS_PASSWORD)
         - --appendonly
@@ -49,6 +46,8 @@ spec:
         - "256mb"
         - --maxmemory-policy
         - noeviction
+        - --protected-mode
+        - "no"
         ports:
         - containerPort: 6379
           name: redis

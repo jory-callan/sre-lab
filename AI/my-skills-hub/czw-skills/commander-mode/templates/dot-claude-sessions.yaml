@@ -1,0 +1,9 @@
+# .claude-sessions.yaml
+# 记录项目使用过的 Claude CLI Session，持久化保存
+# 指挥官换窗口也能知道之前的 session
+
+sessions:
+  - id: ""          # UUID，如 "fdc177f2-ffc7-445b-b9af-3098cfaac39c"
+    module: ""      # 模块名，如 "backend", "frontend", "init"
+    description: "" # 简短描述，如 "后端开发", "前端修复登录框"
+    created_at: ""  # ISO8601 时间

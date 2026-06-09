@@ -50,7 +50,7 @@
 │                                  │
 │  Service: redis-standalone       │
 │  └── ClusterIP: 6379             │
-│  └── NodePort: 30005             │
+│  └── NodePort: 30007             │
 │                                  │
 │  PDB: redis-standalone           │
 │  └── maxUnavailable: 1           │
@@ -161,9 +161,9 @@ NFS Provisioner 同时支持 RWO 和 RWX。指定 `accessModes: [ReadWriteOnce]`
 
 # 验证
 kubectl get pods -n redis-deployment -w
-redis-cli -h <节点IP> -p 30005 ping
-redis-cli -h <节点IP> -p 30005 -a 'redis@czw' SET foo bar
-redis-cli -h <节点IP> -p 30005 -a 'redis@czw' GET foo
+redis-cli -h <节点IP> -p 30007 ping
+redis-cli -h <节点IP> -p 30007 -a 'redis@czw' SET foo bar
+redis-cli -h <节点IP> -p 30007 -a 'redis@czw' GET foo
 ```
 
 ## 7. 卸载
