@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-standalone
+  namespace: redis-deployment
+  labels:
+    app: redis-standalone
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: redis-standalone
+  template:
+    metadata:
+      labels:
+        app: redis-standalone
+    spec:
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - redis-standalone
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: redis
+        image: redis:7.0-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - redis-server
+        args:
+        - /etc/redis/redis.conf
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - "yes"
+        - --appendfsync
+        - everysec
+        - --save
+        - "3600 1"
+        - --maxmemory
+        - "256mb"
+        - --maxmemory-policy
+        - noeviction
+        ports:
+        - containerPort: 6379
+          name: redis
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-auth
+              key: password
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -ec
+            - |
+              RESP="$(redis-cli -h 127.0.0.1 -p 6379 -a ${REDIS_PASSWORD} ping)"
+              [ "$RESP" = "PONG" ]
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -ec
+            - |
+              RESP="$(redis-cli -h 127.0.0.1 -p 6379 -a ${REDIS_PASSWORD} ping)"
+              [ "$RESP" = "PONG" ]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: redis-data
