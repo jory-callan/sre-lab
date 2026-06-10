@@ -1,0 +1,20 @@
+# VictoriaLogs NodePort Service
+# 用于局域网外部访问，不影响内部 Fluent Bit → ClusterIP 的日志链路
+apiVersion: v1
+kind: Service
+metadata:
+  name: victoria-logs-external
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: victoria-logs
+    app.kubernetes.io/component: external-access
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 9428
+      targetPort: http
+      nodePort: 30010
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: victoria-logs
