@@ -14,7 +14,7 @@ spec:
     - name: http
       port: 9428
       targetPort: http
-      nodePort: 30010
+      nodePort: 30104
       protocol: TCP
   selector:
     app.kubernetes.io/name: victoria-logs

@@ -6,9 +6,10 @@ metadata:
     app: demo-go-tiny
 spec:
   type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      nodePort: 30301
+      protocol: TCP
   selector:
     app: demo-go-tiny
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080

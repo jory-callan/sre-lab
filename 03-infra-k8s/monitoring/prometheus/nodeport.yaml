@@ -14,7 +14,7 @@ spec:
     - name: http
       port: 9090
       targetPort: 9090
-      nodePort: 30008
+      nodePort: 30102
       protocol: TCP
   selector:
     app.kubernetes.io/name: prometheus

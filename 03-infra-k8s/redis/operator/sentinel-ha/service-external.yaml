@@ -14,7 +14,7 @@ spec:
       port: 26379
       targetPort: 26379
       name: sentinel
-      nodePort: 30004
+      nodePort: 30203
   selector:
     redis_setup_type: sentinel
     role: sentinel

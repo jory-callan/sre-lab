@@ -140,7 +140,7 @@ grafana:
     type: NodePort
     port: 80
     targetPort: 3000
-    nodePort: 30002
+    nodePort: 30101
 
   # 资源限制
   resources:

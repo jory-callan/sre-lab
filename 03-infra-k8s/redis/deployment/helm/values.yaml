@@ -134,7 +134,7 @@ service:
     - name: app
       port: 6379
       targetPort: app
-      nodePort: 30007
+      nodePort: 30202
   annotations: {}
 
 probes:
