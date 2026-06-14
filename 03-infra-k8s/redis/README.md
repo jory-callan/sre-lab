@@ -1,9 +1,31 @@
-# Redis — 内存缓存/数据库（Operator 方式）
+# Redis on K8s — 内存缓存/数据库（HA 高可用）
 
-基于 [OT-CONTAINER-KIT/redis-operator](https://github.com/OT-CONTAINER-KIT/redis-operator) 部署，
-支持三种独立模式，每个模式完全自包含（secret + CR + service + PDB）。
+## Operator 选择
+
+本项目提供两套 Redis Operator，按需选择：
+
+| Operator | 特点 | 适用场景 |
+|----------|------|----------|
+| **[OT-CONTAINER-KIT/redis-operator](https://github.com/OT-CONTAINER-KIT/redis-operator)** | 活跃维护，3 种模式（standalone/sentinel-ha/cluster），功能丰富 | 大多数场景，不介意 master 强制切换 |
+| **[spotahome/redis-operator](https://github.com/spotahome/redis-operator)** | ✅ **不强制 pod-0 为 master**，故障转移 < 30s | 对 pod-0 强切敏感的生产场景 |
+
+### 速览
+
+| 特性 | OT sentinel-ha | spotahome sentinel-ha |
+|------|---------------|----------------------|
+| Pod 数 | 3 Redis + 3 Sentinel | 3 Redis + 3 Sentinel |
+| 故障转移 | ✅ 自动 | ✅ 自动 |
+| pod-0 恢复后 | ❌ operator 强制切回 master（~2min sync） | ✅ 自动成为 slave（0s 中断） |
+| 连接方式 | 单机 / Sentinel discovery | 单机（Service 自动跟随 master） |
+| NodePort | 30004 | 30206 |
+| 维护状态 | ✅ 活跃 | ⚠️ 2026-06 归档（代码稳定） |
+| 密码 | Secret 自动注入 | Secret 自动注入 |
 
 ## 部署架构
+
+两套 Operator 独立部署，各自管理自己的 CR：
+
+### OT-CONTAINER-KIT（默认推荐）
 
 ```
 ┌────────────────────────────────────────────┐
@@ -74,20 +96,27 @@ redis/
 │   ├── values-prod.yaml                    # operator 资源配置
 │   └── README.md                           # 离线安装说明
 ├── operator/
-│   ├── standalone/                         # 完全自包含
+│   ├── standalone/                         # OT-CONTAINER-KIT ✅ 活跃维护
 │   │   ├── 00-secret.yaml                  # 认证密码
 │   │   ├── 01-redis-cr.yaml                # Redis CR（AOF + maxmemory + anti-affinity）
 │   │   ├── 02-service-external.yaml        # NodePort:30003
 │   │   └── 03-pdb.yaml                     # PodDisruptionBudget
-│   ├── sentinel-ha/                        # 完全自包含
+│   ├── sentinel-ha/                        # OT-CONTAINER-KIT ✅ 活跃维护
 │   │   ├── 00-secret.yaml
 │   │   ├── 01-replication-cr.yaml          # Replication CR（内嵌 Sentinel）
 │   │   ├── 02-service-external.yaml        # NodePort:30004
 │   │   └── 03-pdb.yaml
-│   └── cluster/                            # 完全自包含
-│       ├── 00-secret.yaml
-│       ├── 01-redis-cluster-cr.yaml         # Cluster CR（3主3从）
-│       └── 02-pdb.yaml
+│   ├── cluster/                            # OT-CONTAINER-KIT ✅ 活跃维护
+│   │   ├── 00-secret.yaml
+│   │   ├── 01-redis-cluster-cr.yaml         # Cluster CR（3主3从）
+│   │   └── 02-pdb.yaml
+│   └── spotahome/                          # 👑 不强制 pod-0 为 master（本方案）
+│       ├── 00-operator.yaml                # CRD + RBAC + Deployment
+│       ├── 01-redisfailover-cr.yaml         # RedisFailover CR（3+3 Sentinel）
+│       ├── 02-external.yaml                # Secret + NodePort:30206
+│       ├── install.sh
+│       ├── uninstall.sh
+│       └── README.md                       # 完整文档
 ├── install.sh
 ├── uninstall.sh
 ├── README.md

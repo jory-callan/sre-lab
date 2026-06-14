@@ -1,0 +1,48 @@
+apiVersion: databases.spotahome.com/v1
+kind: RedisFailover
+metadata:
+  name: redisfailover-ha
+  namespace: redis-spotahome
+spec:
+  # 认证 — Secret 中 key 必须为 "password"
+  auth:
+    secretPath: redis-auth
+  redis:
+    replicas: 3
+    customConfig:
+      - "tcp-keepalive 60"
+      - "min-replicas-to-write 1"
+      - "min-replicas-max-lag 10"
+      - "repl-timeout 60"
+      - "repl-backlog-size 104857600"
+    storage:
+      keepAfterDeletion: true
+      persistentVolumeClaim:
+        metadata:
+          name: redisfailover-ha-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: nfs-storage
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  sentinel:
+    replicas: 3
+    customConfig:
+      - "down-after-milliseconds 15000"
+      - "failover-timeout 30000"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: 200m
+        memory: 200Mi
