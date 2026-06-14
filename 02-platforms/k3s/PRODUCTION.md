@@ -49,7 +49,6 @@ mirrors:
     endpoint:
       - "https://docker.m.daocloud.io"
       - "https://hub.atomgit.com"
-      - "https://docker.xuanyuan.me"
       - "https://docker.1panel.live"
       - "https://docker.1ms.run"
   gcr.io:
