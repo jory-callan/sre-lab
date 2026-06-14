@@ -46,7 +46,7 @@ kubectl wait --for=condition=available -n "$NAMESPACE" deployment/redisoperator 
 # 等待 Redis pods + Sentinel pods
 echo "等待 Redis + Sentinel Pod..."
 KUBECTL_RETRY=0
-while [ $KUBECTL_RETRY -lt 30 ]; do
+while [ $KUBECTL_RETRY -lt 60 ]; do
   READY=$(kubectl get pods -n "$NAMESPACE" \
     -l redisfailovers.databases.spotahome.com/name=redisfailover-ha \
     -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)

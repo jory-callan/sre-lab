@@ -11,8 +11,8 @@ spec:
 
   # ─── Redis 配置 ───
   redis:
-    # 镜像版本 — 留空则操作器默认 redis:6.2.6-alpine
-    image: redis:5.0.8
+    # 镜像版本 — 留空则操作器默认 redis:6.2.6-alpine . 最低要求 6+
+    image: redis:6.0.20
     imagePullPolicy: IfNotPresent
     replicas: 3
 
