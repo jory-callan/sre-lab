@@ -27,12 +27,16 @@ kubectl delete -f "$(dirname "$0")/02-rbac.yaml" --timeout=30s 2>/dev/null || tr
 echo "[5] Deleting ServiceAccount..."
 kubectl delete -f "$(dirname "$0")/01-serviceaccount.yaml" --timeout=30s 2>/dev/null || true
 
-# 6. Delete namespace (cleanup everything)
-echo "[6] Deleting namespace..."
+# 6. Delete CRD
+echo "[6] Deleting CRD..."
+kubectl delete crd redisfailovers.databases.spotahome.com --timeout=30s 2>/dev/null || true
+
+# 7. Delete namespace (cleanup everything)
+echo "[7] Deleting namespace..."
 kubectl delete ns "$NS" --timeout=60s 2>/dev/null || true
 
-# 7. Scale up existing operator
-echo "[7] Scaling up existing operator..."
+# 8. Scale up existing operator
+echo "[8] Scaling up existing operator..."
 kubectl scale deployment/redisoperator -n redis-spotahome --replicas=1 2>/dev/null || true
 
 echo ""
