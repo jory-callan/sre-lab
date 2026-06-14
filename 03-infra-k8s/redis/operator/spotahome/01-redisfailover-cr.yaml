@@ -59,7 +59,7 @@ spec:
           cpu: 200m
           memory: 64Mi
 
-    # 节点亲和性 — 同节点不调度第二个 Redis Pod
+    # 节点反亲和 — 同节点不调度第二个 Redis Pod
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -68,16 +68,6 @@ spec:
               matchLabels:
                 app.kubernetes.io/component: redis
                 app.kubernetes.io/part-of: redis-failover
-      # 优先选择不同节点，回退其他节点
-      podAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/component: sentinel
-                  app.kubernetes.io/part-of: redis-failover
 
     # 容忍度 — 允许调度到任意节点
     tolerations:
@@ -115,7 +105,7 @@ spec:
           cpu: 200m
           memory: 64Mi
 
-    # 节点亲和性 — 同节点不调度第二个 Sentinel Pod
+    # 节点反亲和 — 同节点不调度第二个 Sentinel Pod
     affinity:
       podAntiAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
