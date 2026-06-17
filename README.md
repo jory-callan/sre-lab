@@ -11,7 +11,7 @@ A collection of battle-tested infrastructure configurations and deployment patte
 ```
 provisioning/     → OS init, networking, base setup
 platform/         → Docker, k3s, kubectl/helm installation
-compose/          → Local dev & CI with Docker Compose
+docker-compose/   → Local dev & CI with Docker Compose
 k8s/              → Production-grade K8s deployments
 scripts/          → Utility tools
 ```
