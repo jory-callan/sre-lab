@@ -1,42 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-go-tiny
+  name: kdebug
   labels:
-    app: demo-go-tiny
+    app: kdebug
 spec:
-  # 副本数
-  replicas: 1
-
-  # 选择器，匹配 Pod
+  replicas: 2
   selector:
     matchLabels:
-      app: demo-go-tiny
-
-  # Pod 模板
+      app: kdebug
   template:
     metadata:
       labels:
-        app: demo-go-tiny
+        app: kdebug
     spec:
-      # 容器配置
       containers:
-      - name: demo-go-tiny
-        # 镜像：一个简单的 Go Web 服务，返回请求头
-        image: moonbuggy/demo-go-tiny:latest
+      - name: kdebug
+        image: ghcr.io/jory-callan/kdebug:latest
         imagePullPolicy: IfNotPresent
-
-        # 端口配置
         ports:
         - containerPort: 8080
           name: http
-          protocol: TCP
-
-        # 资源限制（可选）
+        env:
+        - name: PORT
+          value: "8080"
         resources:
           limits:
-            cpu: 100m
-            memory: 64Mi
+            cpu: 200m
+            memory: 128Mi
           requests:
-            cpu: 10m
+            cpu: 50m
             memory: 32Mi
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
