@@ -11,6 +11,7 @@ provisioning/     → OS init, networking, base setup
 platform/         → Docker, k3s, kubectl/helm installation
 docker-compose/   → Local dev & CI with Docker Compose
 k8s/              → Production-grade K8s deployments
+argocd/           → GitOps: ArgoCD Application configs (see README)
 scripts/          → Utility tools
 ```
 
