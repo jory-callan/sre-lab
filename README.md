@@ -1,19 +1,34 @@
-# CZW SRE
+# SRE Playbook
 
-SRE 基础设施即代码项目。
+> Infrastructure-as-Code: from bare metal to Kubernetes.
 
-> 完整规范文档：[**项目架构与目录规范.md**](./项目架构与目录规范.md)
+[![CI](https://github.com/jory-callan/sre-playbook/actions/workflows/ci.yml/badge.svg)](https://github.com/jory-callan/sre-playbook/actions/workflows/ci.yml)
 
-## 快速导航
+A collection of battle-tested infrastructure configurations and deployment patterns for SREs. This repository documents real-world practices across the full stack — provisioning, container orchestration, observability, and application delivery.
 
-| 层 | 目录 | 内容 |
-|----|------|------|
-| 物理层 | [`01-physical/`](./01-physical/) | 操作系统初始化、网络配置 |
-| 平台层 | [`02-platforms/`](./02-platforms/) | Docker、k3s 安装部署 |
-| 基础设施 Docker | [`03-infra-docker/`](./03-infra-docker/) | Docker Compose 中间件 |
-| 基础设施 K8s | [`03-infra-k8s/`](./03-infra-k8s/) | K8s 中间件（监控/数据库/中间件） |
-| 业务 Docker | [`04-apps-docker/`](./04-apps-docker/) | Docker 业务应用 |
-| 业务 K8s | [`04-apps-k8s/`](./04-apps-k8s/) | K8s 业务应用 |
-| 文档 | [`docs/`](./docs/) | 端口分配、模板等 |
-| AI 规则 | [`AGENT.md`](./AGENT.md) | AI 助手行为指令 |
-| Git 规范 | [`git-commit-reference-doc.md`](./git-commit-reference-doc.md) | 提交格式参考 |
+## Architecture
+
+```
+provisioning/     → OS init, networking, base setup
+platform/         → Docker, k3s, kubectl/helm installation
+compose/          → Local dev & CI with Docker Compose
+k8s/              → Production-grade K8s deployments
+scripts/          → Utility tools
+```
+
+Each component follows the same layout:
+
+```
+component/
+├── README.md       # Purpose, architecture, version matrix
+├── manifests/      # kubectl apply -f ready YAMLs
+├── helm/           # Custom Helm charts (optional)
+└── operator/       # Operator CRs for stateful services (optional)
+```
+
+## Repository
+
+- **Owner**: [Jory Callan](https://github.com/jory-callan)
+- **License**: MIT
+
+> Built from real production experience. Inspired by [Astro AntfuStyle Theme](https://github.com/lin-stephanie/astro-antfustyle-theme) for documentation structure.
