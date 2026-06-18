@@ -21,8 +21,17 @@ GitOps means **Git is the single source of truth** for Kubernetes cluster state.
 ## How to Install ArgoCD
 
 ```bash
+export GHMIRROR=https://gh-proxy.com
+
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+# apply crd
+kubectl apply --server-side --force-conflicts \
+  -f $GHMIRROR/https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/application-crd.yaml \
+  -f $GHMIRROR/https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/applicationset-crd.yaml \
+  -f $GHMIRROR/https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/crds/appproject-crd.yaml
+
+# apply cr
+kubectl apply -n argocd -f $GHMIRROR/https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
 Wait for all pods to be ready:
