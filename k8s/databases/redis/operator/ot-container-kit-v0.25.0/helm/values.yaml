@@ -1,0 +1,120 @@
+# ── Redis Operator v0.25.0 Helm Values ──
+
+image:
+  repository: quay.io/opstree/redis-operator
+  tag: v0.25.0
+  pullPolicy: IfNotPresent
+
+redisImage:
+  repository: quay.io/opstree/redis
+  tag: latest
+  pullPolicy: IfNotPresent
+
+redisSentinelImage:
+  repository: quay.io/opstree/redis-sentinel
+  tag: latest
+  pullPolicy: IfNotPresent
+
+redisExporterImage:
+  repository: quay.io/opstree/redis-exporter
+  tag: latest
+  pullPolicy: IfNotPresent
+
+namespace: redis-operator
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+# ── 单机 ──
+standalone:
+  enabled: false
+  name: redis-standalone
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  storage: 10Gi
+  exporter:
+    enabled: true
+  pdb:
+    enabled: true
+    minAvailable: 1
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+# ── 集群 ──
+cluster:
+  enabled: false
+  name: redis-cluster
+  clusterSize: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  storage: 10Gi
+  exporter:
+    enabled: true
+  pdb:
+    enabled: true
+    minAvailable: 2
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+# ── 主从 ──
+replication:
+  enabled: false
+  name: redis-replication
+  clusterSize: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  storage: 10Gi
+  exporter:
+    enabled: true
+  pdb:
+    enabled: true
+    minAvailable: 2
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+# ── Sentinel ──
+sentinel:
+  enabled: false
+  name: redis-sentinel
+  clusterSize: 3
+  replicationName: redis-replication
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  exporter:
+    enabled: true
+  pdb:
+    enabled: true
+    minAvailable: 2
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+
+# ── ServiceMonitor ──
+serviceMonitor:
+  enabled: false
+  labels:
+    release: prometheus

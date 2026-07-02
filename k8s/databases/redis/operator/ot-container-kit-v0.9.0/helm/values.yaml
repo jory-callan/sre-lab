@@ -1,0 +1,120 @@
+# ── Redis Operator v0.9.0 Helm Values ──
+# 修改后执行: helm upgrade --install redis-operator ./helm/ -f values.yaml
+
+# ── 核心镜像（用户最常改的放最前面）──
+image:
+  repository: quay.io/opstree/redis-operator
+  tag: v0.9.0
+  pullPolicy: IfNotPresent
+
+# ── Redis 实例镜像（operator 创建 Redis Pod 时使用的镜像）──
+redisImage:
+  repository: quay.io/opstree/redis
+  tag: v6.2.5
+  pullPolicy: IfNotPresent
+
+# ── Redis Exporter 镜像 ──
+redisExporterImage:
+  repository: quay.io/opstree/redis-exporter
+  tag: "1.0"
+  pullPolicy: IfNotPresent
+
+# ── 命名空间 ──
+namespace: redis-operator
+
+# ── Operator 资源 ──
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 200m
+    memory: 200Mi
+
+# ── 单机实例配置（默认不创建）──
+standalone:
+  enabled: false
+  name: redis-standalone
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  storage: 10Gi
+  # storageClassName: local-path
+  exporter:
+    enabled: true
+  # redisSecret:
+  #   name: redis-secret
+  #   key: password
+  securityContext:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - redis-standalone
+          topologyKey: kubernetes.io/hostname
+
+# ── 集群实例配置（默认不创建）──
+cluster:
+  enabled: false
+  name: redis-cluster
+  clusterSize: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+  storage: 10Gi
+  # storageClassName: local-path
+  exporter:
+    enabled: true
+  leader:
+    replicas: 1
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - redis-cluster-leader
+            topologyKey: kubernetes.io/hostname
+  follower:
+    replicas: 1
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - redis-cluster-follower
+            topologyKey: kubernetes.io/hostname
+  securityContext:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+
+# ── Prometheus ServiceMonitor ──
+serviceMonitor:
+  enabled: false
+  labels:
+    release: prometheus

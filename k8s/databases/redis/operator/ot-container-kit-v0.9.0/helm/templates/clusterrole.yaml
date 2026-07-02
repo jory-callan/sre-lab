@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "redis-operator.name" . }}
+  labels: {{- include "redis-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups: [redis.redis.opstreelabs.in]
+  resources: [rediss, redisclusters]
+  verbs: [create, delete, get, list, patch, update, watch]
+- apiGroups: [redis.redis.opstreelabs.in]
+  resources: [rediss/finalizers, redisclusters/finalizers]
+  verbs: [update]
+- apiGroups: [redis.redis.opstreelabs.in]
+  resources: [rediss/status, redisclusters/status]
+  verbs: [get, patch, update]
+- apiGroups: [""]
+  resources: [secrets, "pods/exec", services, configmaps]
+  verbs: [create, delete, get, list, patch, update, watch]
+- apiGroups: [apps]
+  resources: [statefulsets]
+  verbs: [create, delete, get, list, patch, update, watch]
+- apiGroups: [coordination.k8s.io]
+  resources: [leases]
+  verbs: [create, delete, get, list, patch, update, watch]

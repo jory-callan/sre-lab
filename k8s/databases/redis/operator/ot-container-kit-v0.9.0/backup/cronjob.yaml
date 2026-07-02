@@ -1,0 +1,167 @@
+---
+# Redis RDB 备份 CronJob — 生产配置
+#
+# 原理: 对每个 Redis 节点执行 redis-cli --rdb 导出 RDB 快照，
+#       支持上传到 S3 / MinIO / OSS 兼容存储。
+#
+# 适用于: Redis Standalone / Cluster leader
+#
+# 前置条件:
+#   1. S3 兼容存储 (MinIO / AWS S3 / 阿里云OSS)
+#   2. 已创建 s3-credentials Secret（参考下方的 Secret 定义）
+#
+# 部署:
+#   kubectl apply -f cronjob.yaml
+#
+---
+apiVersion: batch/v1beta1                    # K8s 1.19 兼容
+kind: CronJob
+metadata:
+  name: redis-backup
+  namespace: redis-operator
+spec:
+  schedule: "0 3 * * *"                      # 每天凌晨 3:00
+  concurrencyPolicy: Forbid                   # 前一次未完成则跳过
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2                         # 最多重试 2 次
+      ttlSecondsAfterFinished: 86400          # 完成后 24h 自动清理 Job
+      template:
+        spec:
+          serviceAccountName: redis-operator
+          restartPolicy: OnFailure
+          containers:
+          - name: redis-backup
+            image: redis:6.2
+            # ── 核心备份逻辑 ──
+            command:
+            - /bin/sh
+            - -ec
+            - |
+              # ============================================================
+              # 备份脚本
+              # 配置区 — 按环境修改以下变量
+              # ============================================================
+              REDIS_NAMESPACE="${NAMESPACE:-default}"
+              BACKUP_DIR="/tmp/redis-backup"
+              TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+              REDIS_CLI="redis-cli -p 6379 ${REDIS_PASSWORD:+ -a "$REDIS_PASSWORD"} --no-auth-warning"
+
+              mkdir -p "$BACKUP_DIR"
+
+              # ── 单机备份 ──
+              backup_standalone() {
+                local name="$1"
+                local svc="${name}.${REDIS_NAMESPACE}.svc"
+                echo "[${TIMESTAMP}] → Backing up standalone: ${name}"
+
+                ${REDIS_CLI} -h "$svc" --rdb "${BACKUP_DIR}/${name}.rdb"
+
+                if [ -n "${S3_BUCKET}" ]; then
+                  aws s3 cp "${BACKUP_DIR}/${name}.rdb" \
+                    "s3://${S3_BUCKET}/redis/standalone/${name}/${TIMESTAMP}.rdb"
+                fi
+
+                echo "[${TIMESTAMP}] ✓ Standalone backup done"
+              }
+
+              # ── 集群备份（遍历所有 leader）──
+              backup_cluster() {
+                local name="$1"
+                echo "[${TIMESTAMP}] → Backing up cluster: ${name}"
+
+                # 从 CR 获取 leader 数量
+                local replicas=$(kubectl get redisclusters.redis.redis.opstreelabs.in \
+                  "$name" -n "$REDIS_NAMESPACE" \
+                  -o jsonpath='{.spec.clusterSize}')
+
+                for i in $(seq 0 $((replicas - 1))); do
+                  local pod="${name}-leader-${i}"
+                  local svc="${pod}.${name}-leader-headless.${REDIS_NAMESPACE}.svc"
+                  echo "  → Leader ${i}: ${pod}"
+
+                  ${REDIS_CLI} -h "$svc" --rdb "${BACKUP_DIR}/${pod}.rdb"
+
+                  if [ -n "${S3_BUCKET}" ]; then
+                    aws s3 cp "${BACKUP_DIR}/${pod}.rdb" \
+                      "s3://${S3_BUCKET}/redis/cluster/${name}/${TIMESTAMP}-${pod}.rdb"
+                  fi
+                done
+
+                echo "[${TIMESTAMP}] ✓ Cluster backup done (${replicas} leaders)"
+              }
+
+              # ============================================================
+              # 执行备份 — 按需取消注释
+              # ============================================================
+              backup_standalone "redis-standalone"
+              # backup_cluster "redis-cluster"
+
+              # ── 清理 ──
+              rm -rf "$BACKUP_DIR"
+              echo "[${TIMESTAMP}] ✓ All backups completed."
+
+            # ── 环境变量 ──
+            env:
+            - name: NAMESPACE
+              value: "default"                  # ← 改为你的 Redis 所在 namespace
+
+            # Redis 密码（如已启用密码认证）
+            # - name: REDIS_PASSWORD
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: redis-secret
+            #       key: password
+
+            # S3/MinIO 存储（可选，注释掉则只保留本地备份）
+            # - name: S3_BUCKET
+            #   value: my-redis-backup
+            # - name: AWS_ENDPOINT_URL          # MinIO 需要此字段
+            #   value: http://minio.minio:9000
+            # - name: AWS_DEFAULT_REGION
+            #   value: us-east-1
+            # - name: AWS_ACCESS_KEY_ID
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: s3-credentials
+            #       key: access-key
+            # - name: AWS_SECRET_ACCESS_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: s3-credentials
+            #       key: secret-key
+            # - name: AWS_S3_FORCE_PATH_STYLE
+            #   value: "true"                   # MinIO 需要 path style
+
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                memory: 256Mi
+---
+# ── S3 凭据 Secret 模板（创建存储的 Secret）──
+#
+# 如果用了 S3 上传，先创建这个 Secret:
+#   kubectl create secret generic s3-credentials \
+#     --from-literal=access-key=YOUR_ACCESS_KEY \
+#     --from-literal=secret-key=YOUR_SECRET_KEY \
+#     -n redis-operator
+#
+---
+# ── 恢复操作说明（手动执行）──
+#
+# 单机恢复:
+#   kubectl cp backup_20250101-030000.rdb redis-standalone-0:/data/dump.rdb -c redis
+#   kubectl delete pod redis-standalone-0
+#   # Pod 启动后自动加载 dump.rdb，验证:
+#   kubectl exec redis-standalone-0 -c redis -- redis-cli dbsize
+#
+# 集群恢复（仅限极端情况，需要每个 leader 单独恢复）:
+#   for i in 0 1 2; do
+#     kubectl cp redis-cluster-leader-${i}_20250101.rdb redis-cluster-leader-${i}:/data/dump.rdb -c redis
+#   done
+#   # 重启所有 Pod 后集群从 RDB 重建
+#   注意: 集群恢复需确保 RDB 来自同一时刻的完整备份，否则可能数据不一致

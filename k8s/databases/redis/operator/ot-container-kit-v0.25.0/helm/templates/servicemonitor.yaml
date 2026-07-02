@@ -1,0 +1,78 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- if .Values.standalone.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.standalone.name }}-monitor
+  namespace: {{ include "redis-operator.namespace" . }}
+  labels:
+    release: {{ .Values.serviceMonitor.labels.release }}
+spec:
+  selector:
+    matchLabels:
+      redis_setup_type: standalone
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: redis-exporter
+    interval: 15s
+    path: /metrics
+{{- end }}
+{{- if .Values.cluster.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.cluster.name }}-monitor
+  namespace: {{ include "redis-operator.namespace" . }}
+  labels:
+    release: {{ .Values.serviceMonitor.labels.release }}
+spec:
+  selector:
+    matchLabels:
+      redis_setup_type: cluster
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: redis-exporter
+    interval: 15s
+    path: /metrics
+{{- end }}
+{{- if .Values.replication.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.replication.name }}-monitor
+  namespace: {{ include "redis-operator.namespace" . }}
+  labels:
+    release: {{ .Values.serviceMonitor.labels.release }}
+spec:
+  selector:
+    matchLabels:
+      redis_setup_type: replication
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: redis-exporter
+    interval: 15s
+    path: /metrics
+{{- end }}
+{{- if .Values.sentinel.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.sentinel.name }}-monitor
+  namespace: {{ include "redis-operator.namespace" . }}
+  labels:
+    release: {{ .Values.serviceMonitor.labels.release }}
+spec:
+  selector:
+    matchLabels:
+      redis_setup_type: sentinel
+  namespaceSelector:
+    any: true
+  endpoints:
+  - port: redis-exporter
+    interval: 15s
+    path: /metrics
+{{- end }}
+{{- end }}

@@ -1,0 +1,45 @@
+---
+# RedisReplication CR — 主从模式（Sentinel 高可用的前置依赖）
+#
+apiVersion: redis.redis.opstreelabs.in/v1beta2
+kind: RedisReplication
+metadata:
+  name: redis-replication
+spec:
+  clusterSize: 3                          # 1 主 N 从
+  podSecurityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+  kubernetesConfig:
+    image: quay.io/opstree/redis:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+    # redisSecret:
+    #   name: redis-replication-secret
+    #   key: password
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:latest
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+  storage:
+    volumeClaimTemplate:
+      spec:
+        # storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+  pdb:
+    enabled: true
+    minAvailable: 2

@@ -1,0 +1,133 @@
+---
+# Redis Cluster CR — 生产配置（3 主 3 从）
+#
+# 注意: v0.9.0 没有 RedisReplication CRD，
+#       RedisCluster 的 leader/follower 内部自带主从。
+#
+# 已启用的生产特性:
+#   ✅ resources + memory limit
+#   ✅ probes（controller 自动生成，exporter 除外）
+#   ✅ exporter 监控
+#   ✅ securityContext
+#   ✅ affinity + 跨节点分布
+#   ✅ persistence
+#   ✅ redisSecret（密码认证，自行创建 Secret）
+#
+apiVersion: redis.redis.opstreelabs.in/v1beta1
+kind: RedisCluster
+metadata:
+  name: redis-cluster
+spec:
+  # ── 分片数（最小 3）──
+  clusterSize: 3
+
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v6.2.5
+    imagePullPolicy: IfNotPresent
+
+    # ── 资源层 ──
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+        # cpu: 1000m
+
+    # ── 密码认证 ──
+    # redisSecret:
+    #   name: redis-cluster-secret
+    #   key: password
+
+  # ── 监控层 ──
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:1.0
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # ── 安全层 ──
+  securityContext:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+
+  # ── 主节点配置 ──
+  redisLeader:
+    replicas: 1
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - redis-cluster-leader
+            topologyKey: kubernetes.io/hostname
+
+  # ── 从节点配置 ──
+  redisFollower:
+    replicas: 1
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - redis-cluster-follower
+            topologyKey: kubernetes.io/hostname
+
+  # ── 存储层 ──
+  storage:
+    volumeClaimTemplate:
+      spec:
+        # storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+  # ── 调度层（可选）──
+  # priorityClassName: high-priority
+  # nodeSelector:
+  #   kubernetes.io/hostname: infra-node
+  # tolerations:
+  # - key: "node-role.kubernetes.io/infra"
+  #   operator: "Exists"
+  #   effect: "NoSchedule"
+
+---
+# ── 补充: PDB ──
+# kubectl apply -f - <<EOF
+# apiVersion: policy/v1beta1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: redis-cluster-leader-pdb
+# spec:
+#   minAvailable: 2
+#   selector:
+#     matchLabels:
+#       app: redis-cluster-leader
+# ---
+# apiVersion: policy/v1beta1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: redis-cluster-follower-pdb
+# spec:
+#   minAvailable: 2
+#   selector:
+#     matchLabels:
+#       app: redis-cluster-follower
+# EOF

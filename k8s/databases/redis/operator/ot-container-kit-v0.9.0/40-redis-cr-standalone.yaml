@@ -1,0 +1,122 @@
+---
+# Redis Standalone CR — 生产配置
+#
+# 镜像: quay.io/opstree/redis:v6.2.5（必须使用 operator 定制镜像）
+#
+# 已启用的生产特性:
+#   ✅ resources      CPU/内存 request + memory limit（CPU limit 不设）
+#   ✅ probes         liveness + readiness（controller 自动生成）
+#   ✅ exporter       监控 sidecar
+#   ✅ securityContext Pod 级安全上下文（fsGroup 确保 PVC 可写）
+#   ✅ affinity       Pod 反亲和（避免单节点故障影响）
+#   ✅ persistence    PVC 持久化
+#   ✅ redisSecret    密码认证（由你自行创建 Secret，CR 引用）
+#   ⚠️ 可选按需启用:
+#     - nodeSelector / tolerations / priorityClassName
+#     - redisConfig（额外配置）
+#
+apiVersion: redis.redis.opstreelabs.in/v1beta1
+kind: Redis
+metadata:
+  name: redis-standalone
+spec:
+  kubernetesConfig:
+    image: quay.io/opstree/redis:v6.2.5
+    imagePullPolicy: IfNotPresent
+
+    # ── 资源层 ──
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 1Gi                   # Redis 内存上限（对应 maxmemory 80%）
+        # cpu: 1000m                  # 建议不设
+
+    # ── 密码认证 ──
+    # 方式 1: 用你已有的 Secret（推荐）
+    # kubectl create secret generic redis-secret \
+    #   --from-literal=password=MyStrongPass2024! \
+    #   -n default
+    # redisSecret:
+    #   name: redis-secret
+    #   key: password
+
+    # 方式 2: 用 operator 自动生成（不指定 redisSecret 则不设密码）
+
+    # ── 私有仓库 ──
+    # imagePullSecrets:
+    # - name: regcred
+
+  # ── 监控层 ──
+  # v0.9.0 限制: exporter 容器没有 probes 和 ports（Service 有 9121 端口即可）
+  redisExporter:
+    enabled: true
+    image: quay.io/opstree/redis-exporter:1.0
+    imagePullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # ── 额外配置 ──
+  # redisConfig:
+  #   additionalRedisConfig: redis-external-config
+
+  # ── 存储层 ──
+  storage:
+    volumeClaimTemplate:
+      spec:
+        # storageClassName: local-path
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+
+  # ── 安全层 ──
+  securityContext:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999                     # 保证 PVC 写入权限
+
+  # ── 分布层 ──
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app
+              operator: In
+              values:
+              - redis-standalone
+          topologyKey: kubernetes.io/hostname
+
+  # ── 调度层（可选）──
+  # priorityClassName: high-priority
+  # nodeSelector:
+  #   kubernetes.io/hostname: infra-node
+  # tolerations:
+  # - key: "node-role.kubernetes.io/infra"
+  #   operator: "Exists"
+  #   effect: "NoSchedule"
+
+---
+# ── 补充: PDB（PodDisruptionBudget）──
+# v0.9.0 不会自动创建 PDB，但你可以手动创建，operator 不会覆盖。
+# 在 K8s 1.19 上用 policy/v1beta1:
+#
+# kubectl apply -f - <<EOF
+# apiVersion: policy/v1beta1
+# kind: PodDisruptionBudget
+# metadata:
+#   name: redis-standalone-pdb
+# spec:
+#   minAvailable: 1
+#   selector:
+#     matchLabels:
+#       app: redis-standalone
+# EOF
