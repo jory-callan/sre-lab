@@ -1,20 +1,20 @@
 #!/bin/bash
+# uninstall.sh — 卸载 kdebug
+# 用法: bash uninstall.sh
+set -euo pipefail
 
-set -e
+NS="kdebug"
 
-echo "=== 卸载 demo-go-tiny ==="
+echo ">> 卸载 kdebug ..."
 
-# 1. 删除 Ingress
-echo "1. 删除 Ingress..."
-kubectl delete -f manifests/ingress.yaml 2>/dev/null || true
+read -p "确定卸载 kdebug 并清理命名空间？(y/N) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo "取消"
+  exit 0
+fi
 
-# 2. 删除 Service
-echo "2. 删除 Service..."
-kubectl delete -f manifests/service.yaml 2>/dev/null || true
+helm uninstall kdebug -n "$NS" 2>/dev/null || true
+kubectl delete namespace "$NS" --ignore-not-found
 
-# 3. 删除 Deployment
-echo "3. 删除 Deployment..."
-kubectl delete -f manifests/deployment.yaml 2>/dev/null || true
-
-echo ""
-echo "✅ demo-go-tiny 卸载完成！"
+echo "✅ kdebug 已卸载"

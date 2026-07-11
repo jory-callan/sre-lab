@@ -1,0 +1,18 @@
+{{- if .Values.nodePort.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kdebug.fullname" . }}-nodeport
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kdebug.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      nodePort: {{ .Values.nodePort.port }}
+      protocol: TCP
+  selector:
+    {{- include "kdebug.selectorLabels" . | nindent 4 }}
+{{- end }}

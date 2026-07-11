@@ -1,0 +1,78 @@
+# values.yaml — kdebug 配置
+---
+replicaCount: 2
+
+image:
+  repository: ghcr.io/jory-callan/kdebug
+  tag: v1.0.2
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+  host: kdebug.czw-sre.internal
+  tls:
+    enabled: true
+    secretName: kdebug-tls
+
+# NodePort
+nodePort:
+  enabled: true
+  port: 30302
+
+# Service
+service:
+  port: 80
+  targetPort: 8080
+
+# 资源限制
+resources:
+  requests:
+    cpu: 50m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# HPA
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+
+# PDB
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# 反亲和
+podAntiAffinity:
+  enabled: true
+  topologyKey: kubernetes.io/hostname
+
+# 命名空间配额
+resourceQuota:
+  enabled: true
+  quota:
+    requests.cpu: "500m"
+    requests.memory: "512Mi"
+    limits.cpu: "1000m"
+    limits.memory: "1Gi"
+    pods: "10"
+  limitRange:
+    default:
+      cpu: 200m
+      memory: 128Mi
+    defaultRequest:
+      cpu: 50m
+      memory: 64Mi
+    max:
+      cpu: 500m
+      memory: 256Mi

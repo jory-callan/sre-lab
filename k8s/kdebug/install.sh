@@ -1,25 +1,37 @@
 #!/bin/bash
+# install.sh — kdebug 调试工具部署（从本地 Nexus）
+# 用法: bash install.sh
+# 前置条件: 本地 Nexus，chart 需先通过 download.sh 推送
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NS="kdebug"
+CHART_VERSION="0.1.0"
+NEXUS_HELM="http://192.168.5.103:8081/repository/helm-hosted/"
 
-echo "=== 部署 demo-go-tiny ==="
+# ── 初始化 ──────────────────────────────────────────
+kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f -
 
-# 1. 部署 Deployment
-echo "1. 部署 Deployment..."
-kubectl apply -f manifests/deployment.yaml
+# ── 从本地 Nexus 安装 ──────────────────────────────
+helm repo add helm-hosted "$NEXUS_HELM" 2>/dev/null || true
+helm repo update 2>/dev/null
 
-# 2. 部署 Service
-echo "2. 部署 Service..."
-kubectl apply -f manifests/service.yaml
+helm upgrade --install kdebug helm-hosted/kdebug \
+  --namespace "$NS" \
+  --version "$CHART_VERSION" \
+  --values "$SCRIPT_DIR/helm/values.yaml" \
+  --wait --timeout 5m
 
-# 3. 部署 Ingress
-echo "3. 部署 Ingress..."
-kubectl apply -f manifests/ingress.yaml
-
+# ── 输出 ──────────────────────────────────────────────
 echo ""
-echo "✅ demo-go-tiny 部署完成！"
+echo "✅ kdebug 部署完成"
 echo ""
-echo "查看状态："
-echo "  kubectl get pods -l app=demo-go-tiny"
-echo "  kubectl get svc demo-go-tiny"
-echo "  kubectl get ingress demo-go-tiny"
+echo "   内部: ${NS}.${NS}.svc.cluster.local:80"
+echo "   Web:  https://kdebug.czw-sre.internal"
+echo "   NodePort: <node-ip>:30302"
+echo ""
+echo "   检查: kubectl -n $NS get pods"
+echo "   验证: curl -k https://kdebug.czw-sre.internal/ping"
+echo "   日志: kubectl -n $NS logs deploy/kdebug --tail=50"
+echo "   Chart: 本地 Nexus (${NEXUS_HELM})"
+echo ""

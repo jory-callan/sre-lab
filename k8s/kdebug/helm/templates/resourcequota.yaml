@@ -1,0 +1,30 @@
+{{- if .Values.resourceQuota.enabled }}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: {{ include "kdebug.name" . }}-quota
+  namespace: {{ .Release.Namespace }}
+spec:
+  hard:
+    {{- range $key, $val := .Values.resourceQuota.quota }}
+    {{ $key }}: "{{ $val }}"
+    {{- end }}
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: {{ include "kdebug.name" . }}-limits
+  namespace: {{ .Release.Namespace }}
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: {{ .Values.resourceQuota.limitRange.default.cpu }}
+        memory: {{ .Values.resourceQuota.limitRange.default.memory }}
+      defaultRequest:
+        cpu: {{ .Values.resourceQuota.limitRange.defaultRequest.cpu }}
+        memory: {{ .Values.resourceQuota.limitRange.defaultRequest.memory }}
+      max:
+        cpu: {{ .Values.resourceQuota.limitRange.max.cpu }}
+        memory: {{ .Values.resourceQuota.limitRange.max.memory }}
+{{- end }}

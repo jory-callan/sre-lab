@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kdebug
+description: K8s 调试工具 — HTTP 调试 Pod
+type: application
+version: 0.1.0
+appVersion: v1.0.2
