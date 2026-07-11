@@ -1,0 +1,19 @@
+# ServiceMonitor — Gitea 指标采集
+# VMAgent selectAllByDefault: true 自动发现
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gitea
+  namespace: gitea
+spec:
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      app: gitea
+  namespaceSelector:
+    matchNames:
+      - gitea
