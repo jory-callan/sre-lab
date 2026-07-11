@@ -17,7 +17,9 @@ Kubernetes 资源清单，按功能模块组织。
 k8s/
 ├── bootstrap/         底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS）
 ├── operators/         Operator 控制面（cnpg / redis / minio operator，ns: operators）
-├── monitoring/        监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana，ns: monitoring）
+├── monitoring/        监控告警
+│   ├── kube-prometheus-stack/  Prometheus + Loki + Promtail + Grafana（当前部署）
+│   └── victoria-metrics-k8s-stack/  VictoriaMetrics + VictoriaLogs（待选）
 ├── postgres/          PostgreSQL 17（CNPG operator，ns: postgres）
 ├── redis/             Redis 7.4（manifests / helm / operator，ns: redis）
 ├── minio/             MinIO 对象存储（Operator，ns: minio）

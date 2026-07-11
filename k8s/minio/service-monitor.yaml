@@ -5,6 +5,7 @@ metadata:
   namespace: minio
   labels:
     app: minio
+    release: kps
 spec:
   selector:
     matchLabels:
