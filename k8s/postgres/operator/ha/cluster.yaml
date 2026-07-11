@@ -5,7 +5,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-ha
-  namespace: postgresql
+  namespace: postgres
 spec:
   # 实例数（HA = 3，一主二从）
   instances: 3

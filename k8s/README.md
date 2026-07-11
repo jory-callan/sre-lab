@@ -9,7 +9,7 @@ k8s/
 ├── bootstrap/         底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS）
 ├── operators/         Operator 控制面（cnpg / redis / minio operator，ns: operators）
 ├── monitoring/        监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana，ns: monitoring）
-├── postgresql/        PostgreSQL 17（CNPG operator，ns: postgresql）
+├── postgres/          PostgreSQL 17（CNPG operator，ns: postgres）
 ├── redis/             Redis 7.4（manifests / helm / operator，ns: redis）
 ├── minio/             MinIO 对象存储（Operator，ns: minio）
 ├── mysql/             MySQL（manifests / operator，ns: mysql）

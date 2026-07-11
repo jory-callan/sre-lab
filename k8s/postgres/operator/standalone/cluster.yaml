@@ -4,7 +4,7 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-standalone
-  namespace: postgresql
+  namespace: postgres
 spec:
   # 实例数（standalone = 1）
   instances: 1
@@ -38,7 +38,7 @@ spec:
   # ================================================================
   storage:
     size: 5Gi
-    storageClass: nfs-storage
+    storageClass: nfs-client
 
   # ================================================================
   # 资源限制
