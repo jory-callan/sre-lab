@@ -7,14 +7,18 @@ Kubernetes 资源清单，按功能模块组织。
 ```
 k8s/
 ├── bootstrap/         底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS）
-├── apps/              应用层（Gitea / Kite / kdebug / temporal / velero）
-├── middleware/        共享中间件（MinIO / PostgreSQL / Redis）
-├── operators/         Operator 控制器（cnpg / minio / redis）
-├── monitoring/       监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana）
-├── databases/        数据库部署（MySQL / PostgreSQL / Redis）
-├── ingress/          入口网关（ingress-nginx / MetalLB）
-├── storage/          存储相关（NFS）
-└── lab/              选型测试沙箱
+├── operators/         Operator 控制面（cnpg / redis / minio operator，ns: operators）
+├── monitoring/        监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana，ns: monitoring）
+├── postgresql/        PostgreSQL 17（CNPG operator，ns: postgresql）
+├── redis/             Redis 7.4（manifests / helm / operator，ns: redis）
+├── minio/             MinIO 对象存储（Operator，ns: minio）
+├── mysql/             MySQL（manifests / operator，ns: mysql）
+├── gitea/             自托管 Git 服务（ns: gitea）
+├── kite/              K8s Web UI（ns: kite）
+├── kdebug/            调试工具（ns: kdebug）
+├── temporal/          工作流引擎（ns: temporal）
+├── velero/            集群备份（ns: velero）
+└── lab/               选型测试沙箱
 ```
 
 ## 组件规范

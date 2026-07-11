@@ -1,0 +1,109 @@
+# PostgreSQL HA - CNPG Cluster CR
+# 创建 3 节点 PostgreSQL 17 HA 集群（流复制）
+# 一主二从，自动故障转移
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-ha
+  namespace: postgresql
+spec:
+  # 实例数（HA = 3，一主二从）
+  instances: 3
+
+  # 同步复制配置
+  # 确保至少 1 个同步从库，保证主库故障时数据不丢失
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+
+  postgresql:
+    parameters:
+      max_connections: "300"
+      shared_buffers: "512MB"
+      # CNPG 自动配置以下参数：
+      # hot_standby = on
+      # wal_level = replica
+      # max_wal_senders = 10
+      # max_replication_slots = 10
+      # hot_standby_feedback = on
+
+  # ================================================================
+  # 初始化配置
+  # ================================================================
+  bootstrap:
+    initdb:
+      database: appdb
+      owner: app
+      secret:
+        name: pg-auth-secret
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements
+      postInitTemplateSQL:
+        - CREATE EXTENSION IF NOT EXISTS citext
+
+  # ================================================================
+  # 持久化存储（每个实例 5Gi）
+  # ================================================================
+  storage:
+    size: 5Gi
+    storageClass: local-path
+
+  # wal 存储（使用独立 PVC 提升写入性能，可选）
+  # walStorage:
+  #   size: 2Gi
+  #   storageClass: local-path
+
+  # ================================================================
+  # 资源限制
+  # ================================================================
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # ================================================================
+  # 监控
+  # ================================================================
+  monitoring:
+    enablePodMonitor: true
+
+  # ================================================================
+  # 备份配置（暂不启用）
+  # ================================================================
+  backup:
+    volumeSnapshot:
+      className: ~
+
+  # ================================================================
+  # 亲和性 - 确保 3 个实例分到不同节点
+  # ================================================================
+  affinity:
+    topologyKey: kubernetes.io/hostname
+    tolerations: []
+
+  # ================================================================
+  # 自动故障转移
+  # ================================================================
+  # 当主库不可用时自动选举新主库
+  # PersistentVolume 会自动重新绑定到新主库
+
+  # ================================================================
+  # 节点维护窗口（可选）
+  # ================================================================
+  # nodeMaintenanceWindow:
+  #   inProgress: false
+  #   reusePVC: false
+
+  # ================================================================
+  # 连接池（可选，需要额外 Pooler CR）
+  # ================================================================
+  # pooler:
+  #   instances: 2
+  #   resources:
+  #     requests:
+  #       cpu: 100m
+  #       memory: 128Mi

@@ -1,0 +1,72 @@
+# PostgreSQL Standalone - CNPG Cluster CR
+# 创建单节点 PostgreSQL 17 实例
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-standalone
+  namespace: postgresql
+spec:
+  # 实例数（standalone = 1）
+  instances: 1
+
+  # 镜像（使用 CNPG 官方维护的 PostgreSQL 镜像）
+  # 标签格式: <PG版本>-minimal-<Debian版本>
+  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+
+  # PostgreSQL 配置
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+
+  # ================================================================
+  # 初始化配置
+  # ================================================================
+  bootstrap:
+    initdb:
+      database: appdb
+      owner: app
+      secret:
+        name: pg-auth-secret
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements
+      postInitTemplateSQL:
+        - CREATE EXTENSION IF NOT EXISTS citext
+
+  # ================================================================
+  # 持久化存储
+  # ================================================================
+  storage:
+    size: 5Gi
+    storageClass: nfs-storage
+
+  # ================================================================
+  # 资源限制
+  # ================================================================
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # ================================================================
+  # 监控
+  # ================================================================
+  monitoring:
+    enablePodMonitor: true
+
+  # ================================================================
+  # 备份配置（暂不启用）
+  # ================================================================
+  backup:
+    volumeSnapshot:
+      className: ~
+
+  # # ================================================================
+  # # 节点维护窗口（可选）
+  # # ================================================================
+  # nodeMaintenanceWindow:
+  #   inProgress: false
+  #   reusePVC: false

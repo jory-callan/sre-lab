@@ -1,0 +1,65 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: minio
+  namespace: minio
+  labels:
+    app: minio
+spec:
+  # ── quay.io 镜像（已验证可正常拉取）────
+  image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+  imagePullPolicy: IfNotPresent
+
+  # v7.x 使用 configuration.name 引用 config.env 格式的 Secret
+  configuration:
+    name: minio-env-config
+
+  # ── 环境变量 ─────────────────────────────────
+  env:
+    - name: MINIO_PROMETHEUS_AUTH_TYPE
+      value: "public"
+    - name: MINIO_STORAGE_CLASS_STANDARD
+      value: "EC:0"
+    - name: MINIO_STORAGE_CLASS_RRS
+      value: "EC:0"
+
+  pools:
+    - name: pool-0
+      servers: 1
+      volumesPerServer: 4
+      volumeClaimTemplate:
+        metadata:
+          name: data
+        spec:
+          storageClassName: nfs-client
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 2Gi
+      # ── 资源限制（降低 CPU request 以便在集群中调度）──
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
+
+  mountPath: /export
+  subPath: /data
+  requestAutoCert: false
+  podManagementPolicy: OrderedReady
+
+  # ── 默认桶 ─────────────────────────────────────
+  buckets:
+    - name: public
+      region: us-east-1
+    - name: private
+      region: us-east-1
+    - name: velero
+      region: us-east-1
+    - name: vm-metrics
+      region: us-east-1
+    - name: vm-logs
+      region: us-east-1

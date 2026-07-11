@@ -18,13 +18,17 @@ network/  →  provisioning/  →  docker-compose/  →  k8s/
 | `provisioning/scripts/` | 运维脚本（linux / windows / mac） |
 | `docker-compose/` | 单机 Docker 服务 |
 | `k8s/bootstrap/` | 底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS） |
-| `k8s/apps/` | 应用层（Gitea / Kite / kdebug / temporal / velero） |
-| `k8s/middleware/` | 共享中间件（MinIO / PostgreSQL / Redis） |
-| `k8s/operators/` | Operator 控制器（cnpg / minio / redis） |
-| `k8s/monitoring/` | 监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana） |
-| `k8s/databases/` | 数据库部署（MySQL / PostgreSQL / Redis） |
-| `k8s/ingress/` | 入口网关（ingress-nginx / MetalLB） |
-| `k8s/storage/` | 存储相关（NFS） |
+| `k8s/operators/` | Operator 控制面（cnpg / redis / minio，ns: operators） |
+| `k8s/monitoring/` | 监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana，ns: monitoring） |
+| `k8s/postgresql/` | PostgreSQL 17（CNPG operator，ns: postgresql） |
+| `k8s/redis/` | Redis 7.4（manifests / helm / operator，ns: redis） |
+| `k8s/minio/` | MinIO 对象存储（Operator，ns: minio） |
+| `k8s/mysql/` | MySQL（manifests / operator，ns: mysql） |
+| `k8s/gitea/` | 自托管 Git 服务（ns: gitea） |
+| `k8s/kite/` | K8s Web UI（ns: kite） |
+| `k8s/kdebug/` | 调试工具（ns: kdebug） |
+| `k8s/temporal/` | 工作流引擎（ns: temporal） |
+| `k8s/velero/` | 集群备份（ns: velero） |
 | `k8s/lab/` | 选型测试沙箱 |
 | `docs/` | 架构文档、决策记录 |
 
