@@ -1,4 +1,5 @@
-# CloudNativePG Operator values
+# CloudNativePG Operator 生产环境配置
+# 适用于 remote-cloudnative-pg-0.28.2
 replicaCount: 1
 
 image:

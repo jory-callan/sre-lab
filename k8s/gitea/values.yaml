@@ -1,30 +1,47 @@
-# Gitea Helm values
+# values.yaml — Gitea 1.26.4
+# SQLite + NFS + ingress-nginx
+# 默认管理员: admin / admin123
+---
 image:
   registry: ""
   repository: gitea/gitea
   tag: 1.26.4
   pullPolicy: IfNotPresent
+
+# 持久化（NFS RWX）
 persistence:
   enabled: true
   storageClass: nfs-client
   size: 10Gi
   accessModes:
     - ReadWriteMany
+
+# Ingress
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    cert-manager.io/cluster-issuer: internal-ca
+  annotations: {}
+  # 如需 HTTPS（需 cert-manager），取消注释：
+  # annotations:
+  #   cert-manager.io/cluster-issuer: internal-ca
   hosts:
     - host: gitea.czw-sre.internal
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - hosts:
-        - gitea.czw-sre.internal
-      secretName: gitea-tls
+  tls: []
+  # tls:
+  #   - hosts:
+  #       - gitea.czw-sre.internal
+  #     secretName: gitea-tls
+
+# ── 管理员预配置 ──────────────────────────────────
 gitea:
+  admin:
+    username: admin
+    password: admin123
+    email: admin@gitea.local
+
   config:
     server:
       DOMAIN: gitea.czw-sre.internal
@@ -42,11 +59,15 @@ gitea:
     session:
       PROVIDER: file
     security:
-      INSTALL_LOCK: false
+      INSTALL_LOCK: true              # 预配置管理员后锁定安装页面
       PASSWORD_COMPLEXITY: off
     service:
-      DISABLE_REGISTRATION: false
+      DISABLE_REGISTRATION: false     # 允许注册
       REQUIRE_SIGNIN_VIEW: false
+    metrics:
+      ENABLED: true                    # 开启 /metrics（给 VMAgent 采集）
+
+# 子图表禁用（SQLite + 文件 session，无需外部 DB/缓存）
 postgresql:
   enabled: false
 postgresql-ha:
@@ -57,7 +78,11 @@ valkey:
   enabled: false
 memcached:
   enabled: false
+
+# 单副本
 replicaCount: 1
+
+# 资源限制
 resources:
   requests:
     cpu: 200m
@@ -65,5 +90,10 @@ resources:
   limits:
     cpu: 1000m
     memory: 512Mi
+
+# 启动探针（Gitea 首次启动较慢）
 startupProbe:
   enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 30
