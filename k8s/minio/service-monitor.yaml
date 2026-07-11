@@ -8,11 +8,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      v1.min.io/tenant: minio
+      app: minio
   namespaceSelector:
     matchNames:
       - minio
   endpoints:
-    - port: http
+    - port: http-minio
       interval: 30s
       path: /minio/v2/metrics/cluster

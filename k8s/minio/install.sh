@@ -30,6 +30,9 @@ kubectl create namespace "$TENANT_NS" --dry-run=client -o yaml | kubectl apply -
 kubectl apply -f "$SCRIPT_DIR/secret.yaml" -f "$SCRIPT_DIR/secret-poweruser.yaml" -f "$SCRIPT_DIR/secret-private.yaml" -f "$SCRIPT_DIR/tenant.yaml"
 kubectl apply -f "$SCRIPT_DIR/ingress.yaml" -f "$SCRIPT_DIR/console-ingress.yaml"
 
+# ServiceMonitor 需要 Service 有 app=minio label（Operator 创建的 Service 无 label）
+kubectl label svc -n "$TENANT_NS" minio minio-console app=minio --overwrite 2>/dev/null || true
+
 # 可选：ServiceMonitor（监控栈未部署时忽略）
 kubectl apply -f "$SCRIPT_DIR/service-monitor.yaml" 2>/dev/null || true
 
