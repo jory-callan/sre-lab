@@ -57,6 +57,11 @@ prometheus:
     maximumStartupDurationSeconds: 600
     retention: 7d
     serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelector:
+      matchLabels: {}
+    podMonitorNamespaceSelector: {}
+    podMonitorSelector:
+      matchLabels: {}
     storageSpec:
       volumeClaimTemplate:
         spec:
