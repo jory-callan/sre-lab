@@ -10,6 +10,7 @@ Kubernetes 资源清单，按功能模块组织。
 - **Helm 优先** — 全部用 Helm 部署，无 kustomize / ArgoCD
 - **配额管控** — 每个命名空间配 `resourcequota.yaml`（ResourceQuota + LimitRange）
 - **无统一入口** — 每个组件独立部署，`bootstrap/` 是唯一的例外（底座依赖链）
+- **谁消费谁配置** — 外部依赖（桶、用户、凭证）由消费者安装时创建，提供方只装自身。例如：MinIO 只装自身，PG 的备份桶和用户由 `postgres/install.sh` 负责。见 `<dependency>/` 目录规范。
 
 ## 布局
 
@@ -42,6 +43,9 @@ component/
 ├── install.sh         安装脚本
 ├── uninstall.sh       卸载脚本
 ├── resourcequota.yaml 命名空间配额（可选）
+├── <dependency>/     （可选）外部依赖资源，由 install.sh 自动配置
+│                     命名规则：依赖什么就叫什么，如 minio/ 表示依赖 MinIO
+│                     内容包含：凭证 Secret、IAM Policy、桶声明等
 ├── helm/              自定义 Helm chart（自管理服务）
 └── operator/          Operator CR（有状态服务）
 ```

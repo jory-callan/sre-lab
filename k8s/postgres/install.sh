@@ -12,10 +12,13 @@ PG_NS="postgres"
 kubectl create namespace "$PG_NS" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$SCRIPT_DIR/resourcequota.yaml"
 
-# 公共 Secret（数据库密码 + S3 备份凭证）
+# 数据库密码
 kubectl apply -f "$SCRIPT_DIR/operator/common/"
 
-# ── S3 备份：在 MinIO 上创建备份用户 ────────────────
+# MinIO 依赖（S3 备份凭证 + Policy）
+kubectl apply -f "$SCRIPT_DIR/minio/"
+
+# ── S3 备份：在 MinIO 上配置桶和用户 ────────────────
 MINIO_POD=$(kubectl -n minio get pod -l v1.min.io/tenant=minio -o name 2>/dev/null | head -1)
 if [ -n "$MINIO_POD" ]; then
   echo ">> 配置 MinIO S3 备份 ..."
@@ -24,7 +27,7 @@ if [ -n "$MINIO_POD" ]; then
   kubectl -n minio exec "$MINIO_POD" -c minio -- mc mb local/postgres-backup --ignore-existing 2>/dev/null || true
   echo "   ✅ 备份桶 postgres-backup 已就绪"
   # 将 policy JSON 写入 MinIO Pod
-  kubectl -n minio exec -i "$MINIO_POD" -c minio -- sh -c 'cat > /tmp/pg-backup-policy.json' < "$SCRIPT_DIR/backup-policy.json" 2>/dev/null
+  kubectl -n minio exec -i "$MINIO_POD" -c minio -- sh -c 'cat > /tmp/pg-backup-policy.json' < "$SCRIPT_DIR/minio/backup-policy.json" 2>/dev/null
   kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin policy create local pg-backup /tmp/pg-backup-policy.json 2>/dev/null || true
   kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin user add local pg-backup Z6rX9pLm8kQw4nSv 2>/dev/null || true
   kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin policy attach local pg-backup --user=pg-backup 2>/dev/null || true
