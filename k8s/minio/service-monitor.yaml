@@ -11,7 +11,7 @@ spec:
       app: minio
   namespaceSelector:
     matchNames:
-      - middleware
+      - minio
   endpoints:
     - port: http
       interval: 30s
