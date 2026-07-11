@@ -11,14 +11,14 @@ PG_NS="postgres"
 # ── 初始化 ──────────────────────────────────────────
 kubectl create namespace "$PG_NS" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$SCRIPT_DIR/resourcequota.yaml"
-kubectl apply -f "$SCRIPT_DIR/operator/common/"
+kubectl apply -f "$SCRIPT_DIR/cr/common/"
 
 # ── MinIO 备份依赖（桶 / 用户 / S3 凭证）────────────
-kubectl apply -f "$SCRIPT_DIR/minio/pg-s3-creds.yaml"
-bash "$SCRIPT_DIR/minio/setup.sh"
+kubectl apply -f "$SCRIPT_DIR/dep-minio/pg-s3-creds.yaml"
+bash "$SCRIPT_DIR/dep-minio/setup.sh"
 
 # ── 实例 CR + 告警规则 ─────────────────────────────
-kubectl apply -f "$SCRIPT_DIR/operator/$MODE/"
+kubectl apply -f "$SCRIPT_DIR/cr/$MODE/"
 kubectl apply -f "$SCRIPT_DIR/monitor/rule/"
 
 # ── 输出 ──────────────────────────────────────────────

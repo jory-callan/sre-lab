@@ -19,15 +19,15 @@ bash install.sh              # 1 主 2 从（默认）
 bash install.sh standalone   # 单节点
 ```
 
-> 依赖 MinIO（`minio/` 目录），`install.sh` 自动创建备份桶和凭证。
+> 依赖 MinIO（`dep-minio/` 目录），`install.sh` 自动创建备份桶和凭证。
 
 ## 目录
 
 | 路径 | 说明 |
 |------|------|
-| `operator/ha/` | HA 集群 CR（1主2从 + 定时备份） |
-| `operator/standalone/` | 单节点 CR |
-| `minio/` | **MinIO 依赖**（S3 凭证、Policy），install.sh 自动配置 |
+| `cr/ha/` | HA 集群 CR（1主2从 + 定时备份） |
+| `cr/standalone/` | 单节点 CR |
+| `dep-minio/` | **MinIO 依赖**（S3 凭证、Policy），install.sh 自动配置 |
 | `monitor/` | Grafana Dashboard + 告警规则 |
 | `DELIVERY.md` | 开发对接文档（连接/凭证/规格/备份恢复） |
 | `drill-backup-restore.md` | 备份恢复演练 |
