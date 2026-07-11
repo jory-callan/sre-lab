@@ -27,6 +27,31 @@ bash install.sh standalone   # 单节点
 
 > 首次部署 HA 后约 2-3 分钟集群就绪。
 
+## 观测
+
+### 仪表盘
+
+CNPG 官方 Grafana Dashboard JSON 位于 `monitor/dashboard/cnpg-cluster.json`（66 面板，全量指标）：
+
+1. 打开 Grafana → **Dashboards → New → Import**
+2. Upload 此 JSON 文件，或粘贴内容
+3. 数据源选择 **VictoriaMetrics**（Prometheus 兼容）
+4. 导入后通过顶部下拉框筛选 namespace/cluster/instance
+
+### 告警
+
+7 条内置规则（通过 install.sh 自动安装）：
+
+| 告警 | 条件 | 等级 |
+|------|------|------|
+| LongRunningTransaction | 查询超 5 分钟 | warning |
+| BackendsWaiting | 后端等待超 5 分钟 | warning |
+| PGDatabaseXidAge | XID 年龄超 3 亿 | warning |
+| PGReplication | 复制延迟超 5 分钟 | warning |
+| LastFailedArchiveTime | WAL 归档失败 | warning |
+| DatabaseDeadlockConflicts | 死锁超 10 个 | warning |
+| ReplicaFailingReplication | 从库复制失效 | warning |
+
 ## 备份
 
 S3 备份配置已集成：
@@ -42,6 +67,8 @@ S3 备份配置已集成：
 | `operator/standalone/` | 单实例 CR + 外部 Service |
 | `operator/ha/` | HA 集群 CR + 外部 Service + 定时备份 |
 | `operator/common/` | 公共 Secret（数据库密码 + S3 凭证） |
+| `monitor/dashboard/` | CNPG Grafana Dashboard JSON（官方原版，自行导入） |
+| `monitor/rule/` | CNPG 告警规则（install.sh 自动安装） |
 | `DELIVERY.md` | 开发交付文档 |
 | `backup-policy.json` | MinIO 备份用户 Policy |
 | `drill-backup-restore.md` | 备份恢复演练文档（删表 → 恢复） |

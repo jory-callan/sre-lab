@@ -33,6 +33,9 @@ fi
 # ── 应用实例 CR ──────────────────────────────────────
 kubectl apply -f "$SCRIPT_DIR/operator/$MODE/"
 
+# ── 告警规则 ───────────────────────────────────────────
+kubectl apply -f "$SCRIPT_DIR/monitor/rule/"
+
 # ── 输出 ──────────────────────────────────────────────
 echo ""
 echo "✅ PostgreSQL $MODE 部署完成"
