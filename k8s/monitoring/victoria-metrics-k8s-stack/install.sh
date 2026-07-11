@@ -1,47 +1,34 @@
 #!/bin/bash
-# install.sh — victoria-metrics-k8s-stack (VMSingle + VMAgent + VMAlert + Grafana + NodeExporter + VictoriaLogs)
-# 用法: bash install.sh
-set -e
+# install.sh — VictoriaMetrics K8s Stack（指标 + 日志，单 Chart）
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAMESPACE="vm-stack"
+NAMESPACE="monitoring"
+CHART_FILE="$SCRIPT_DIR/victoria-metrics-k8s-stack-0.85.9.tgz"
 
-# 创建命名空间
+[ -f "$CHART_FILE" ] || { echo "❌ 缺少 chart 文件: $CHART_FILE"; exit 1; }
+
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
-# ── 1. VictoriaMetrics k8s-stack ──────────────────────
-echo ">> 安装 victoria-metrics-k8s-stack ..."
-helm upgrade --install victoriametrics "$SCRIPT_DIR/victoria-metrics-k8s-stack-0.85.2.tgz" \
+echo ">>> 安装 victoria-metrics-k8s-stack（指标 + 日志）..."
+helm upgrade --install vm "$CHART_FILE" \
   --namespace "$NAMESPACE" \
-  --values "$SCRIPT_DIR/values-vm-stack.yaml" \
+  --values "$SCRIPT_DIR/values-vmstack.yaml" \
   --timeout 10m --wait
 
-# ── 2. VictoriaLogs ───────────────────────────────────
-echo ">> 安装 VictoriaLogs ..."
-helm upgrade --install victorialogs "$SCRIPT_DIR/victoria-logs-single-0.13.8.tgz" \
-  --namespace "$NAMESPACE" \
-  --values "$SCRIPT_DIR/values-vlogs.yaml" \
-  --timeout 5m --wait
-
-# ── 3. VictoriaLogs Collector ─────────────────────────
-echo ">> 安装 VictoriaLogs Collector ..."
-helm upgrade --install vmlogs-collector "$SCRIPT_DIR/victoria-logs-collector-0.3.6.tgz" \
-  --namespace "$NAMESPACE" \
-  --values "$SCRIPT_DIR/values-vlogscollector.yaml" \
-  --timeout 5m --wait
-
-# ── 4. Grafana datasource 修复 ────────────────────────
-echo ">> 修复 Grafana datasource ..."
-kubectl -n "$NAMESPACE" delete configmap victoriametrics-victoria-metrics-k8s-stack-grafana-ds --ignore-not-found 2>/dev/null
-kubectl apply -f "$SCRIPT_DIR/vm-grafana-datasources.yaml"
-
-# ── 5. Grafana dashboards ─────────────────────────────
-echo ">> 安装 Grafana dashboards ..."
-bash "$SCRIPT_DIR/apply-dashboards.sh"
-
 echo ""
-echo "✅ victoria-metrics-k8s-stack 部署完成"
-echo "   Grafana-VM: https://vm-grafana.czw-sre.internal (admin/admin)"
-echo "   VMSingle:   https://vm-metrics.czw-sre.internal"
-echo "   VictoriaLogs: https://vm-logs.czw-sre.internal"
-echo "   查看: kubectl -n $NAMESPACE get pods"
+echo "============================================"
+echo "✅ VictoriaMetrics K8s Stack 部署完成"
+echo "============================================"
+echo ""
+echo "   访问地址:"
+echo "   Grafana:  https://vm-grafana.czw-sre.internal  (admin / admin123)"
+echo "   Metrics:  https://vm-metrics.czw-sre.internal"
+echo "   Logs:     https://vm-logs.czw-sre.internal"
+echo ""
+echo "   Grafana 内置 3 个数据源（自动配置）:"
+echo "   - VictoriaMetrics           — PromQL 兼容查询"
+echo "   - VictoriaMetrics (Native)  — MetricsQL 原生查询"
+echo "   - VictoriaLogs              — LogsQL 日志查询"
+echo ""
+echo "   查看 Pod:  kubectl -n $NAMESPACE get pods -l 'app.kubernetes.io/instance=vm'"

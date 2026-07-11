@@ -1,27 +1,22 @@
 #!/bin/bash
-# uninstall.sh — victoria-metrics-k8s-stack 卸载
-# 用法: bash uninstall.sh
-set -e
+# uninstall.sh — VictoriaMetrics K8s Stack 卸载
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NAMESPACE="vm-stack"
+NAMESPACE="monitoring"
 
-echo ">> 卸载 VictoriaLogs Collector ..."
-helm uninstall vmlogs-collector -n "$NAMESPACE" --ignore-not-found --wait
-
-echo ">> 卸载 VictoriaLogs ..."
-helm uninstall victorialogs -n "$NAMESPACE" --ignore-not-found --wait
-
-echo ">> 卸载 victoria-metrics-k8s-stack ..."
-helm uninstall victoriametrics -n "$NAMESPACE" --ignore-not-found --wait
-
-echo ">> 删除命名空间 $NAMESPACE ..."
-kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true
-
-# ── 清理跨命名空间资源 ────────────────────────────────
-echo ">> 清理 Grafana datasource/dashboard ConfigMaps ..."
-kubectl -n "$NAMESPACE" delete configmap -l grafana_datasource=1 --ignore-not-found 2>/dev/null || true
-kubectl -n "$NAMESPACE" delete configmap -l grafana_dashboard=1 --ignore-not-found 2>/dev/null || true
+echo ">>> 卸载 victoria-metrics-k8s-stack ..."
+helm uninstall vm --namespace "$NAMESPACE" 2>/dev/null || true
 
 echo ""
-echo "✅ victoria-metrics-k8s-stack 已完全卸载"
+echo ">>> PVC（保留，如需清理手动执行）:"
+kubectl get pvc -n "$NAMESPACE" -l 'app.kubernetes.io/instance=vm' -o name 2>/dev/null | head -5
+
+echo ""
+echo ">>> 如需删除命名空间:"
+echo "    kubectl delete namespace $NAMESPACE --ignore-not-found"
+echo ""
+echo ">>> 如需清理 CRD:"
+echo "    kubectl delete crd -l app.kubernetes.io/instance=vm"
+
+echo ""
+echo "✅ 卸载完成"

@@ -1,26 +1,64 @@
 # victoria-metrics-k8s-stack
 
-VictoriaMetrics 生态栈：VMSingle（指标存储）+ VMAgent（指标采集）+ VMAlert（告警）+ Grafana（展示）+ VictoriaLogs（日志聚合）+ vlagent（日志采集）。
+一体化 VictoriaMetrics 监控栈：指标采集 + 日志采集 + 展示 + 告警。
+
+## 组件
+
+| 组件 | 类型 | 说明 |
+|------|------|------|
+| VMAgent | 指标采集 | 自动发现 ServiceMonitor/PodMonitor，20s 间隔 |
+| VMSingle | 指标存储 + 查询 | Prometheus 兼容 API，7d 保留，NFS PVC 10Gi |
+| VLSingle | 日志存储 | VictoriaLogs 单实例，7d 保留，NFS PVC 10Gi |
+| VLAgent | 日志采集 | DaemonSet 采集容器日志 → VLSingle |
+| VMAlert | 告警规则引擎 | 30s 评估间隔 |
+| AlertManager | 告警通知 | 飞书 webhook |
+| Grafana | 展示 | 3 个内置数据源，NFS PVC 5Gi |
+| Node Exporter | 节点指标 | DaemonSet |
+| kube-state-metrics | 集群状态 | Deployment |
 
 ## 架构
 
-| 组件 | 来源 | 存储 | 说明 |
-|------|------|------|------|
-| victoria-metrics-k8s-stack | Nexus (0.85.2 / app v1.146.0) | PVC (nfs-client, 10Gi) | VMSingle + VMAgent + VMAlert + Grafana + CRDs |
-| VictoriaLogs | Nexus (0.13.8 / app v1.51.0) | PVC (nfs-client, 10Gi) | 单实例日志存储 |
-| vlagent | Nexus (0.3.6 / app v1.51.0) | — | DaemonSet，采集所有节点日志 |
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        Grafana                               │
+│  3 数据源: PromQL + MetricsQL + LogsQL                       │
+│  插件: victoriametrics-metrics-datasource + logs-datasource  │
+└───┬──────────┬──────────────┬────────────────────────────────┘
+    │          │              │
+┌───▼────┐ ┌──▼─────┐ ┌──────▼─────────┐
+│VMSingle│ │VMAlert │ │  VLSingle       │
+│指标存储 │ │告警引擎│ │  日志存储        │
+└───┬────┘ └────────┘ └──────┬──────────┘
+    │                        │
+┌───▼────┐             ┌─────▼──────────┐
+│VMAgent │             │  VLAgent       │
+│采集器   │             │  DaemonSet     │
+└────────┘             │  k8sCollector  │
+                       └────────────────┘
+```
 
 ## 访问入口
 
 | 服务 | 地址 | 凭证 |
 |------|------|------|
-| Grafana-VM | https://vm-grafana.czw-sre.internal | admin / admin |
-| VMSingle | https://vm-metrics.czw-sre.internal | 无认证（内网域名） |
-| VictoriaLogs | https://vm-logs.czw-sre.internal | 无认证 |
+| Grafana | https://vm-grafana.czw-sre.internal | admin / admin123 |
+| Metrics API | https://vm-metrics.czw-sre.internal | 无认证 |
+| Logs API | https://vm-logs.czw-sre.internal | 无认证 |
+
+## Grafana 数据源（自动配置）
+
+| 数据源 | 类型 | 说明 |
+|--------|------|------|
+| VictoriaMetrics | `prometheus` | 标准 PromQL 查询，无需插件 |
+| VictoriaMetrics (Native) | `victoriametrics-metrics-datasource` | MetricsQL 原生查询，需插件 |
+| VictoriaLogs | `victoriametrics-logs-datasource` | LogsQL 日志查询，需插件 |
+
+插件通过 initContainer 自动从 gh-proxy.com 下载。
 
 ## 部署
 
 ```bash
+cd k8s/monitoring/victoria-metrics-k8s-stack
 bash install.sh
 ```
 
@@ -30,17 +68,15 @@ bash install.sh
 bash uninstall.sh
 ```
 
-## Prometheus 兼容
-
-VM Operator 默认启用 Prometheus 转换器（`disable_prometheus_converter: false`），会自动将 Prometheus ServiceMonitor/PodMonitor CRD 转换为 VMServiceScrape，实现无缝迁移。
-
-VMAgent 配置了 `selectAllByDefault: true`，自动发现所有命名空间中的 VMServiceScrape。
-
-## 数据源
-
-Grafana 已预置 VictoriaMetrics 数据源，自动安装默认 Dashboard。
-
 ## 注意事项
 
-- k3s 内置 etcd/kubeControllerManager/kubeScheduler 不可用，已禁用
-- Helm release 名称：`victoriametrics`、`victorialogs`、`vmlogs-collector`
+- k3s 无独立 kube-controller-manager/kube-scheduler endpoints，相关面板无数据
+- VLAgent 自动采集所有命名空间容器日志
+- 告警通过 AlertManager → 飞书通知
+- Chart 自动加载 kube-prometheus 系列 Dashboard（含 VM/Node/Pod/Cluster 等）
+
+## 原始资源
+
+- Chart: `https://github.com/VictoriaMetrics/helm-charts/tree/master/charts/victoria-metrics-k8s-stack`
+- Version: 0.85.9 (app v1.146.0)
+- 文档: https://docs.victoriametrics.com/helm/victoriametrics-k8s-stack/
