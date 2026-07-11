@@ -11,7 +11,7 @@ services:
     #network_mode: host  
     #这个与上面的二选一，网络模式为 bridge 模式
     networks:
-      - env-dev
+      - net-shared
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -29,6 +29,6 @@ services:
       server /data  --console-address ":9000"  --address ":9001"
 
 networks:
-  env-dev:
+  net-shared:
     external: true
 

@@ -10,7 +10,7 @@ services:
       POSTGRESQL_DATABASE: postgres
       TZ: Aisa/Shanghai
     networks:
-      - env-dev
+      - net-shared
     ports:
       - '5432:5432'
     volumes:
@@ -18,5 +18,5 @@ services:
       - ./data:/bitnami/postgresql
 
 networks:
-  env-dev:
+  net-shared:
     external: true

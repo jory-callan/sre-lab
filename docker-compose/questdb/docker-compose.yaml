@@ -28,7 +28,7 @@ services:
       - "9003:9003" # InfluxDB 行协议端口 (用于写入)
       - "9009:9009" # MinHealth 检查端口 (Consul 等服务发现使用)
     networks:
-      - env-dev
+      - net-shared
     # --- 资源限制 (生产环境必须配置) ---
     deploy:
       resources:
@@ -54,7 +54,7 @@ services:
         hard: -1
 
 networks:
-  env-dev:
+  net-shared:
     external: true
 
 # 注意：在生产环境中，建议通过 sysctl 配置而不是 Docker 直接设置。

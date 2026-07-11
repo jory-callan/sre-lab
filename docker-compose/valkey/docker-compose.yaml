@@ -4,7 +4,7 @@ services:
     container_name: valkey
     network_mode: host
     # networks:
-    #   - env-dev
+    #   - net-shared
     # ports:
     #   - "6379:6379"
     environment:
@@ -17,7 +17,7 @@ services:
     restart: always
 
 networks:
-  env-dev:
+  net-shared:
     external: true
 
 # 注意有权限问题

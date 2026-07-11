@@ -6,7 +6,7 @@ services:
     environment:
       TZ: 'Asia/Shanghai'
     networks:
-      - env-dev
+      - net-shared
     ports:
       - "80:80"
       - "443:443"
@@ -24,5 +24,5 @@ services:
     #   start_period: 60s
 
 networks:
-  env-dev:
+  net-shared:
     external: true

@@ -15,5 +15,5 @@ services:
     command: daemon
 
 networks:
-  env-dev:
+  net-shared:
     external: true
