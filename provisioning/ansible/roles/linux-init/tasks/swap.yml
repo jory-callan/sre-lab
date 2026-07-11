@@ -1,0 +1,8 @@
+---
+# 步骤 4: 禁用 swap (k8s 要求)
+
+- name: 关闭 swap
+  shell: |
+    swapoff -a
+    sed -i '/ swap / s/^/#/' /etc/fstab || true
+  changed_when: false

@@ -1,0 +1,18 @@
+# Victoria Logs Collector Helm values
+# Referenced by argocd/victoria-logs-collector/application.yaml via $values/apps/victoria-logs-collector/values.yaml
+remoteWrite:
+  - url: http://victoria-logs-victoria-logs-single-server.victorialogs.svc:9428
+
+collector:
+  # 排除系统级 namespace 的低价值日志
+  # 匹配到的日志在读取文件之前即被跳过，不消耗 CPU/I/O
+  # 字段参考: kubernetes.namespace_name 来自 --kubernetesCollector 自动注入的 K8s 元数据
+  excludeFilter: "kubernetes.namespace_name:~'kube-system|kube-public|kube-node-lease|local-path-storage|cert-manager|metallb-system|nfs-storageclass|kdebug'"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi

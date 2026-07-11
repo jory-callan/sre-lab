@@ -1,0 +1,48 @@
+# K3s Agent 配置
+#
+# 动态值由 Ansible 自动注入:
+#   - server  → 第一个 server 节点地址
+#   - token   → k3s_token
+#
+# 前置条件:
+#   - 数据盘已挂载到 /data（或修改 data-dir）
+#   - 节点间网络互通
+
+# ==============================================
+# 基本配置
+# ==============================================
+
+# 连接到 server（由 Ansible 注入）
+server: "https://CHANGE_ME:6443"
+
+# 集群认证 token（由 Ansible 注入）
+token: "CHANGE_ME"
+
+# 数据目录
+data-dir: "/data/k3s"
+
+# ==============================================
+# Kubelet 配置
+# ==============================================
+
+kubelet-arg:
+  # 容器日志限制
+  - "container-log-max-size=50Mi"
+  - "container-log-max-files=3"
+
+  # 镜像垃圾回收
+  - "image-gc-high-threshold=75"
+  - "image-gc-low-threshold=65"
+
+  # 镜像拉取
+  - "serialize-image-pulls=false"
+
+  # 资源预留
+  - "system-reserved=cpu=500m,memory=1Gi,ephemeral-storage=5Gi"
+  - "kube-reserved=cpu=500m,memory=1Gi,ephemeral-storage=5Gi"
+
+  # 驱逐策略
+  - "eviction-hard=nodefs.available<15%,imagefs.available<15%"
+
+  # Pod 限制
+  - "max-pods=110"

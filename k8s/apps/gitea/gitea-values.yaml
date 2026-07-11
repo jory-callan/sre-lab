@@ -1,0 +1,81 @@
+# gitea-values.yaml — Gitea 1.26.4 配置
+# SQLite + NFS 持久化 + ingress-nginx 域名访问
+---
+# Gitea 镜像（registry="" 表示 Docker Hub，通过 192.168.5.103:5002 加速）
+image:
+  registry: ""
+  repository: gitea/gitea
+  tag: 1.26.4
+  pullPolicy: IfNotPresent
+
+# 持久化
+persistence:
+  enabled: true
+  storageClass: nfs-client
+  size: 10Gi
+  accessModes:
+    - ReadWriteMany
+
+# Ingress 配置
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: gitea.czw-sre.internal
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Gitea 主配置
+gitea:
+  config:
+    server:
+      DOMAIN: gitea.czw-sre.internal
+      ROOT_URL: https://gitea.czw-sre.internal
+      HTTP_PORT: 3000
+      PROTOCOL: http
+      OFFLINE_MODE: false
+      DISABLE_SSH: false
+      START_SSH_SERVER: false
+      SSH_DOMAIN: gitea.czw-sre.internal
+      LFS_START_SERVER: true
+    database:
+      DB_TYPE: sqlite3
+      PATH: /data/gitea.db
+    session:
+      PROVIDER: file
+    security:
+      INSTALL_LOCK: false
+      PASSWORD_COMPLEXITY: off
+    service:
+      DISABLE_REGISTRATION: false
+      REQUIRE_SIGNIN_VIEW: false
+
+# 子图表禁用（SQLite + 文件 session，无需外部 DB/缓存）
+postgresql:
+  enabled: false
+postgresql-ha:
+  enabled: false
+valkey-cluster:
+  enabled: false
+valkey:
+  enabled: false
+memcached:
+  enabled: false
+
+# 单副本
+replicaCount: 1
+
+# 资源限制（2C8G 环境）
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+# 启动探针
+startupProbe:
+  enabled: true

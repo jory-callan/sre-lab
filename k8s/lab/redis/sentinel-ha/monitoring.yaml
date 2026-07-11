@@ -1,0 +1,38 @@
+# Redis 监控采集
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+  namespaceSelector:
+    matchNames:
+      - redis
+  endpoints:
+    - port: redis-exporter
+      interval: 30s
+    - port: metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-sentinel
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-sentinel
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis-sentinel
+  namespaceSelector:
+    matchNames:
+      - redis
+  endpoints:
+    - port: metrics
+      interval: 30s

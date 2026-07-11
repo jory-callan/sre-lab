@@ -1,0 +1,10 @@
+---
+# 步骤 1: 主机名与时区
+
+- name: 设置主机名
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: 设置时区
+  timezone:
+    name: "{{ timezone | default('Asia/Shanghai') }}"

@@ -1,0 +1,39 @@
+---
+# 安装 helm（仅 server 节点）
+
+- name: 检查 helm 是否已安装
+  command: which helm
+  register: helm_check
+  changed_when: false
+  failed_when: false
+
+- name: 下载 helm 安装脚本
+  get_url:
+    url: "https://gh-proxy.com/https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+    dest: /tmp/get_helm.sh
+    mode: '0755'
+  when: helm_check.rc != 0
+
+- name: 安装 helm
+  shell: |
+    curl -fsSL https://mirrors.huaweicloud.com/helm/v3.17.2/helm-v3.17.2-linux-amd64.tar.gz -o /tmp/helm.tar.gz && \
+    tar -C /tmp -xzf /tmp/helm.tar.gz && \
+    mv /tmp/linux-amd64/helm /usr/local/bin/helm && \
+    chmod +x /usr/local/bin/helm && \
+    rm -rf /tmp/helm.tar.gz /tmp/linux-amd64
+  args:
+    creates: /usr/local/bin/helm
+  when: helm_check.rc != 0
+
+- name: 配置 helm 国内源
+  shell: |
+    helm repo add stable https://kubernetes.oss-cn-hangzhou.aliyuncs.com/charts 2>/dev/null || true
+    helm repo update 2>/dev/null || true
+  changed_when: false
+  when: helm_check.rc != 0
+
+- name: 清理 helm 安装脚本
+  file:
+    path: /tmp/get_helm.sh
+    state: absent
+  when: helm_check.rc != 0

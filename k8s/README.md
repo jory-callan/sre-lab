@@ -1,47 +1,36 @@
 # K8s Deployments
 
-Production-ready Kubernetes configurations for infrastructure and applications.
+Kubernetes 资源清单，按功能模块组织。
 
-## Layout
+## 布局
 
 ```
 k8s/
-├── monitoring/             Observability stack
-│   ├── helm-values.yaml    kube-prometheus-stack values
-│   ├── dashboards/         Custom Grafana dashboards
-│   └── exporters/          FluentBit, node-exporter configs
-│
-├── ingress/
-│   ├── nginx/              ingress-nginx v1.12.0
-│   └── metallb/            MetalLB v0.14.8
-│
-├── storage/
-│   └── nfs/                NFS subdir external provisioner
-│
-├── databases/
-│   ├── mysql/              MySQL 8.4 — Percona Operator
-│   ├── postgresql/         PostgreSQL 17 — CloudNative PG
-│   └── redis/              Redis 7 — 3 deployment modes
-│
-├── temporal/               Temporal workflow engine
-│
-└── apps/
-    ├── kite/               K8s dashboard
-    └── kdebug/             K8s debug pod
+├── bootstrap/         底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS）
+├── apps/              应用层（Gitea / Kite / kdebug / temporal / velero）
+├── middleware/        共享中间件（MinIO / PostgreSQL / Redis）
+├── operators/         Operator 控制器（cnpg / minio / redis）
+├── monitoring/       监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana）
+├── databases/        数据库部署（MySQL / PostgreSQL / Redis）
+├── ingress/          入口网关（ingress-nginx / MetalLB）
+├── storage/          存储相关（NFS）
+└── lab/              选型测试沙箱
 ```
 
-## Component Template
+## 组件规范
 
-Each component follows this pattern:
+每个组件遵循以下模式：
 
 ```
 component/
-├── README.md               Architecture, commands, version
-├── manifests/              Raw YAML (simple services)
-├── helm/                   Custom Helm chart (self-managed services)
-└── operator/               Operator CRs (stateful services)
+├── README.md          架构说明、命令、版本
+├── install.sh         安装脚本
+├── uninstall.sh       卸载脚本
+├── manifests/         原始 YAML（简单服务）
+├── helm/              自定义 Helm chart（自管理服务）
+└── operator/          Operator CR（有状态服务）
 ```
 
-## Version Management
+## 版本管理
 
-Every README documents exact versions — images, Helm charts, operators. This ensures fully reproducible deployments.
+每个 README 记录精确版本号 — 镜像、Helm chart、Operator。确保可复现部署。

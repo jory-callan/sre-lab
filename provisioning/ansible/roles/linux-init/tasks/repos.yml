@@ -1,0 +1,97 @@
+---
+# 步骤 1.5: 配置国内镜像源 (Rocky / Ubuntu)
+#
+# Rocky: 用 Ansible template 部署统一配置，内置版本差异 (8/9/10)
+#   - 8: powertools, 9+: crb
+# Ubuntu: 按版本选择 sources.list (≤22.04) 或 ubuntu.sources (≥24.04)
+
+# ==================== Rocky Linux ====================
+- name: 移除旧的 Rocky repo 文件 (兼容 8/9/10 命名差异)
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ query('fileglob', '/etc/yum.repos.d/[Rr]ocky*.repo') }}"
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution == "Rocky"
+
+- name: 部署阿里云镜像的 Rocky repo 配置
+  template:
+    src: rocky.repo.j2
+    dest: /etc/yum.repos.d/rocky.repo
+    mode: '0644'
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution == "Rocky"
+
+# ---- Rocky: 安装 EPEL 并配置镜像 ----
+- name: 安装 EPEL 源 (RedHat)
+  package:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: 替换 EPEL 为阿里云镜像
+  shell: |
+    set -e
+    shopt -s nullglob
+    for f in /etc/yum.repos.d/epel*.repo; do
+      case "$(basename "$f")" in
+        epel-cisco-openh264*) continue ;;  # 无国内镜像
+      esac
+      sed -e 's|^metalink=.*$|baseurl=https://mirrors.aliyun.com/epel/$releasever/Everything/$basearch/|g' \
+          -i.bak "$f"
+    done
+  when: ansible_os_family == "RedHat"
+  changed_when: false
+
+# ==================== Ubuntu ====================
+# Ubuntu <24 (20.04/22.04): /etc/apt/sources.list (传统 deb 格式)
+# Ubuntu 24+ (24.04+):      /etc/apt/sources.list.d/ubuntu.sources (DEB822 格式)
+# 替换逻辑相同: 仅替换域名 archive.ubuntu.com → mirrors.aliyun.com
+
+- name: 备份原 sources.list (Ubuntu <24)
+  copy:
+    src: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.bak
+    remote_src: yes
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_distribution_major_version | int < 24
+
+- name: 替换 Ubuntu <24 sources.list 为阿里云 (传统 deb 格式)
+  replace:
+    path: /etc/apt/sources.list
+    regexp: '{{ item.from }}'
+    replace: '{{ item.to }}'
+  loop:
+    - {from: 'http://archive.ubuntu.com/ubuntu',      to: 'http://mirrors.aliyun.com/ubuntu'}
+    - {from: 'http://security.ubuntu.com/ubuntu',      to: 'http://mirrors.aliyun.com/ubuntu'}
+    - {from: 'http://ports.ubuntu.com/ubuntu-ports',   to: 'http://mirrors.aliyun.com/ubuntu'}
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_distribution_major_version | int < 24
+  notify: apt update
+
+- name: 备份原 ubuntu.sources (Ubuntu 24+)
+  copy:
+    src: /etc/apt/sources.list.d/ubuntu.sources
+    dest: /etc/apt/sources.list.d/ubuntu.sources.bak
+    remote_src: yes
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_distribution_major_version | int >= 24
+
+- name: 替换 Ubuntu 24+ ubuntu.sources 为阿里云 (DEB822 格式)
+  replace:
+    path: /etc/apt/sources.list.d/ubuntu.sources
+    regexp: '{{ item.from }}'
+    replace: '{{ item.to }}'
+  loop:
+    - {from: 'URIs: http://archive.ubuntu.com/ubuntu',    to: 'URIs: http://mirrors.aliyun.com/ubuntu'}
+    - {from: 'URIs: http://security.ubuntu.com/ubuntu',   to: 'URIs: http://mirrors.aliyun.com/ubuntu'}
+    - {from: 'URIs: http://ports.ubuntu.com/ubuntu-ports', to: 'URIs: http://mirrors.aliyun.com/ubuntu'}
+  when:
+    - ansible_os_family == "Debian"
+    - ansible_distribution_major_version | int >= 24
+  notify: apt update

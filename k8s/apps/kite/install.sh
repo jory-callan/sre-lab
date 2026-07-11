@@ -1,43 +1,42 @@
 #!/bin/bash
-# Kite 安装脚本 - 支持 manifests 或 helm 方式
+# install.sh — 安装 Kite K8s Web UI v0.12.3
+# 用法: bash install.sh
+# 前置条件: ingress-nginx + NFS StorageClass 已就绪
+set -euo pipefail
 
-set -e
+NAMESPACE="kite"
+VALUES_FILE="$(cd "$(dirname "$0")" && pwd)/kite-values.yaml"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# 检查参数
-MODE="${1:-manifests}"  # 默认 manifests
-
-if [ "$MODE" != "manifests" ] && [ "$MODE" != "helm" ]; then
-  echo "❌ 无效参数！用法："
-  echo "   $0 [manifests|helm]"
-  exit 1
+# 检查是否已安装
+if helm list -n "$NAMESPACE" 2>/dev/null | grep -q kite; then
+    echo "ℹ️  Kite 已安装，跳过"
+    exit 0
 fi
 
-echo "📦 安装 Kite ($MODE 方式)..."
+# 安装 Kite
+echo "▶ 安装 Kite v0.12.3 (SQLite + NFS + ingress)..."
+helm upgrade --install kite oci://ghcr.io/kite-org/charts/kite \
+    --namespace "$NAMESPACE" --create-namespace \
+    --values "$VALUES_FILE" \
+    --version 0.12.3 \
+    --wait --timeout 5m
 
-if [ "$MODE" = "manifests" ]; then
-  # Manifests 方式
-  kubectl apply -f "$SCRIPT_DIR/manifests/namespace.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/serviceaccount.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/clusterrolebinding.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/pvc.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/deployment.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/service.yaml"
-  kubectl apply -f "$SCRIPT_DIR/manifests/ingress.yaml"
-else
-  # Helm 方式
-  helm upgrade --install kite "$SCRIPT_DIR/helm" \
-    -n kite --create-namespace \
-    -f "$SCRIPT_DIR/helm/values-prod.yaml"
-fi
+# 创建 NodePort Service（与 Helm 管理的 ClusterIP Service 并存）
+kubectl apply -f "$(dirname "$0")/service.yaml"
 
 echo ""
-echo "✅ Kite 安装完成！"
+echo "✅ Kite 安装完成"
 echo ""
-echo "📝 访问地址：http://kite.czw-sre.internal"
-echo "   （请先配置本地 hosts：192.168.5.240 kite.czw-sre.internal）"
+echo "   访问地址: http://kite.czw-sre.internal"
+echo "   (确保 *.czw-sre.internal → 192.168.5.205 DNS 已配置)"
 echo ""
-echo "🔍 查看状态："
-echo "   kubectl get pods -n kite"
-echo "   kubectl get ingress -n kite"
+echo "   或通过 NodePort: http://<任意节点IP>:30301"
+echo ""
+echo "   首次访问会进入设置页面，创建管理员账号即可使用。"
+echo ""
+echo "   查看状态:"
+echo "     kubectl -n kite get pods"
+echo "     kubectl -n kite get ingress"
+echo ""
+echo "   查看日志:"
+echo "     kubectl -n kite logs deploy/kite --tail=50"

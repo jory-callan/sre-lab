@@ -1,0 +1,26 @@
+---
+# 配置 kubectl（仅 server 节点）
+# 注意: k3s 重启/数据目录迁移后 CA 可能变化，每次都重新复制
+
+- name: 创建 .kube 目录
+  file:
+    path: /root/.kube
+    state: directory
+    mode: '0700'
+
+- name: 复制 k3s kubeconfig（始终同步最新 CA）
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /root/.kube/config
+    remote_src: yes
+    mode: '0600'
+  failed_when: false
+
+- name: 替换 kubeconfig 中的 127.0.0.1 为本机 IP
+  replace:
+    path: /root/.kube/config
+    regexp: '127\.0\.0\.1'
+    replace: '{{ ansible_default_ipv4.address }}'
+  when: ansible_default_ipv4.address is defined
+
+

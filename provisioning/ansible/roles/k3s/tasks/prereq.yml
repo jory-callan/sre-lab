@@ -1,0 +1,56 @@
+---
+# 前置检查：swap / 内核参数 / 时间同步
+
+- name: 关闭 swap
+  shell: |
+    swapoff -a
+    sed -i '/ swap / s/^/#/' /etc/fstab
+  changed_when: false
+
+- name: 确保 ip_forward 已开启
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: 设置内核参数（protect-kernel-defaults 要求）
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop:
+    - { name: kernel.panic, value: '10' }
+    - { name: vm.panic_on_oom, value: '0' }
+    - { name: kernel.keys.root_maxkeys, value: '1000000' }
+    - { name: kernel.keys.root_maxbytes, value: '25000000' }
+
+- name: 确保 chronyd 已启动
+  systemd:
+    name: chronyd
+    state: started
+    enabled: yes
+  ignore_errors: true
+
+- name: 创建 k3s 配置目录
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+    mode: '0755'
+
+- name: 创建数据目录
+  file:
+    path: "{{ k3s_data_dir | default('/var/lib/rancher/k3s') }}"
+    state: directory
+    mode: '0700'
+  when: k3s_role == 'server'
+
+- name: 创建 etcd 快照目录
+  file:
+    path: "{{ k3s_data_dir | default('/var/lib/rancher/k3s') }}/snapshots"
+    state: directory
+    mode: '0700'
+  when: k3s_role == 'server'

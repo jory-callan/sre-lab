@@ -1,0 +1,42 @@
+# K3s 镜像源配置
+# 私有 registry 代理，解决国内拉取镜像问题
+#
+# 端口映射:
+#   5000 = group(含5001), 5001 = docker-hosted
+#   5002 = docker.io,     5003 = registry.k8s.io
+#   5004 = quay.io,       5005 = ghcr.io
+#   5006 = gcr.io
+
+mirrors:
+  docker.io:
+    endpoint:
+      - "http://192.168.5.103:5002"
+  registry.k8s.io:
+    endpoint:
+      - "http://192.168.5.103:5003"
+  quay.io:
+    endpoint:
+      - "http://192.168.5.103:5004"
+  ghcr.io:
+    endpoint:
+      - "http://192.168.5.103:5005"
+  gcr.io:
+    endpoint:
+      - "http://192.168.5.103:5006"
+
+configs:
+  "192.168.5.103:5002":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5003":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5004":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5005":
+    tls:
+      insecure_skip_verify: true
+  "192.168.5.103:5006":
+    tls:
+      insecure_skip_verify: true

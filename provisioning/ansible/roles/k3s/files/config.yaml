@@ -1,0 +1,135 @@
+# K3s Server 配置（生产优化）
+#
+# 动态值由 Ansible 自动注入:
+#   - token          → k3s_token
+#   - tls-san IP     → 遍历 k3s_server 组所有节点 IP
+#   - cluster-init   → 第一个 server 为 true，其余为 false
+#   - server         → 加入的 server 指向第一个 server
+#   - system-default-registry → k3s_system_default_registry
+#
+# 前置条件:
+#   - 数据盘已挂载到 /data（或修改 data-dir）
+#   - 节点间网络互通
+#   - 时间同步已配置
+
+# ==============================================
+# 基本配置
+# ==============================================
+
+# 集群初始化（第一个 server 为 true，加入的节点改为 false）
+# ANSIBLE_CLUSTER_INIT: true
+# ANSIBLE_SERVER_URL
+
+# 集群认证 token（由 Ansible 注入）
+token: "CHANGE_ME"
+
+# 数据目录（建议放在独立数据盘）
+data-dir: "/data/k3s"
+
+# ==============================================
+# 禁用内置组件
+# ==============================================
+
+disable:
+  - traefik                    # 使用 ingress-nginx
+  - servicelb                  # 使用 MetalLB
+  - network-policy             # 禁用内置网络策略（Cilium 接管）
+
+# 禁用内置 flannel（使用 Cilium CNI）
+flannel-backend: none
+
+# ==============================================
+# 镜像仓库
+# ==============================================
+
+system-default-registry: "registry.cn-hangzhou.aliyuncs.com"
+
+# ==============================================
+# TLS SAN（DNS 名称 + 自动注入的节点 IP）
+# ==============================================
+
+tls-san:
+  - "k3s-server"
+  - "kubernetes"
+  - "kubernetes.default"
+  - "kubernetes.default.svc"
+  - "kubernetes.default.svc.cluster.local"
+# ANSIBLE_TLS_SAN_IPS
+
+# ==============================================
+# Kubelet 配置（日志轮转 / GC / 资源预留）
+# ==============================================
+
+kubelet-arg:
+  # 容器日志限制（防止日志占满磁盘）
+  - "container-log-max-size=50Mi"
+  - "container-log-max-files=3"
+
+  # 镜像垃圾回收
+  - "image-gc-high-threshold=75"
+  - "image-gc-low-threshold=65"
+
+  # 镜像拉取
+  - "serialize-image-pulls=false"
+
+  # 资源预留（2C8G 环境，根据实际资源调整）
+  - "system-reserved=cpu=500m,memory=1Gi,ephemeral-storage=5Gi"
+  - "kube-reserved=cpu=500m,memory=1Gi,ephemeral-storage=5Gi"
+
+  # 驱逐策略
+  - "eviction-hard=nodefs.available<15%,imagefs.available<15%"
+
+  # Pod 限制
+  - "max-pods=110"
+
+# ==============================================
+# ETCD 配置
+# ==============================================
+
+# 自动快照
+etcd-snapshot-schedule-cron: "0 */6 * * *"
+etcd-snapshot-retention: 30
+etcd-snapshot-dir: "/data/k3s/snapshots"
+
+# ETCD 性能参数
+etcd-arg:
+  - "auto-compaction-mode=periodic"
+  - "auto-compaction-retention=1h"
+  - "quota-backend-bytes=8589934592"
+  - "heartbeat-interval=100"
+  - "election-timeout=1000"
+  - "snapshot-count=100000"
+
+# ==============================================
+# API Server 配置
+# ==============================================
+
+kube-apiserver-arg:
+  - "max-requests-inflight=3000"
+  - "max-mutating-requests-inflight=1000"
+  - "event-ttl=24h"
+  - "enable-admission-plugins=NodeRestriction"
+  - "service-node-port-range=30000-32767"
+  - "request-timeout=1m"
+
+# ==============================================
+# Controller Manager 配置
+# ==============================================
+
+kube-controller-manager-arg:
+  - "node-monitor-period=5s"
+  - "node-monitor-grace-period=40s"
+  - "terminated-pod-gc-threshold=1000"
+
+# ==============================================
+# 安全配置
+# ==============================================
+
+# Secrets 加密
+secrets-encryption: true
+
+# 保护内核默认值
+protect-kernel-defaults: true
+
+# kubeconfig 权限
+write-kubeconfig-mode: "600"

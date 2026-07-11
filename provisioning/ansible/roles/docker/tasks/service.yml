@@ -1,0 +1,17 @@
+---
+# 步骤 3: 启动 Docker 并验证
+
+- name: 启动并启用 Docker
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: 验证 Docker 版本
+  command: docker --version
+  register: docker_ver
+  changed_when: false
+
+- name: 输出版本
+  debug:
+    msg: "Docker 安装完成: {{ docker_ver.stdout }}"

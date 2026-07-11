@@ -1,29 +1,27 @@
-# demo-go-tiny
+# kdebug
 
-## 快速开始
-```bash
-./install.sh
+调试 Pod 应用的原始 K8s 资源。
+
+## 文件
+
+| 文件 | 说明 |
+|------|------|
+| namespace.yaml | kdebug 命名空间 |
+| deployment.yaml | 运行 ghcr.io/jory-callan/kdebug:v1.0.2 |
+| service.yaml | ClusterIP :80 → :8080 |
+| ingress.yaml | HTTPS via cert-manager internal-ca |
+
+## HTTPS 说明
+
+Ingress 通过 annotation `cert-manager.io/cluster-issuer: internal-ca` 自动签发证书，
+secret 名 `kdebug-tls`。证书链：
+
+```
+selfsigned-ca → ca-root → internal-ca → kdebug-tls
 ```
 
 ## 验证
-```bash
-kubectl get pods -l app=demo-go-tiny
-kubectl get svc demo-go-tiny
-kubectl get ingress demo-go-tiny
-```
 
-## 测试
-修改本地 hosts 文件：
-```
-192.168.5.240 demo-go-tiny.czw-sre.internal
-```
-
-然后访问：
 ```bash
-curl http://demo-go-tiny.czw-sre.internal/ip
-```
-
-## 卸载
-```bash
-./uninstall.sh
+curl -k https://kdebug.czw-sre.internal/ping
 ```

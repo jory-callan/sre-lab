@@ -1,0 +1,14 @@
+---
+# 步骤 5: 配置 ulimit
+
+- name: 配置 systemd limits
+  copy:
+    dest: /etc/security/limits.d/99-k8s-limits.conf
+    content: |
+      *       soft    nofile     1048576
+      *       hard    nofile     1048576
+      *       soft    nproc      unlimited
+      *       hard    nproc      unlimited
+      *       soft    stack      10240
+      *       hard    stack      32768
+    mode: '0644'

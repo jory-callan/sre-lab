@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: metrics-server-quota
+  namespace: kube-system
+spec:
+  hard:
+    requests.memory: 256Mi
+    limits.memory: 512Mi
+    requests.cpu: 500m
+    limits.cpu: 1

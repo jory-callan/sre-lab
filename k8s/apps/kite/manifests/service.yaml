@@ -1,21 +1,15 @@
-# Kite Service
-# NodePort 类型，通过固定端口 30001 直接从集群节点暴露
-# 同时保留 Ingress 提供 DNS 域名访问（通过 ingress-nginx 的 LoadBalancer IP）
-# 这样既支持直接 IP:端口访问，也支持域名访问
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: kite
-  name: kite
+  name: kite-nodeport
   namespace: kite
 spec:
+  type: NodePort
   ports:
-    - name: http
-      port: 8080
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30301
       protocol: TCP
-      targetPort: 8080  # 容器内 Kite 监听端口
-      nodePort: 30201  # 固定 NodePort，方便本地开发和管理
+      name: http
   selector:
-    app: kite  # 匹配 Deployment 中 Pod 的标签
-  type: NodePort  # 常用管理工具直接暴露 NodePort，30001 起顺序分配
+    app.kubernetes.io/name: kite

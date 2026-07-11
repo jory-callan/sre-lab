@@ -1,0 +1,14 @@
+---
+# Docker 角色任务入口
+
+- name: 检查 Docker 是否已安装
+  command: docker --version
+  register: docker_check
+  changed_when: false
+  failed_when: false
+
+- import_tasks: install.yml
+  when: docker_check.rc != 0
+
+- import_tasks: configure.yml
+- import_tasks: service.yml

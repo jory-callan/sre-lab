@@ -1,0 +1,45 @@
+---
+# Playbook: K3s 安装 / 卸载
+#
+# 安装:
+#   bash run.sh k3s
+#
+# 卸载（手动运行，不自动执行）:
+#   ansible-playbook playbooks/k3s.yml -i inventories/production/hosts.ini --tags uninstall
+#   先卸载 agent 节点，再 serial=1 卸载 server 节点:
+#   ansible-playbook playbooks/k3s.yml -i inventories/production/hosts.ini -l k3s_agent --tags uninstall
+#   ansible-playbook playbooks/k3s.yml -i inventories/production/hosts.ini -l k3s_server --tags uninstall
+#
+# 执行顺序:
+#   1. 先安装 k3s_server 组（第一个节点初始化，其余加入）
+#   2. 再安装 k3s_agent 组（连接到第一个 server）
+#
+# 变量（在 hosts.ini [all:vars] 中定义）:
+#   k3s_version       - k3s 版本号，如 v1.31.5-k3s1
+#   k3s_token         - 集群认证 token
+
+- name: 安装 K3s Server 节点
+  hosts: k3s_server
+  gather_facts: yes
+  serial: 1
+  roles:
+    - role: k3s
+      tags: [k3s, server]
+
+- name: 安装 K3s Agent 节点
+  hosts: k3s_agent
+  gather_facts: yes
+  roles:
+    - role: k3s
+      tags: [k3s, agent]
+
+- name: 卸载 K3s（手动运行，--tags uninstall / --tags purge）
+  hosts: k3s_cluster
+  gather_facts: yes
+  tags: [uninstall, purge, never]
+  tasks:
+    - name: 设置角色
+      set_fact:
+        k3s_role: "{{ 'server' if 'k3s_server' in group_names else 'agent' }}"
+
+    - import_tasks: ../roles/k3s/tasks/uninstall.yml

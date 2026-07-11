@@ -1,0 +1,12 @@
+---
+# linux-init 角色任务入口
+# 按步骤拆分为独立子任务文件
+
+- import_tasks: hostname.yml
+- import_tasks: repos.yml
+- import_tasks: packages.yml
+- import_tasks: kernel.yml
+- import_tasks: swap.yml
+- import_tasks: limits.yml
+- import_tasks: logging.yml
+- import_tasks: security.yml

@@ -1,0 +1,35 @@
+# kite-values.yaml — Kite K8s Web UI 配置
+# SQLite + NFS 持久化 + ingress-nginx 域名访问
+---
+# 镜像标签
+image:
+  tag: v0.12.3
+
+# 部署策略 — SQLite + RWO PVC 必须使用 Recreate
+deploymentStrategy:
+  type: Recreate
+
+# 数据库配置
+db:
+  type: sqlite
+  sqlite:
+    persistence:
+      pvc:
+        enabled: true
+        storageClass: nfs-client
+        size: 1Gi
+      mountPath: /data
+
+# Ingress 配置
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: kite.czw-sre.internal
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Service 类型 — 使用 ClusterIP，NodePort 由独立的 service.yaml 管理
+service:
+  type: ClusterIP

@@ -1,0 +1,31 @@
+---
+# 步骤 7: 安全组件 (SELinux / AppArmor, Firewalld / UFW)
+
+- name: 关闭 SELinux 运行时 (RedHat)
+  command: setenforce 0
+  when: ansible_os_family == "RedHat"
+  changed_when: false
+  failed_when: false
+
+- name: 持久化 SELINUX=disabled (RedHat)
+  replace:
+    path: /etc/selinux/config
+    regexp: '^SELINUX=.*'
+    replace: 'SELINUX=disabled'
+  when: ansible_os_family == "RedHat"
+
+- name: 关闭 firewalld (RedHat)
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  when: ansible_os_family == "RedHat"
+
+- name: 关闭 ufw (Debian)
+  systemd:
+    name: ufw
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  when: ansible_os_family == "Debian"

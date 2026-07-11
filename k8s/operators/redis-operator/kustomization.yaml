@@ -1,0 +1,14 @@
+# Redis Operator (OT-Container-KIT)
+# CRDs 已在部署前通过 kubectl apply --server-side 直接安装
+# 若需恢复 CRD 安装，设置 includeCRDs: true
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: redis-operator
+    repo: https://ot-container.github.io/helm-charts/
+    version: 0.25.0
+    releaseName: redis-operator
+    namespace: operators
+    valuesFile: values.yaml
+    includeCRDs: false      # CRD 过大，手动安装

@@ -1,0 +1,16 @@
+# Metrics Server Helm values (v3.13.1 / app 0.8.1)
+#
+# k3s 使用自签名 kubelet 证书，必须 --kubelet-insecure-tls
+# 否则 metrics-server 无法连接 kubelet 采集指标
+args:
+  - --kubelet-insecure-tls
+  - --kubelet-preferred-address-types=InternalIP
+  - --metric-resolution=15s
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 150m
+    memory: 128Mi

@@ -1,0 +1,50 @@
+---
+# 安装 k3s
+
+- name: 下载 k3s 安装脚本
+  get_url:
+    url: "https://rancher-mirror.rancher.cn/k3s/k3s-install.sh"
+    dest: /tmp/k3s-install.sh
+    mode: '0755'
+
+- name: 安装 k3s server
+  shell: |
+    INSTALL_K3S_VERSION="{{ k3s_version }}" \
+    INSTALL_K3S_MIRROR=cn \
+    INSTALL_K3S_SKIP_SELINUX_RPM=true \
+    sh /tmp/k3s-install.sh server
+  args:
+    creates: /usr/local/bin/k3s
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_MIRROR: "cn"
+    INSTALL_K3S_SKIP_SELINUX_RPM: "true"
+  when: k3s_role == 'server'
+
+- name: 安装 k3s agent
+  shell: |
+    INSTALL_K3S_VERSION="{{ k3s_version }}" \
+    INSTALL_K3S_MIRROR=cn \
+    INSTALL_K3S_SKIP_SELINUX_RPM=true \
+    sh /tmp/k3s-install.sh agent
+  args:
+    creates: /usr/local/bin/k3s
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_MIRROR: "cn"
+    INSTALL_K3S_SKIP_SELINUX_RPM: "true"
+  when: k3s_role == 'agent'
+
+- name: 等待 k3s 就绪（server）
+  shell: kubectl get nodes --no-headers 2>/dev/null | wc -l
+  register: node_count
+  retries: 30
+  delay: 5
+  until: node_count.stdout | int > 0
+  changed_when: false
+  when: k3s_role == 'server'
+
+- name: 清理安装脚本
+  file:
+    path: /tmp/k3s-install.sh
+    state: absent

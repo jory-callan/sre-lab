@@ -1,0 +1,33 @@
+---
+# 步骤 6: 日志轮转配置
+
+- name: 配置 journald 日志限制
+  copy:
+    dest: /etc/systemd/journald.conf
+    content: |
+      [Journal]
+      SystemMaxUse={{ journald_max_size | default('500M') }}
+      SystemMaxFileSize=100M
+      MaxRetentionSec={{ (log_retention_days | default(7)) * 86400 }}
+      ForwardToSyslog=no
+      RuntimeMaxUse=100M
+    mode: '0644'
+  notify: restart journald
+
+- name: 配置 logrotate 全局兜底
+  copy:
+    dest: /etc/logrotate.d/catch-all
+    content: |
+      # 全局兜底: 仅匹配 /var/log/ 下两层深的 .log 文件
+      # 更深路径的日志 (如 /var/log/a/b/c.log) 由对应服务自己的角色管理
+      /var/log/*.log
+      /var/log/*/*.log {
+          daily
+          rotate {{ log_retention_days | default(7) }}
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+      }
+    mode: '0644'

@@ -1,25 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: demo-go-tiny
+  name: kdebug
+  namespace: kdebug
   annotations:
-    # ingress-nginx 透传真实客户端 IP 的关键配置
-    nginx.ingress.kubernetes.io/real-ip-header: "X-Forwarded-For"
-    nginx.ingress.kubernetes.io/real-ip-recursive: "true"
-    nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+    cert-manager.io/cluster-issuer: internal-ca
 spec:
-  # Ingress 类
   ingressClassName: nginx
-
-  # 路由规则
+  tls:
+    - hosts:
+        - kdebug.czw-sre.internal
+      secretName: kdebug-tls
   rules:
-  - host: demo-go-tiny.czw-sre.internal  # 注意：使用 czw-sre.internal 域名，避免 *.local 的延迟
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: demo-go-tiny
-            port:
-              number: 80
+    - host: kdebug.czw-sre.internal
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kdebug
+                port:
+                  number: 80

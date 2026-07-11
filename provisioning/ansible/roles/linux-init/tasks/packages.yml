@@ -1,0 +1,85 @@
+---
+# 步骤 2: 安装基础工具包 (Rocky / Ubuntu 通用)
+
+- name: 安装基础工具包 (RedHat)
+  package:
+    name:
+      # 基础
+      - curl
+      - wget
+      - vim
+      - zip
+      - unzip
+      - tree
+      - jq
+      - bash-completion
+      # 网络诊断
+      - tcpdump
+      - net-tools
+      - bind-utils
+      - lsof
+      - mtr
+      - socat
+      - iperf3
+      # 系统/性能
+      - htop
+      - iotop
+      - sysstat
+      - psmisc
+      - strace
+      - pv
+      - ncdu
+      # 存储
+      - nfs-utils
+      # Longhorn（分布式存储）前置依赖
+      - iscsi-initiator-utils   # iSCSI 启动器，Longhorn 核心依赖
+      - device-mapper           # 设备映射器（dmsetup）
+      - e2fsprogs               # ext4 文件系统工具
+      - xfsprogs                # XFS 文件系统工具
+      # 终端/运维
+      - tmux
+      - rsync
+      - yum-utils
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: 安装基础工具包 (Debian)
+  package:
+    name:
+      # 基础
+      - curl
+      - wget
+      - vim
+      - zip
+      - unzip
+      - tree
+      - jq
+      - bash-completion
+      # 网络诊断
+      - tcpdump
+      - net-tools
+      - dnsutils
+      - lsof
+      - mtr
+      - socat
+      - iperf3
+      # 系统/性能
+      - htop
+      - iotop
+      - sysstat
+      - psmisc
+      - strace
+      - pv
+      - ncdu
+      # 存储
+      - nfs-common
+      # Longhorn（分布式存储）前置依赖
+      - open-iscsi              # iSCSI 启动器，Longhorn 核心依赖
+      - dmsetup                 # 设备映射器
+      - e2fsprogs               # ext4 文件系统工具
+      - xfsprogs                # XFS 文件系统工具
+      # 终端/运维
+      - tmux
+      - rsync
+    state: present
+  when: ansible_os_family == "Debian"

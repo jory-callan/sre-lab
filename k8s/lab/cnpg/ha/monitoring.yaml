@@ -1,0 +1,20 @@
+# CloudNativePG 监控采集
+# Pod 自动暴露 metrics 端口 9187
+# 通过 ServiceMonitor 由 VictoriaMetrics 采集
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres
+  namespace: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  namespaceSelector:
+    matchNames:
+      - postgres
+  endpoints:
+    - port: metrics
+      interval: 30s

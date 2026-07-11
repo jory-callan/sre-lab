@@ -1,0 +1,105 @@
+# PostgreSQL 共享实例 — CloudNativePG Cluster
+# 1 主 2 从 HA 集群，NFS 持久化，每日全量备份到 MinIO
+#
+# ⚠️ NFS 注意事项：
+#   PostgreSQL 依赖 fsync 保证数据安全，NFS 缓存可能导致已提交事务
+#   在节点宕机时丢失。当前为 demo/轻量使用可接受此风险。
+#   如需生产级存储，将 storageClassName 改为 Longhorn / Local PV。
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: middleware
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  # ── 实例拓扑：1 主 2 从 ──────────────────────
+  instances: 3
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+  replicationSlots:
+    highAvailability:
+      enabled: true
+
+  # ── PostgreSQL 镜像 ───────────────────────
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  # ── 存储 ──────────────────────────────────
+  storage:
+    storageClassName: nfs-client
+    size: 5Gi
+
+  # ── 资源（demo 低配）───────────────────────
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # ── 节点反亲和 ────────────────────────────
+  # 确保 3 个实例分布在不同的 k3s 节点上
+  affinity:
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgres
+          topologyKey: kubernetes.io/hostname
+
+  # ── 预创建数据库和用户（供 Gitea / Kite 接入）───
+  # 当前已启用，密码由对应 Secret 管理
+  # 业务应用连接时使用这些凭据，无需 Superuser 权限
+  managed:
+    roles:
+      - name: gitea
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-app-creds
+          key: gitea-password
+      - name: kite
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-app-creds
+          key: kite-password
+    databases:
+      - name: gitea
+        ensure: present
+        owner: gitea
+      - name: kite
+        ensure: present
+        owner: kite
+
+  # ── 备份至 MinIO ──────────────────────────
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres-backup/
+      endpointURL: http://minio.middleware.svc:80
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-creds
+          key: access-key
+        secretAccessKey:
+          name: minio-backup-creds
+          key: secret-key
+      wal:
+        compression: gzip
+        maxParallel: 1
+      data:
+        compression: gzip
+        jobs: 1
+    retentionPolicy: "7d"
+
+  # ── 监控 ──────────────────────────────────
+  monitoring:
+    enablePodMonitor: false
+    customQueriesConfigMap:
+      - name: cnpg-default-monitoring
+        key: queries

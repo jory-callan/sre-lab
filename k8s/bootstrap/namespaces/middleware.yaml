@@ -1,0 +1,22 @@
+# middleware namespace — 共享中间件统一运行空间
+# 由 infrastructure/namespaces/ 统一管理，所有 middleware App 不重复创建
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: middleware
+  labels:
+    purpose: shared-middleware
+---
+# 配额：防止中间件互相抢资源
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: middleware-quota
+  namespace: middleware
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 4Gi
+    limits.cpu: "6"
+    limits.memory: 8Gi
+    persistentvolumeclaims: 20

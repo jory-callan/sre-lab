@@ -1,0 +1,29 @@
+# CloudNativePG 单实例测试集群
+# 用于快速验证基本功能，不做 HA
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: pg-single
+  namespace: pg-test
+  labels:
+    app.kubernetes.io/name: pg-single
+spec:
+  instances: 1
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  storage:
+    storageClassName: nfs-client
+    size: 3Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # 启用监控
+  monitoring:
+    enablePodMonitor: false

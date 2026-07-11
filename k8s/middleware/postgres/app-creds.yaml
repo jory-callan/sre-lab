@@ -1,0 +1,12 @@
+# 业务应用数据库凭据
+# Gitea 和 Kite 通过此 Secret 中的用户连接 PostgreSQL
+# 密码由 CNPG managed roles 自动识别
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-app-creds
+  namespace: middleware
+type: Opaque
+stringData:
+  gitea-password: changeme-gitea
+  kite-password: changeme-kite

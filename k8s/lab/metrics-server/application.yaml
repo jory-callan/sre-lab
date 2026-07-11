@@ -1,0 +1,24 @@
+# Metrics Server ArgoCD Application（供参考）
+#
+# 当前使用 k3s 内置 metrics-server，此 Application 未启用。
+# 如需切换为 Helm 部署，将本文件复制到 argocd/metrics-server/application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metrics-server
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://gh-proxy.com/https://github.com/jory-callan/gitops-base
+    targetRevision: HEAD
+    path: infrastructure/metrics-server
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

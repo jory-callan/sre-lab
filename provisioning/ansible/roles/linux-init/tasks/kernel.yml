@@ -1,0 +1,75 @@
+---
+# 步骤 3: 内核模块与 sysctl 参数
+
+- name: 加载 br_netfilter 内核模块
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: 确保 br_netfilter 开机加载
+  copy:
+    content: "br_netfilter\n"
+    dest: /etc/modules-load.d/br_netfilter.conf
+    mode: '0644'
+
+# Longhorn 依赖
+- name: 加载 iscsi_tcp 内核模块
+  modprobe:
+    name: iscsi_tcp
+    state: present
+
+- name: 确保 iscsi_tcp 开机加载
+  copy:
+    content: "iscsi_tcp\n"
+    dest: /etc/modules-load.d/iscsi_tcp.conf
+    mode: '0644'
+
+# NFS 存储依赖（nfs-subdir-external-provisioner）
+- name: 加载 nfs 内核模块
+  modprobe:
+    name: nfs
+    state: present
+
+- name: 加载 nfsd 内核模块
+  modprobe:
+    name: nfsd
+    state: present
+
+- name: 确保 nfs 模块开机加载
+  copy:
+    content: "nfs\nnfsd\n"
+    dest: /etc/modules-load.d/nfs.conf
+    mode: '0644'
+
+- name: 配置内核参数
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+    sysctl_set: yes
+  loop:
+    # --- 桥接 & 容器网络（必须）---
+    - {key: "net.bridge.bridge-nf-call-iptables",  value: "1"}
+    - {key: "net.bridge.bridge-nf-call-ip6tables", value: "1"}
+    - {key: "net.ipv4.ip_forward",                  value: "1"}
+    # --- conntrack（高并发必配）---
+    - {key: "net.netfilter.nf_conntrack_max",       value: "1310720"}
+    # --- TCP 性能 ---
+    - {key: "net.ipv4.tcp_tw_reuse",                value: "1"}
+    - {key: "net.core.somaxconn",                   value: "32768"}
+    - {key: "net.ipv4.tcp_max_syn_backlog",         value: "32768"}
+    - {key: "net.core.netdev_max_backlog",          value: "32768"}
+    - {key: "net.ipv4.ip_local_port_range",         value: "1024 65535"}
+    # --- 内存 & OOM ---
+    - {key: "vm.swappiness",                        value: "0"}
+    - {key: "vm.overcommit_memory",                 value: "1"}
+    - {key: "vm.panic_on_oom",                      value: "0"}
+    # --- 文件系统 & inotify（你加的很好）---
+    - {key: "fs.file-max",                          value: "2097152"}
+    - {key: "fs.inotify.max_user_instances",        value: "8192"}
+    - {key: "fs.inotify.max_user_watches",          value: "524288"}
+    # --- panic & keyring（k8s / CIS 要求）---
+    - {key: "kernel.panic",                         value: "10"}
+    - {key: "kernel.keys.root_maxkeys",             value: "1000000"}
+    - {key: "kernel.keys.root_maxbytes",            value: "25000000"}

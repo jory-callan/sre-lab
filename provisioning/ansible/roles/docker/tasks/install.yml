@@ -1,0 +1,75 @@
+---
+# 步骤 1: 安装 Docker CE (RedHat / Debian 双支持)
+
+# ---- 卸载旧版 ----
+- name: 卸载旧版 Docker (RedHat)
+  package:
+    name:
+      - docker
+      - docker-client
+      - docker-client-latest
+      - docker-common
+      - docker-latest
+      - docker-latest-logrotate
+      - docker-logrotate
+      - docker-engine
+    state: absent
+  when: ansible_os_family == "RedHat"
+
+- name: 卸载旧版 Docker (Debian)
+  package:
+    name:
+      - docker
+      - docker-engine
+      - docker.io
+      - containerd
+      - runc
+    state: absent
+  when: ansible_os_family == "Debian"
+
+# ---- 添加官方仓库 ----
+- name: 安装 dnf-utils (RedHat)
+  package:
+    name: dnf-utils
+    state: present
+  when: ansible_os_family == "RedHat"
+
+# ---- 添加官方仓库 ----
+- name: 添加 Docker CE 仓库 (RedHat - 阿里云镜像)
+  get_url:
+    url: https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    mode: '0644'
+  when: ansible_os_family == "RedHat"
+
+- name: 安装 apt 依赖 (Debian)
+  package:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: 添加 Docker GPG key (Debian - 阿里云镜像)
+  apt_key:
+    url: https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: 添加 Docker apt 源 (Debian - 阿里云镜像)
+  apt_repository:
+    repo: "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+# ---- 安装 Docker CE (通用) ----
+- name: 安装 Docker CE
+  package:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: present

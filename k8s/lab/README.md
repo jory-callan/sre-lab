@@ -1,0 +1,133 @@
+# Lab — 选型测试沙箱
+
+## 为什么需要 Lab？
+
+以前组件的选型记录、测试配置、生产部署混在一起：
+- 历史归档 `zz_no_use_just_for_archive/` 里东西验证过但没人敢用（已清理）
+- `operators/` 和 `middleware/` 里既有部署配置又有测试痕迹
+- 新组件选型不知道参考什么，每个组件都要重新查资料
+
+**Lab 的定位：** 选型 → 测试 → 验证 → 上线的完整流程载体。
+
+ArgoCD **不读取**此目录，它只属于人类阅读和测试。这里可以随意折腾。
+
+---
+
+## 工作流
+
+### 流程总图
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  1. 选型调研                          │
+│  在 lab/<component>/README.md 中记录：               │
+│    · 候选方案对比（为什么选这个不选那个）             │
+│    · 生产就绪特性清单                                │
+│    · 架构决策理由                                    │
+│    · 已知风险和限制                                  │
+└─────────────────────┬───────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                  2. Lab 测试                          │
+│  lab/<component>/ 下搭建完整测试环境：                │
+│    · operator/      — Operator 安装说明              │
+│    · single/        — 单实例快速验证 + quick-start   │
+│    · ha/            — HA 集群配置 + 监控 + 备份      │
+│    · chaos-test.sh  — 混沌测试/故障转移验证          │
+│    · benchmark/     — 性能基准测试（可选）            │
+│                                                      │
+│  测试目标：验证功能/HA/监控/备份全部就绪             │
+└─────────────────────┬───────────────────────────────┘
+                      │
+                      │  验证通过后
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                  3. 生产部署                          │
+│                                                      │
+│  将 lab 中验证通过的配置复制到正式目录：             │
+│    operators/<component>/    — 仅 Operator 部署      │
+│    middleware/<component>/   — 仅共享实例部署        │
+│    argocd/<component>        — Application CRD       │
+│                                                      │
+│  复制时：                                             │
+│    · 去掉 quick-start.sh 等测试工具                  │
+│    · 调优资源 limits/requests                        │
+│    · 确认 namespace、标签等符合规范                  │
+│    · 加上 resourcequota.yaml                         │
+│                                                      │
+│  ArgoCD 自动接管同步                                 │
+└─────────────────────┬───────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────┐
+│                  4. 应用接入                          │
+│                                                      │
+│  共享实例：直接连接 middleware 中的数据库            │
+│  独占实例：                                        │
+│    apps/<app>/postgres/  ← 从 lab/cnpg/ha/ 复制     │
+│    apps/<app>/redis/     ← 从 lab/redis/sentinel-ha/ │
+│  复制出来改命名空间、存储大小、密码即可              │
+│                                                      │
+│  优势：lab 里的 HA / 监控 / 备份配置已经过验证，     │
+│  应用独占时直接套用，不用重新设计                    │
+└─────────────────────────────────────────────────────┘
+```
+
+### 每个阶段的产物
+
+| 阶段 | 产物 | 是否 GitOps |
+|------|------|-------------|
+| 选型调研 | `lab/<component>/README.md` | ❌ 人类阅读 |
+| 选型验证 | `lab/<component>/ha/` 含 chaos-test | ❌ 人类手动跑 |
+| 生产部署 | `operators/<component>/` + `middleware/<component>/` | ✅ ArgoCD 管理 |
+| 应用独占 | `apps/<app>/<component>/` | ✅ ArgoCD 管理 |
+
+---
+
+## 目录规范
+
+```
+lab/<component>/               ← 组件盒子，命名即组件名
+├── README.md                  ← 必选：为什么选它，对比分析，架构决策
+├── operator/                  ← 必选：Operator 安装方式说明
+│   └── README.md
+├── single/                    ← 推荐：单实例快速验证
+│   ├── cluster.yaml
+│   └── quick-start.sh
+├── ha/                        ← 推荐：HA 集群验证
+│   ├── cluster.yaml
+│   ├── kustomization.yaml
+│   ├── monitoring.yaml
+│   ├── chaos-test.sh           ← 必选：至少一个混沌/故障测试
+│   └── README.md
+├── benchmark/                 ← 可选：性能基准测试
+└── xxx-compare/               ← 可选：和其他方案对比分析
+```
+
+---
+
+## 约定
+
+1. **每个组件必须有 README** 说明为什么选它，不选其他方案的理由
+2. **必须有混沌/验证测试脚本**，证明 HA 场景可用
+3. **部署配置必须 `kubectl apply` 即用**，不依赖外部工具
+4. **验证通过后复制到正式目录**，不直接从 lab 部署到生产
+5. **lab 里的配置可以粗糙**，注释可以长，参数可以低配（更适合测试）
+6. **正式目录的配置必须干净**，去掉测试痕迹，加 ResourceQuota
+
+---
+
+## 当前组件
+
+| 组件 | 状态 | Operator | 生产部署位置 |
+|------|------|----------|-------------|
+| [PostgreSQL (CloudNativePG)](cnpg/) | ✅ 已验证可上线 | `operators/cnpg-operator/` | `middleware/postgres/` |
+| [Redis (OT-Container-KIT)](redis/) | ✅ 已验证可上线 | `operators/redis-operator/` | `middleware/redis/` |
+| [Metrics Server](metrics-server/) | 📄 参考配置（未部署） | k3s 内置，无需部署 | — |
+
+---
+
+## 变历史
+
+`zz_no_use_just_for_archive/` 是 Lab 建立前的历史归档，内容已全部迁移到 `lab/` 下，于 2026-07-04 删除。

@@ -1,0 +1,64 @@
+---
+# 卸载 K3s（手动运行，不自动执行）
+#
+# 手动运行指令:
+#   bash run.sh k3s --tags uninstall -l <host>   # 软卸载，保留数据
+#   bash run.sh k3s --tags purge -l <host>       # 彻底销毁，清理所有数据
+#
+# Tags:
+#   uninstall - 仅运行 k3s-uninstall.sh，保留 /var/lib/rancher/k3s 等数据目录
+#               （重装后集群自动恢复原状态，适用于升级/重装）
+#   purge     - 运行卸载脚本 + 强制清理所有数据（包括 etcd、server db），
+#               彻底销毁集群（重装后是全新集群）
+#
+# 建议: server 节点 serial=1 逐个卸载，agent 节点可以并行
+
+- name: 检查 k3s 是否已安装
+  command: which k3s
+  register: k3s_check
+  changed_when: false
+  failed_when: false
+  tags: [uninstall, purge]
+
+- name: 运行 k3s-uninstall.sh（server 节点）
+  command: /usr/local/bin/k3s-uninstall.sh
+  when:
+    - k3s_check.rc == 0
+    - k3s_role == 'server'
+  register: uninstall_result
+  failed_when: false
+  tags: [uninstall, purge]
+
+- name: 运行 k3s-agent-uninstall.sh（agent 节点）
+  command: /usr/local/bin/k3s-agent-uninstall.sh
+  when:
+    - k3s_check.rc == 0
+    - k3s_role == 'agent'
+  register: uninstall_result
+  failed_when: false
+  tags: [uninstall, purge]
+
+# ---- purge 专属：强制清理所有数据目录（无条件执行） ----
+- name: 清理配置目录
+  file:
+    path: /etc/rancher/k3s
+    state: absent
+  tags: [purge]
+
+- name: 清理数据目录（含 etcd、server db、快照）
+  file:
+    path: "{{ k3s_data_dir | default('/var/lib/rancher/k3s') }}"
+    state: absent
+  tags: [purge]
+
+- name: 确认卸载结果
+  command: which k3s
+  register: verify
+  changed_when: false
+  failed_when: false
+  tags: [uninstall, purge]
+
+- name: 输出卸载状态
+  debug:
+    msg: "{{ '✅ k3s 已卸载' if verify.rc != 0 else '❌ k3s 卸载失败，请手动检查' }}"
+  tags: [uninstall, purge]

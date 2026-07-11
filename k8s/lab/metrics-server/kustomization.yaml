@@ -1,0 +1,13 @@
+# Metrics Server（Helm 部署版）
+# 替换 k3s 内置的 metrics-server，提供更多配置灵活性。
+# 本配置供参考，未启用。如需启用请移入 infrastructure/metrics-server/。
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: metrics-server
+    repo: https://kubernetes-sigs.github.io/metrics-server/
+    version: 3.13.1
+    releaseName: metrics-server
+    namespace: kube-system
+    valuesFile: values.yaml

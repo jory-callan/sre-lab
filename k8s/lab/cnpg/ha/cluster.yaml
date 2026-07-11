@@ -1,0 +1,102 @@
+# CloudNativePG 1主2从 HA 集群（测试验证用）
+#
+# 测试内容：
+#   - 同步/异步复制混合拓扑
+#   - 强制 Pod 反亲和（跨 3 节点分布）
+#   - Barman 备份到 MinIO
+#   - 声明式数据库用户管理
+#   - Prometheus metrics 采集
+#
+# ⚠️ NFS 风险：详见 lab/cnpg/README.md
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+spec:
+  # ── 1主2从 ──────────────────────────────
+  instances: 3
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+  replicationSlots:
+    highAvailability:
+      enabled: true
+
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+
+  storage:
+    storageClassName: nfs-client
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # ── 强制 3 节点反亲和 ────────────────────
+  affinity:
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - postgres
+          topologyKey: kubernetes.io/hostname
+
+  # ── 预建数据库/用户 ──────────────────────
+  managed:
+    roles:
+      - name: gitea
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-app-creds
+          key: gitea-password
+      - name: kite
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-app-creds
+          key: kite-password
+    databases:
+      - name: gitea
+        ensure: present
+        owner: gitea
+      - name: kite
+        ensure: present
+        owner: kite
+
+  # ── MinIO 备份 ──────────────────────────
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres-backup/
+      endpointURL: http://minio.minio.svc:80
+      s3Credentials:
+        accessKeyId:
+          name: minio-backup-creds
+          key: access-key
+        secretAccessKey:
+          name: minio-backup-creds
+          key: secret-key
+      wal:
+        compression: gzip
+        maxParallel: 1
+      data:
+        compression: gzip
+        jobs: 1
+    retentionPolicy: "7d"
+
+  # ── 监控 ────────────────────────────────
+  monitoring:
+    enablePodMonitor: false
+    customQueriesConfigMap:
+      - name: cnpg-default-monitoring
+        key: queries
