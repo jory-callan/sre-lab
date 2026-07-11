@@ -12,6 +12,72 @@
   - Web Console: `minio.czw-sre.internal`（Ingress）
 - **TLS**: cert-manager `internal-ca` ClusterIssuer，自动签发
 
+## 交付
+
+> 开发对接请直接看 [DELIVERY.md](DELIVERY.md) — 含 Endpoint、凭证、资源规格、上限估算、故障排查。
+
+### 连接方式
+
+| 位置 | 服务 | 地址 | 端口说明 |
+|------|------|------|---------|
+| 集群外部 (Ingress) | S3 API | `https://minio-api.czw-sre.internal` | TLS 在 Ingress 终结，后端直连 Service |
+| 集群外部 (Ingress) | Web Console | `https://minio.czw-sre.internal` | 同上 |
+| 集群内部 | S3 API | `http://minio.minio.svc:80` | 无 TLS，同 namespace 可用 `minio:80` |
+| 集群内部 | Web Console | `http://minio-console.minio.svc:9090` | 无 TLS，同 namespace 可用 `minio-console:9090` |
+
+> 集群内部使用 S3 SDK 时，endpoint 填 `http://minio.minio.svc:80`，**不用 HTTPS**（TLS 在 Ingress 终结，内部 Service 是明文）。
+
+### 凭证获取
+
+| 账号 | 类型 | 获取方式 |
+|------|------|---------|
+| `minioadmin` | root | 明文见 `secret.yaml` 的 `config.env` |
+| `svc-poweruser` | 服务账号 | `kubectl -n minio get secret svc-poweruser -o jsonpath='{.data.CONSOLE_SECRET_KEY}' \| base64 -d` |
+| `svc-private` | 服务账号 | 同上，secret 名为 `svc-private` |
+
+详细账号策略见 [AK.md](AK.md)。
+
+### 监控对接
+
+- **指标**: Prometheus ServiceMonitor 已配置，每 30s 抓取 `https://minio-api.czw-sre.internal/minio/v2/metrics/cluster`
+- **Grafana**: 监控栈已预置 MinIO 仪表盘（命名空间 `monitoring`，标签 `grafana_dashboard=minio`）
+- **告警**: VMAlert 中可按 `s3_errors_total > rate 1m` 等配置规则
+
+### 依赖组件
+
+| 组件 | 用途 | 必需 |
+|------|------|------|
+| cert-manager | TLS 证书自动签发（ClusterIssuer `internal-ca`） | 是 |
+| nginx-ingress | 外部流量接入 | 是 |
+| nfs-client StorageClass | PVC 后端存储 | 是（当前部署） |
+| VictoriaMetrics/Prometheus | 指标采集（ServiceMonitor） | 否（跳过告警） |
+
+### 使用限制
+
+| 维度 | 当前状态 | 生产建议 |
+|------|---------|---------|
+| 高可用 | 单节点，无 HA | 多节点分布式部署 |
+| 纠删码 | EC:0（无数据冗余） | EC:2+ |
+| 存储后端 | NFS（性能瓶颈） | 本地 SSD |
+| 存储容量 | 4 × 2Gi | 100Gi+/卷 |
+| TLS | Ingress 终结，内部明文 | 内部 mTLS 或 Service Mesh |
+
+### 日常操作
+
+```bash
+# 查看 Pod
+kubectl -n minio get pods
+
+# 查看日志
+kubectl -n minio logs -l v1.min.io/tenant=minio -c minio
+
+# 重启（滚动更新）
+kubectl -n minio rollout restart statefulset minio-pool-0
+
+# 进入容器执行 mc
+kubectl -n minio exec deploy/minio-pool-0-0 -c minio -- mc admin info local
+```
+
 ## 默认凭证
 
 | 用户名 | 角色 |
