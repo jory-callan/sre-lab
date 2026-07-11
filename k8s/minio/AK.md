@@ -150,7 +150,7 @@ kubectl apply -f secret-svc-public-reader.yaml
 kubectl apply -f tenant.yaml
 
 # 等 Pod 就绪后调整策略
-POD=$(kubectl -n minio get pod -l app=minio -o name | head -1)
+POD=$(kubectl -n minio get pod -l v1.min.io/tenant=minio -o name | head -1)
 
 # 创建自定义策略
 kubectl -n minio exec "$POD" -c minio -- sh -c 'cat > /tmp/public-read.json << EOF
@@ -173,7 +173,7 @@ kubectl -n minio exec "$POD" -c minio -- mc admin policy attach local public-rea
 ## 验证权限
 
 ```bash
-POD=$(kubectl -n minio get pod -l app=minio -o name | head -1)
+POD=$(kubectl -n minio get pod -l v1.min.io/tenant=minio -o name | head -1)
 
 # 设置别名
 kubectl -n minio exec "$POD" -c minio -- mc alias set test http://localhost:9000 <ak> <sk>

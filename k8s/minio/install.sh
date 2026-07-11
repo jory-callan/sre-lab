@@ -37,7 +37,7 @@ kubectl apply -f "$SCRIPT_DIR/service-monitor.yaml" 2>/dev/null || true
 # Tenant CRD 创建的用户默认 consoleAdmin，需调整为实际所需权限
 POD=""
 for i in $(seq 1 30); do
-  POD=$(kubectl -n "$TENANT_NS" get pod -l app=minio -o name 2>/dev/null | head -1)
+  POD=$(kubectl -n "$TENANT_NS" get pod -l v1.min.io/tenant=minio -o name 2>/dev/null | head -1)
   [ -n "$POD" ] && break
   sleep 2
 done
