@@ -26,12 +26,12 @@ loki:
       chunks: loki
       ruler: loki
     s3:
-      endpoint: minio-api.czw-sre.internal
+      endpoint: minio.minio.svc.cluster.local:80
       region: us-east-1
       secretAccessKey: minioadmin
       accessKeyId: minioadmin
       s3ForcePathStyle: true
-      insecure: false
+      insecure: true
 
 singleBinary:
   replicas: 1
