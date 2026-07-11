@@ -4,7 +4,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OPERATOR_NS="minio-operator"
+OPERATOR_NS="operators"
 TENANT_NS="minio"
 CHART_VERSION="7.1.1"
 CHART_FILE="$SCRIPT_DIR/minio-operator-${CHART_VERSION}.tgz"

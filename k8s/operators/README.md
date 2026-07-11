@@ -8,7 +8,7 @@
 |------|----------|-------------|
 | `cnpg/` | CloudNativePG (PostgreSQL) | `postgres` |
 | `redis/` | Redis Operator | (待定) |
-| `minio/` | MinIO Operator | (待定) |
+| `minio/` | MinIO Operator | `minio` |
 | `mysql/` | MySQL Operator | (待定) |
 
 ## 安装
