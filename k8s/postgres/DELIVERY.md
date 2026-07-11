@@ -144,6 +144,8 @@ kubectl get secret pg-ha-superuser -n postgres -o jsonpath='{.data.password}' | 
 
 ### 备份策略
 
+> 💡 完整的备份恢复操作演练见 [drill-backup-restore.md](drill-backup-restore.md)。
+
 | 类型 | 频率 | 保留策略 |
 |------|------|---------|
 | 全量备份 | 每天 03:00 | 30 天，超期自动删除 |

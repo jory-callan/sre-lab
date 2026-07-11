@@ -44,4 +44,5 @@ S3 备份配置已集成：
 | `operator/common/` | 公共 Secret（数据库密码 + S3 凭证） |
 | `DELIVERY.md` | 开发交付文档 |
 | `backup-policy.json` | MinIO 备份用户 Policy |
+| `drill-backup-restore.md` | 备份恢复演练文档（删表 → 恢复） |
 | `踩坑记录.md` | 历史踩坑记录 |
