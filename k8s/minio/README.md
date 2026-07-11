@@ -20,6 +20,8 @@
 
 > **生产环境必须修改**：在 `secret.yaml` 中更新 `MINIO_ROOT_PASSWORD`，建议使用 `sops` 或 SealedSecret 加密存储。
 
+预置服务账号及详细管理方式见 [AK.md](AK.md)。
+
 ## 预置 Bucket
 
 | Bucket | 用途 |
