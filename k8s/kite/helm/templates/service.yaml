@@ -12,8 +12,5 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
-      {{- if .Values.service.nodePort }}
-      nodePort: {{ .Values.service.nodePort }}
-      {{- end }}
   selector:
     {{- include "kite.selectorLabels" . | nindent 4 }}

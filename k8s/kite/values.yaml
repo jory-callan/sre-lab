@@ -1,8 +1,12 @@
-# Kite Helm values
+# Kite Helm values — v0.13.0
+# 自包含 chart，SQLite + NFS 持久化 + ingress-nginx 域名访问 + 自定义配置
+
 image:
-  tag: v0.12.3
+  tag: v0.13.0
+
 deploymentStrategy:
   type: Recreate
+
 db:
   type: sqlite
   sqlite:
@@ -12,6 +16,8 @@ db:
         storageClass: nfs-client
         size: 1Gi
       mountPath: /data
+    options: "_journal_mode=WAL&_busy_timeout=5000"
+
 ingress:
   enabled: true
   className: nginx
@@ -26,5 +32,14 @@ ingress:
     - hosts:
         - kite.czw-sre.internal
       secretName: kite-tls
+
 service:
   type: ClusterIP
+
+# 自定义配置 — 通过 configmap 注入
+config:
+  enabled: true
+  clusters:
+    - name: in-cluster
+      inCluster: true
+      default: true

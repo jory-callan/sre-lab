@@ -1,49 +1,53 @@
-# Helm Chart: kite
+# kite
 
-## 来源
+![Version: 0.13.0](https://img.shields.io/badge/Version-0.13.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: latest](https://img.shields.io/badge/AppVersion-latest-informational?style=flat-square)
 
-- **Chart**: kite 0.12.2（自定义 Chart，非 remote 方式）
-- **远程来源**: `ghcr.io/kite-org/charts/kite`（OCI 镜像）
-- **类型**: application
+A Helm chart for Kubernetes Dashboard - Kite
 
-## 本地安装
+## Installation
 
-```bash
-# 从本地目录安装（使用预配置的 prod 环境 values）
-helm upgrade --install kite . \
-  -n kite --create-namespace \
-  -f ./values-prod.yaml
-```
-
-## 目录说明
-
-| 文件/目录 | 说明 |
-|-----------|------|
-| `values.yaml` | Chart 默认 values，上游提供，不做修改 |
-| `values-prod.yaml` | 本环境配置覆盖（持久化、Ingress、NodePort 等） |
-| `templates/` | Chart 模板 |
-| `Chart.yaml` | Chart 元数据 |
-
-## 关键配置
-
-| 配置项 | values-prod.yaml 值 | 说明 |
-|--------|---------------------|------|
-| `deploymentStrategy.type` | `Recreate` | SQLite + RWO PVC 必须 |
-| `db.sqlite.persistence.pvc.enabled` | `true` | 启用 PVC 持久化 |
-| `ingress.enabled` | `true` | 开启 Ingress |
-| `service.type` | `NodePort` | 暴露 NodePort:30001 |
-
-完整配置见 `values-prod.yaml`。
-
-## 升级
+### Install from OCI registry
 
 ```bash
-helm upgrade kite . -n kite -f ./values-prod.yaml
+# Install in kube-system namespace (recommended)
+helm install kite oci://ghcr.io/kite-org/charts/kite -n kube-system
+
+# Or install in custom namespace
+helm install kite oci://ghcr.io/kite-org/charts/kite -n my-namespace --create-namespace
 ```
 
-## 卸载
+### Add Helm Repository
 
 ```bash
-helm uninstall kite -n kite
-kubectl delete namespace kite --ignore-not-found
+helm repo add kite https://kite-org.github.io/kite/
+helm repo update
 ```
+
+### Install Chart
+
+```bash
+# Install in kube-system namespace (recommended)
+helm install kite kite/kite -n kube-system
+
+# Or install in custom namespace
+helm install kite kite/kite -n my-namespace --create-namespace
+```
+
+### Upgrade Chart
+
+```bash
+helm upgrade kite oci://ghcr.io/kite-org/charts/kite -n kube-system
+
+# Or use the Helm repository
+helm upgrade kite kite/kite -n kube-system
+```
+
+### Uninstall Chart
+
+```bash
+helm uninstall kite -n kube-system
+```
+
+### Chart Values
+
+[Chart Values](https://kite.zzde.me/config/chart-values)

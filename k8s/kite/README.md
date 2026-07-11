@@ -1,9 +1,15 @@
-# Kite
+# Kite — K8s Web UI
 
-Kite 应用的原始 K8s 资源。
+## 安装
 
-## 文件
+```bash
+bash install.sh
+```
 
-| 文件 | 说明 |
-|------|------|
-| service.yaml | NodePort 暴露 Kite 服务（端口 30301） |
+## 访问
+
+https://kite.czw-sre.internal
+
+## 配置
+
+自定义配置在 `values.yaml` 的 `config:` 段，通过 Secret 注入到 Pod 的 `/etc/kite/config.yaml`。
