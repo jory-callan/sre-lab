@@ -1,0 +1,18 @@
+# PodMonitor — PostgreSQL Standalone 指标采集
+# 替代 CNPG 内置的 enablePodMonitor（1.29+ 已废弃）
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: pg-standalone
+  namespace: postgres
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    release: prometheus
+spec:
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 15s
+      scrapeTimeout: 10s
+  selector:
+    matchLabels:
+      cnpg.io/cluster: pg-standalone

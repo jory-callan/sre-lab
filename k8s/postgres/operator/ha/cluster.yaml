@@ -20,7 +20,7 @@ spec:
   postgresql:
     parameters:
       max_connections: "300"
-      shared_buffers: "512MB"
+      shared_buffers: "128MB"
       # CNPG 自动配置以下参数：
       # hot_standby = on
       # wal_level = replica
@@ -66,12 +66,6 @@ spec:
       memory: 512Mi
 
   # ================================================================
-  # 监控
-  # ================================================================
-  monitoring:
-    enablePodMonitor: true
-
-  # ================================================================
   # S3 备份（通过 MinIO）
   # 保留策略：
   #   - 全量备份保留 30 天，超出自动删除
@@ -93,8 +87,6 @@ spec:
       wal:
         compression: gzip
         maxParallel: 8
-        # 安全阀：WAL 最多保留 7 天，防止写入暴增撑爆存储
-        maxAge: 7d
       data:
         compression: gzip
         immediateCheckpoint: true
