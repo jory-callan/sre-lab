@@ -11,7 +11,7 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 
 # ── 1. kube-prometheus-stack ──────────────────────────
 echo ">> 安装 kube-prometheus-stack ..."
-helm upgrade --install kps "$SCRIPT_DIR/kube-prometheus-stack.tgz" \
+helm upgrade --install prometheus "$SCRIPT_DIR/kube-prometheus-stack.tgz" \
   --namespace "$NAMESPACE" \
   --values "$SCRIPT_DIR/values-kps.yaml" \
   --timeout 10m --wait

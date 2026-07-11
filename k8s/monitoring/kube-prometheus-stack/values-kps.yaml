@@ -1,17 +1,54 @@
 # ── kube-prometheus-stack values ──────────────────────────
 # Prometheus Operator + Prometheus + Grafana + AlertManager
 
-# k3s 无独立 etcd/kubeController/kubeScheduler 端点
+# k3s 内置 etcd — metrics 端口 (2381) 绑定 localhost，集群内无法采集
 kubeEtcd:
   enabled: false
+
 kubeControllerManager:
   enabled: false
 kubeScheduler:
   enabled: false
 
-# 禁用 AlertManager（当前不需要告警）
+# ── AlertManager ──────────────────────────────────────────
 alertmanager:
-  enabled: false
+  enabled: true
+  config:
+    global:
+      resolve_timeout: 5m
+    inhibit_rules:
+      - source_matchers:
+          - 'severity = critical'
+        target_matchers:
+          - 'severity =~ warning|info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+      - source_matchers:
+          - 'severity = warning'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+    route:
+      group_by: ['namespace']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: 'feishu'
+      routes:
+        - receiver: 'null'
+          matchers:
+            - alertname = "Watchdog"
+    receivers:
+      - name: 'null'
+      - name: 'feishu'
+        webhook_configs:
+          - url: 'https://open.feishu.cn/open-apis/bot/v2/hook/fc5d3692-ef65-4e8c-8151-9509aeedccf5'
+            send_resolved: true
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
 
 # ── Prometheus ────────────────────────────────────────────
 prometheus:

@@ -13,7 +13,7 @@ echo ">> 卸载 Loki ..."
 helm uninstall loki -n "$NAMESPACE" --ignore-not-found --wait
 
 echo ">> 卸载 kube-prometheus-stack ..."
-helm uninstall kps -n "$NAMESPACE" --ignore-not-found --wait
+helm uninstall prometheus -n "$NAMESPACE" --ignore-not-found --wait
 
 echo ">> 删除命名空间 $NAMESPACE ..."
 kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true
