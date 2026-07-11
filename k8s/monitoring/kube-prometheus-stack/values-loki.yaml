@@ -33,6 +33,14 @@ loki:
       s3ForcePathStyle: true
       insecure: true
 
+# ── Cache 资源配置（实验室环境降配） ──────────
+chunksCache:
+  allocatedMemory: 512    # 默认 8192→512, request 约 614Mi
+  maxItemMemory: 5
+resultsCache:
+  allocatedMemory: 256    # 默认 1024→256, request 约 307Mi
+  maxItemMemory: 5
+
 singleBinary:
   replicas: 1
   resources:

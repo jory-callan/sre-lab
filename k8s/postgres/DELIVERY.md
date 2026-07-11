@@ -254,9 +254,8 @@ kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d appdb -c "S
 ## 监控
 
 - **PodMonitor**: CNPG 自动创建，VMAgent 每 20s 抓取
-- **Grafana Dashboard**: 官方原版 JSON 见 `monitor/dashboard/cnpg-cluster.json`（需手动 Import）
-  - 进入 Grafana → Dashboards → New → Import → 上传 JSON
-  - 数据源选择 **VictoriaMetrics**
+- **Grafana Dashboard**: 官方原版 JSON 见 `monitor/dashboard/cnpg-cluster.json`
+  - 一键导入: `bash monitor/import-dashboard.sh`
 - **告警规则**: 7 条内置规则（install.sh 自动安装，见 `monitor/rule/cnpg-alerts.yaml`）
 - **关键指标**:
   - `cnpg_pg_stat_database_xact_commit` / `rollback` — 事务量

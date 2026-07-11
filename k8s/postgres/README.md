@@ -31,12 +31,19 @@ bash install.sh standalone   # 单节点
 
 ### 仪表盘
 
-CNPG 官方 Grafana Dashboard JSON 位于 `monitor/dashboard/cnpg-cluster.json`（66 面板，全量指标）：
+CNPG 官方 Grafana Dashboard（66 面板，全量指标）：
 
-1. 打开 Grafana → **Dashboards → New → Import**
-2. Upload 此 JSON 文件，或粘贴内容
-3. 数据源选择 **VictoriaMetrics**（Prometheus 兼容）
-4. 导入后通过顶部下拉框筛选 namespace/cluster/instance
+```bash
+# 自动导入（推荐）
+bash postgres/monitor/import-dashboard.sh
+
+# 或手动设置 Grafana 地址/密码
+GRAFANA_URL=https://vm-grafana.czw-sre.internal \
+GRAFANA_PASS=admin123 \
+bash postgres/monitor/import-dashboard.sh
+```
+
+导入后通过顶部下拉框筛选 namespace/cluster/instance。
 
 ### 告警
 
