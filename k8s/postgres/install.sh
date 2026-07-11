@@ -13,8 +13,8 @@ kubectl create namespace "$PG_NS" --dry-run=client -o yaml | kubectl apply -f -
 kubectl apply -f "$SCRIPT_DIR/resourcequota.yaml"
 kubectl apply -f "$SCRIPT_DIR/operator/common/"
 
-# ── MinIO 备份依赖（桶 / 用户 / Policy）─────────────
-kubectl apply -f "$SCRIPT_DIR/minio/"
+# ── MinIO 备份依赖（桶 / 用户 / S3 凭证）────────────
+kubectl apply -f "$SCRIPT_DIR/minio/pg-s3-creds.yaml"
 bash "$SCRIPT_DIR/minio/setup.sh"
 
 # ── 实例 CR + 告警规则 ─────────────────────────────
