@@ -1,0 +1,132 @@
+# ── victoria-metrics-k8s-stack values ─────────────────────
+# VM Operator + VMSingle + VMAgent + VMAlert + Grafana
+
+global:
+  cluster:
+    dnsDomain: cluster.local.
+
+# k3s 无独立组件
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeApiServer:
+  enabled: true
+coreDns:
+  enabled: true
+kubelet:
+  enabled: true
+kubeProxy:
+  enabled: true
+
+# ── VM Operator ──────────────────────────────────────────
+victoria-metrics-operator:
+  enabled: true
+  operator:
+    disable_prometheus_converter: false
+
+# ── VMSingle（指标存储）─────────────────────────────────────
+vmsingle:
+  enabled: true
+  spec:
+    port: "8428"
+    retentionPeriod: "7"
+    replicaCount: 1
+    storage:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: nfs-client
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: internal-ca
+    hosts:
+      - vm-metrics.czw-sre.internal
+    tls:
+      - hosts:
+          - vm-metrics.czw-sre.internal
+        secretName: vm-metrics-tls
+
+# ── VMAgent（指标采集）─────────────────────────────────────
+vmagent:
+  enabled: true
+  spec:
+    port: "8429"
+    selectAllByDefault: true
+    scrapeInterval: 20s
+    extraArgs:
+      promscrape.streamParse: "true"
+    remoteWrite:
+      - url: http://vmsingle-victoriametrics-victoria-metrics-k8s-stack:8428/api/v1/write
+
+# ── VMAlert（告警）────────────────────────────────────────
+vmalert:
+  enabled: true
+  spec:
+    port: "8080"
+    selectAllByDefault: true
+    evaluationInterval: 30s
+    extraArgs:
+      http.pathPrefix: "/"
+    notifiers:
+      - url: https://open.feishu.cn/open-apis/bot/v2/hook/fc5d3692-ef65-4e8c-8151-9509aeedccf5
+
+# ── Grafana ────────────────────────────────────────────────
+grafana:
+  enabled: true
+  adminPassword: admin
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+    dashboards:
+      enabled: true
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: internal-ca
+    hosts:
+      - vm-grafana.czw-sre.internal
+    tls:
+      - hosts:
+          - vm-grafana.czw-sre.internal
+        secretName: vm-grafana-tls
+  grafana.ini:
+    server:
+      root_url: https://vm-grafana.czw-sre.internal
+  persistence:
+    enabled: true
+    storageClassName: nfs-client
+    size: 5Gi
+
+# ── Node Exporter ──────────────────────────────────────────
+prometheus-node-exporter:
+  enabled: false
+
+# 禁用 AlertManager（VMAlert 已处理告警）
+alertmanager:
+  enabled: false
+
+# ── 默认 Dashboard ────────────────────────────────────────
+# GitHub 不可达，跳过同步
+defaultDashboards:
+  enabled: false
+  dashboards:
+    victoriametrics-single-node:
+      enabled: true
+    victoriametrics-vmagent:
+      enabled: true
+    victoriametrics-vmalert:
+      enabled: true
+    node-exporter-full:
+      enabled: true
+    kubelet:
+      enabled: true

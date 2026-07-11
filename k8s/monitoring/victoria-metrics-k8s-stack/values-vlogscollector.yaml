@@ -1,0 +1,24 @@
+# ── VictoriaLogs Collector values ────────────────────────
+# DaemonSet 收集节点日志 → VictoriaLogs
+
+remoteWrite:
+  - url: http://victorialogs-victoria-logs-single-server:9428
+    maxDiskUsagePerURL: 5GB
+
+collector:
+  timeField:
+    - time
+    - ts
+    - timestamp
+  msgField:
+    - message
+    - msg
+    - log
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

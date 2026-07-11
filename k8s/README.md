@@ -18,8 +18,8 @@ k8s/
 ├── bootstrap/         底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS）
 ├── operators/         Operator 控制面（cnpg / redis / minio operator，ns: operators）
 ├── monitoring/        监控告警
-│   ├── kube-prometheus-stack/  Prometheus + Loki + Promtail + Grafana（当前部署）
-│   └── victoria-metrics-k8s-stack/  VictoriaMetrics + VictoriaLogs（待选）
+│   ├── kube-prometheus-stack/  Prometheus + Loki + Promtail + Grafana（已部署）
+│   └── victoria-metrics-k8s-stack/  VMSingle + VMAgent + VMAlert + VictoriaLogs + Grafana（已部署）
 ├── postgres/          PostgreSQL 17（CNPG operator，ns: postgres）
 ├── redis/             Redis 7.4（manifests / helm / operator，ns: redis）
 ├── minio/             MinIO 对象存储（Operator，ns: minio）
