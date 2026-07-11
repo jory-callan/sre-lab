@@ -30,6 +30,15 @@ helm upgrade --install vmlogs-collector "$SCRIPT_DIR/victoria-logs-collector-0.3
   --values "$SCRIPT_DIR/values-vlogscollector.yaml" \
   --timeout 5m --wait
 
+# ── 4. Grafana datasource 修复 ────────────────────────
+echo ">> 修复 Grafana datasource ..."
+kubectl -n "$NAMESPACE" delete configmap victoriametrics-victoria-metrics-k8s-stack-grafana-ds --ignore-not-found 2>/dev/null
+kubectl apply -f "$SCRIPT_DIR/vm-grafana-datasources.yaml"
+
+# ── 5. Grafana dashboards ─────────────────────────────
+echo ">> 安装 Grafana dashboards ..."
+bash "$SCRIPT_DIR/apply-dashboards.sh"
+
 echo ""
 echo "✅ victoria-metrics-k8s-stack 部署完成"
 echo "   Grafana-VM: https://vm-grafana.czw-sre.internal (admin/admin)"

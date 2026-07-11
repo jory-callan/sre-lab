@@ -18,5 +18,10 @@ helm uninstall victoriametrics -n "$NAMESPACE" --ignore-not-found --wait
 echo ">> 删除命名空间 $NAMESPACE ..."
 kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true
 
+# ── 清理跨命名空间资源 ────────────────────────────────
+echo ">> 清理 Grafana datasource/dashboard ConfigMaps ..."
+kubectl -n "$NAMESPACE" delete configmap -l grafana_datasource=1 --ignore-not-found 2>/dev/null || true
+kubectl -n "$NAMESPACE" delete configmap -l grafana_dashboard=1 --ignore-not-found 2>/dev/null || true
+
 echo ""
 echo "✅ victoria-metrics-k8s-stack 已完全卸载"
