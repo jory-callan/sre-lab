@@ -15,8 +15,8 @@ infra-base/                    ← IaC: OS + k3s (Ansible)
 │   ├── nfs-storageclass/      ← 共享存储 (P2)，自包含 chart
 │   └── longhorn/              ← 高可用块存储 (P2)，自包含 chart
 
-gitops-manifests/              ← GitOps: 所有 K8s 组件通过 ArgoCD 管理
 ```
+
 
 ## 依赖关系
 
@@ -32,8 +32,6 @@ Cilium ── 网络基础
   │     └── NFS StorageClass ── 共享存储
   │
   ├── Longhorn ── 高可用块存储 (副本/快照/备份)
-  │
-  └── ArgoCD ── GitOps 引擎
 ```
 
 ## 使用方式
@@ -94,4 +92,4 @@ bash bootstrap/install.sh metallb
 3. **可卸载** — 每个组件都提供完整的清理步骤
 4. **自包含** — NFS 服务器跑在集群内部，无需外部依赖
 5. **离线优先** — 通过 `download-charts.sh` + `charts/` 目录实现零网络依赖安装
-6. **GitOps 就绪** — 后续所有组件通过 ArgoCD 管理，bootstrap 只安装"先于 GitOps 存在"的根基组件
+6. **离线优先** — 每个组件自包含 Helm chart，无需网络依赖

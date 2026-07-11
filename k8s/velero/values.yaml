@@ -1,5 +1,4 @@
 # Velero values
-# Referenced by argocd/velero/application.yaml
 
 # ── AWS Plugin（MinIO S3 兼容）──────────────
 initContainers:

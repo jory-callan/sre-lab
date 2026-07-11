@@ -1,6 +1,6 @@
 # Gitea — 自托管 Git 服务
 
-Gitea 是轻量级自托管 Git 服务，作为 ArgoCD 的 GitOps 仓库源。
+Gitea 是轻量级自托管 Git 服务。
 
 ## 架构
 

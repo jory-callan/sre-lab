@@ -7,9 +7,7 @@
 - `operators/` 和 `middleware/` 里既有部署配置又有测试痕迹
 - 新组件选型不知道参考什么，每个组件都要重新查资料
 
-**Lab 的定位：** 选型 → 测试 → 验证 → 上线的完整流程载体。
-
-ArgoCD **不读取**此目录，它只属于人类阅读和测试。这里可以随意折腾。
+**Lab 的定位：** 选型 → 测试 → 验证 → 上线的完整流程载体。此目录只属于人类阅读和测试，可以随意折腾。
 
 ---
 
@@ -46,9 +44,7 @@ ArgoCD **不读取**此目录，它只属于人类阅读和测试。这里可以
 │                  3. 生产部署                          │
 │                                                      │
 │  将 lab 中验证通过的配置复制到正式目录：             │
-│    operators/<component>/    — 仅 Operator 部署      │
-│    middleware/<component>/   — 仅共享实例部署        │
-│    argocd/<component>        — Application CRD       │
+│    k8s/<component>/             — 组件部署目录       │
 │                                                      │
 │  复制时：                                             │
 │    · 去掉 quick-start.sh 等测试工具                  │
@@ -56,7 +52,7 @@ ArgoCD **不读取**此目录，它只属于人类阅读和测试。这里可以
 │    · 确认 namespace、标签等符合规范                  │
 │    · 加上 resourcequota.yaml                         │
 │                                                      │
-│  ArgoCD 自动接管同步                                 │
+│  然后执行 ./install.sh 部署                           │
 └─────────────────────┬───────────────────────────────┘
                       │
                       ▼
@@ -80,8 +76,7 @@ ArgoCD **不读取**此目录，它只属于人类阅读和测试。这里可以
 |------|------|-------------|
 | 选型调研 | `lab/<component>/README.md` | ❌ 人类阅读 |
 | 选型验证 | `lab/<component>/ha/` 含 chaos-test | ❌ 人类手动跑 |
-| 生产部署 | `operators/<component>/` + `middleware/<component>/` | ✅ ArgoCD 管理 |
-| 应用独占 | `apps/<app>/<component>/` | ✅ ArgoCD 管理 |
+| 生产部署 | `k8s/<component>/` | ✅ 直接 helm/kubectl 安装 |
 
 ---
 
@@ -97,7 +92,6 @@ lab/<component>/               ← 组件盒子，命名即组件名
 │   └── quick-start.sh
 ├── ha/                        ← 推荐：HA 集群验证
 │   ├── cluster.yaml
-│   ├── kustomization.yaml
 │   ├── monitoring.yaml
 │   ├── chaos-test.sh           ← 必选：至少一个混沌/故障测试
 │   └── README.md

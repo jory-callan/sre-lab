@@ -1,5 +1,4 @@
 # Victoria Logs Helm values
-# Referenced by argocd/victoria-logs/application.yaml via $values/apps/victoria-logs/values.yaml
 server:
   retentionPeriod: 7
   # 本地索引缓存（2Gi，实际数据存 MinIO S3）

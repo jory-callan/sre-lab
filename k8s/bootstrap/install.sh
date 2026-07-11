@@ -64,6 +64,4 @@ if helm list -n longhorn-system 2>/dev/null | grep -q longhorn; then
     echo "  [OK] Longhorn      -- kubectl -n longhorn-system get pods"
     echo "     UI: kubectl -n longhorn-system get svc longhorn-frontend"
 fi
-if helm list -n argocd 2>/dev/null | grep -q argocd; then
-    echo "  [OK] ArgoCD       -- admin / \$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)"
-fi
+

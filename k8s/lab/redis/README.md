@@ -65,8 +65,7 @@ lab/redis/
 │   ├── secret.yaml
 │   ├── monitoring.yaml
 │   ├── chaos-test.sh
-│   └── kustomization.yaml
-└── valkey-compare/             ← Valkey 对比分析
+│   └── valkey-compare/             ← Valkey 对比分析
     └── README.md
 ```
 

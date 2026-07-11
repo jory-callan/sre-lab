@@ -20,9 +20,7 @@ helm upgrade --install redis-operator ot-container/redis-operator \
   --version 0.25.0
 ```
 
-## 方式二：Kustomize + ArgoCD
-
-见 `operators/redis-operator/`（生产使用的方式）
+## 方式二：Helm（离线 chart）
 
 ## 验证 Operator 就绪
 

@@ -1,5 +1,4 @@
 # Kite Helm values
-# Referenced by argocd/kite/application.yaml via $values/apps/kite/values.yaml
 image:
   tag: v0.12.3
 deploymentStrategy:

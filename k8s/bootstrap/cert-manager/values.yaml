@@ -1,5 +1,4 @@
-# Cert Manager Helm values
-# Referenced by argocd/cert-manager/application.yaml via $values/apps/cert-manager/values.yaml
+# cert-manager Helm values
 crds:
   enabled: true
 replicaCount: 1

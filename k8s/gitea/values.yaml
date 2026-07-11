@@ -1,5 +1,4 @@
 # Gitea Helm values
-# Referenced by argocd/gitea/application.yaml via $values/apps/gitea/values.yaml
 image:
   registry: ""
   repository: gitea/gitea

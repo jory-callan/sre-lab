@@ -1,5 +1,4 @@
 # Victoria Metrics K8s Stack Helm values
-# Referenced by argocd/victoria-metrics/application.yaml via $values/apps/victoria-metrics/values.yaml
 
 # ── 名称缩短 ──────────────────────────────────────────
 # chart 默认名 victoria-metrics-k8s-stack（28 字符）

@@ -21,9 +21,7 @@ helm upgrade --install cnpg cnpg/cloudnative-pg \
   --set config.clusterWide=true
 ```
 
-## 方式二：Kustomize + ArgoCD
-
-见 `operators/cnpg-operator/`（生产使用的方式）
+## 方式二：Helm（离线 chart）
 
 ## 验证 Operator 就绪
 

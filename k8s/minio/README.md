@@ -34,7 +34,7 @@
 
 ### 新增 Bucket
 
-编辑 `tenant.yaml` 的 `spec.buckets` 列表，ArgoCD 自动同步后 Operator 会创建：
+编辑 `tenant.yaml` 的 `spec.buckets` 列表添加或删除桶：
 
 ```yaml
 spec:
