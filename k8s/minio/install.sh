@@ -25,9 +25,13 @@ if ! helm list -n "$OPERATOR_NS" 2>/dev/null | grep -q minio-operator; then
     --timeout 5m --wait
 fi
 
-# 创建 tenant namespace + 应用资源
+# 创建 tenant namespace + 应用核心资源
 kubectl create namespace "$TENANT_NS" --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "$SCRIPT_DIR/"
+kubectl apply -f "$SCRIPT_DIR/secret.yaml" -f "$SCRIPT_DIR/tenant.yaml"
+kubectl apply -f "$SCRIPT_DIR/ingress.yaml" -f "$SCRIPT_DIR/console-ingress.yaml"
+
+# 可选：ServiceMonitor（监控栈未部署时忽略）
+kubectl apply -f "$SCRIPT_DIR/service-monitor.yaml" 2>/dev/null || true
 
 echo ""
 echo "✅ MinIO 部署完成"
