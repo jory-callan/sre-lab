@@ -5,6 +5,8 @@ deploymentMode: SingleBinary
 
 loki:
   auth_enabled: false
+  ui:
+    enabled: true
   commonConfig:
     replication_factor: 1
   schemaConfig:
