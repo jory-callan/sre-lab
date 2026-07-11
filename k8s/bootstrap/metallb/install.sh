@@ -6,8 +6,7 @@ set -euo pipefail
 
 METALLB_VERSION="0.16.1"
 MIRROR_BASE="${MIRROR_BASE:-https://gh-proxy.com}"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/metallb-${METALLB_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/metallb-${METALLB_VERSION}.tgz"
 
 # 检查是否已安装
 if helm list -n metallb-system 2>/dev/null | grep -q metallb; then

@@ -13,7 +13,7 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
 
 # 安装顺序(按依赖关系排列)
-ORDERED_COMPONENTS=("cilium" "metallb" "ingress-nginx" "cert-manager" "nfs-storageclass" "longhorn")
+ORDERED_COMPONENTS=("cilium" "metallb" "ingress-nginx" "cert-manager" "nfs-storageclass")
 
 if [ $# -gt 0 ]; then
     components=("$@")

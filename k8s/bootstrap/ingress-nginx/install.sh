@@ -6,8 +6,7 @@ set -euo pipefail
 
 INGRESS_VERSION="4.15.1"
 MIRROR_BASE="${MIRROR_BASE:-https://gh-proxy.com}"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/ingress-nginx-${INGRESS_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/ingress-nginx-${INGRESS_VERSION}.tgz"
 NAMESPACE="ingress-nginx"
 RELEASE="ingress-nginx"
 

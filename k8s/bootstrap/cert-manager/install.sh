@@ -5,8 +5,7 @@
 set -euo pipefail
 
 CERT_VERSION="v1.19.6"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/cert-manager-${CERT_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/cert-manager-${CERT_VERSION}.tgz"
 
 # 检查是否已安装
 if helm list -n cert-manager 2>/dev/null | grep -q cert-manager; then

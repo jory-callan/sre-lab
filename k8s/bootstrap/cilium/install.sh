@@ -6,8 +6,7 @@ set -euo pipefail
 
 CILIUM_VERSION="1.18.11"
 MIRROR_BASE="${MIRROR_BASE:-https://gh-proxy.com}"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/cilium-${CILIUM_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/cilium-${CILIUM_VERSION}.tgz"
 
 # 检查是否已安装
 if helm list -n kube-system 2>/dev/null | grep -q cilium; then

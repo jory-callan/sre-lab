@@ -7,8 +7,7 @@ set -euo pipefail
 NFS_NAMESPACE="nfs-storageclass"
 PROVISIONER_VERSION="4.0.18"
 MIRROR_BASE="${MIRROR_BASE:-https://gh-proxy.com}"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/nfs-subdir-external-provisioner-${PROVISIONER_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/nfs-subdir-external-provisioner-${PROVISIONER_VERSION}.tgz"
 
 # 检查是否已安装
 if helm list -n "$NFS_NAMESPACE" 2>/dev/null | grep -q nfs-provisioner; then

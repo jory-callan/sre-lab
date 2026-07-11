@@ -7,16 +7,13 @@ Ansible 完成 OS 层配置和 k3s 安装后，通过本目录的脚本安装集
 ```
 infra-base/                    ← IaC: OS + k3s (Ansible)
 ├── bootstrap/                 ← ← 你在这里: 集群基础设施安装
-│   ├── download-charts.sh     ← 下载所有 Helm chart 到本地
-│   ├── charts/                ← 本地 Helm chart 缓存 (可提交到仓库)
-│   ├── install.sh             ← 一键入口
-│   ├── cilium/                ← CNI 网络层 (P0)
-│   ├── metallb/               ← LoadBalancer (P1)
-│   ├── ingress-nginx/         ← Ingress Controller (P1)
-│   ├── cert-manager/          ← TLS 证书自动签发 (P1)
-│   ├── nfs-storageclass/      ← 共享存储 (P2)
-│   ├── longhorn/              ← 高可用块存储 (P2)
-│   └── argocd/                ← GitOps 入口
+│   ├── install.sh             ← 一键入口（调用各组件自己的 install.sh）
+│   ├── cilium/                ← CNI 网络层 (P0)，自包含 chart
+│   ├── metallb/               ← LoadBalancer (P1)，自包含 chart
+│   ├── ingress-nginx/         ← Ingress Controller (P1)，自包含 chart
+│   ├── cert-manager/          ← TLS 证书自动签发 (P1)，自包含 chart
+│   ├── nfs-storageclass/      ← 共享存储 (P2)，自包含 chart
+│   └── longhorn/              ← 高可用块存储 (P2)，自包含 chart
 
 gitops-manifests/              ← GitOps: 所有 K8s 组件通过 ArgoCD 管理
 ```
@@ -41,41 +38,18 @@ Cilium ── 网络基础
 
 ## 使用方式
 
-### 1. 下载 Helm Charts（本地开发机执行）
+### 安装
 
 ```bash
-# 默认使用 gh-proxy.com 镜像加速
-bash bootstrap/download-charts.sh
-
-# 如果镜像站失效，可切换其他镜像
-MIRROR_BASE="https://your-mirror.example.com" bash bootstrap/download-charts.sh
-
-# 或直连 GitHub（不推荐，国内网络不稳定）
-MIRROR_BASE="" bash bootstrap/download-charts.sh
-```
-
-下载完成后，`charts/` 目录包含所有 `.tgz` 文件。建议提交到仓库：
-
-```bash
-git add bootstrap/charts/
-git commit -m "chore(bootstrap): add helm chart tarballs"
-```
-
-### 2. 在集群控制节点上安装
-
-```bash
-# 方式 A: 通过 git pull 同步（推荐）
-git pull
+# 安装所有组件（按依赖顺序）
 bash bootstrap/install.sh
 
-# 方式 B: 单独拷贝 charts/ 目录到节点
-scp -r bootstrap/charts/ root@k3s-server-1:/root/bootstrap/
-ssh root@k3s-server-1 "bash /root/bootstrap/install.sh"
-
-# 或单独安装某个组件
+# 或单独安装某个组件（每个组件自包含 chart，无需提前下载）
 bash bootstrap/install.sh cilium
 bash bootstrap/install.sh metallb
 ```
+
+每个组件目录自包含 Helm chart `.tgz`，安装脚本会自动使用本地 chart。如需离线同步，直接拷贝整个组件目录到目标节点即可。
 
 ### 3. 环境变量
 
@@ -88,7 +62,7 @@ bash bootstrap/install.sh metallb
 
 - k3s 集群已安装，`flannel-backend: none`
 - `helm` 和 `kubectl` 在控制节点可用（已由 k3s role 安装）
-- 离线安装：先执行 `download-charts.sh` 并将 `charts/` 目录同步到控制节点
+- 每个组件目录自包含 Helm chart `.tgz`，直接拷贝组件目录到目标节点即可离线安装
 - **NFS 存储需要**：所有节点预加载 `nfs` + `nfsd` 内核模块（已集成在 `ansible/roles/linux-init/tasks/kernel.yml` 中，执行 `linux-init` 即可自动完成）
 
 ## 组件清单

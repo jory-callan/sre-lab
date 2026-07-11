@@ -11,8 +11,7 @@ set -euo pipefail
 NAMESPACE="longhorn-system"
 LONGHORN_VERSION="1.12.0"
 MIRROR_BASE="${MIRROR_BASE:-https://gh-proxy.com}"
-CHARTS_DIR="$(cd "$(dirname "$0")/../charts" && pwd)"
-CHART_FILE="$CHARTS_DIR/longhorn-${LONGHORN_VERSION}.tgz"
+CHART_FILE="$(cd "$(dirname "$0")" && pwd)/longhorn-${LONGHORN_VERSION}.tgz"
 # k3s 的 kubelet socket 路径，与 k3s_data_dir 保持一致
 K3S_DATA_DIR="${K3S_DATA_DIR:-/opt/k3s_data}"
 
