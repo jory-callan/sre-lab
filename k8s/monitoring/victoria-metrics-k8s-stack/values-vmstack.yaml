@@ -109,7 +109,8 @@ alertmanager:
 # ── Node Exporter + kube-state-metrics ─────────────────
 # 禁用 node-exporter，与 kube-prometheus-stack 共存避免 host 端口 9100 冲突
 # VM stack 通过 VMAgent 原生抓取指标，不需要独立 node-exporter
-node-exporter:
+# ⚠️ chart 的 condition 是 prometheus-node-exporter.enabled（不是 node-exporter.enabled）
+prometheus-node-exporter:
   enabled: false
 
 kube-state-metrics:
@@ -145,7 +146,7 @@ grafana:
 
   # ── 安全上下文 — NFS PVC 跳过 chown ────────────────
   initChownData:
-    enabled: false
+    enabled: true # NFS下无效，不支持 chown（root_squash 会拦截）
 
   # ── Ingress ──────────────────────────────────────────
   ingress:
@@ -185,6 +186,7 @@ grafana:
 
   # ── 插件安装（initContainer 自动下载）────────────────
   # 幂等：如果插件已存在 PVC 上则跳过下载
+  # chmod 755 解决 NFS 环境（root_squash）下跨 PVC 生命周期的权限问题
   extraInitContainers:
     - name: download-vm-metrics-plugin
       image: busybox:1.38.0
@@ -196,6 +198,7 @@ grafana:
           PLUGIN_DIR="/var/lib/grafana/plugins/victoriametrics-metrics-datasource"
           if [ -d "$PLUGIN_DIR" ] && [ -f "$PLUGIN_DIR/plugin.json" ]; then
             echo "✅ victoriametrics-metrics-datasource already installed, skipping"
+            chmod -R 755 "$PLUGIN_DIR"
             exit 0
           fi
           mkdir -p /var/lib/grafana/plugins
@@ -205,6 +208,7 @@ grafana:
             "https://gh-proxy.com/https://github.com/VictoriaMetrics/victoriametrics-datasource/releases/download/v0.25.2/victoriametrics-metrics-datasource-v0.25.2.tar.gz"
           tar -xzf plugin.tar.gz
           rm plugin.tar.gz
+          chmod -R 755 "$PLUGIN_DIR"
           echo "✅ victoriametrics-metrics-datasource installed"
       volumeMounts:
         - name: storage
@@ -220,6 +224,7 @@ grafana:
           PLUGIN_DIR="/var/lib/grafana/plugins/victoriametrics-logs-datasource"
           if [ -d "$PLUGIN_DIR" ] && [ -f "$PLUGIN_DIR/plugin.json" ]; then
             echo "✅ victoriametrics-logs-datasource already installed, skipping"
+            chmod -R 755 "$PLUGIN_DIR"
             exit 0
           fi
           mkdir -p /var/lib/grafana/plugins
@@ -229,20 +234,18 @@ grafana:
             "https://gh-proxy.com/https://github.com/VictoriaMetrics/victorialogs-datasource/releases/download/v0.29.0/victoriametrics-logs-datasource-v0.29.0.tar.gz"
           tar -xzf plugin.tar.gz
           rm plugin.tar.gz
+          chmod -R 755 "$PLUGIN_DIR"
           echo "✅ victoriametrics-logs-datasource installed"
       volumeMounts:
         - name: storage
           mountPath: /var/lib/grafana
-
-
-  # ── 资源限制 ──────────────────────────────────────────
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 1Gi
 
 defaultDashboards:
   enabled: true

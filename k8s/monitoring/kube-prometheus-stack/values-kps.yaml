@@ -90,6 +90,13 @@ grafana:
       - hosts:
           - grafana.czw-sre.internal
         secretName: grafana-tls
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
   persistence:
     enabled: true
     storageClassName: nfs-client
