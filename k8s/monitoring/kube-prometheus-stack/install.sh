@@ -30,8 +30,12 @@ helm upgrade --install promtail "$SCRIPT_DIR/promtail-6.16.6.tgz" \
   --values "$SCRIPT_DIR/values-promtail.yaml" \
   --timeout 5m --wait
 
+# ── 4. Prometheus WebUI Ingress ──────────────────────
+echo ">> 创建 Prometheus WebUI Ingress ..."
+kubectl apply -f "$SCRIPT_DIR/prometheus-ingress.yaml"
+
 echo ""
 echo "✅ kube-prometheus-stack 部署完成"
 echo "   Grafana: https://grafana.czw-sre.internal (admin/admin)"
+echo "   Prometheus: https://prometheus.czw-sre.internal"
 echo "   Loki API: https://loki.czw-sre.internal"
-echo "   查看: kubectl -n $NAMESPACE get pods"
