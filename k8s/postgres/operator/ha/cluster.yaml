@@ -72,11 +72,27 @@ spec:
     enablePodMonitor: true
 
   # ================================================================
-  # 备份配置（暂不启用）
+  # S3 备份（通过 MinIO）
   # ================================================================
   backup:
-    volumeSnapshot:
-      className: ~
+    barmanObjectStore:
+      destinationPath: s3://postgres-backup/
+      endpointURL: http://minio.minio.svc:80
+      s3Credentials:
+        accessKeyId:
+          name: pg-s3-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: pg-s3-creds
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+        maxParallel: 8
+      data:
+        compression: gzip
+        immediateCheckpoint: true
+        jobs: 4
+    retentionPolicy: "30d"
 
   # ================================================================
   # 亲和性 - 确保 3 个实例分到不同节点

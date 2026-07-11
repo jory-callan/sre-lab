@@ -63,6 +63,8 @@ spec:
       region: us-east-1
     - name: vm-logs
       region: us-east-1
+    - name: postgres-backup
+      region: us-east-1
 
   # ── 预置用户 ─────────────────────────────────────
   users:

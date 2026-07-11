@@ -1,0 +1,12 @@
+# PostgreSQL HA 定时备份
+# 每天凌晨 3 点执行全量备份，保留 30 天
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: pg-ha-daily-backup
+  namespace: postgres
+spec:
+  schedule: "0 0 3 * * ?"
+  backupOwnerReference: self
+  cluster:
+    name: pg-ha

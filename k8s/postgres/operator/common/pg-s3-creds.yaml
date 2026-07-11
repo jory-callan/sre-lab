@@ -1,0 +1,12 @@
+# PostgreSQL S3 备份凭证
+# CNPG 通过 barman-cloud 将备份写入 MinIO
+# 对应的 MinIO 用户在 install.sh 中通过 mc 创建
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pg-s3-creds
+  namespace: postgres
+type: Opaque
+stringData:
+  ACCESS_KEY_ID: pg-backup
+  ACCESS_SECRET_KEY: Z6rX9pLm8kQw4nSv
