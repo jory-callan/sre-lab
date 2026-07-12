@@ -1,36 +1,96 @@
-# PostgreSQL HA - CNPG Cluster CR
-# 创建 3 节点 PostgreSQL 17 HA 集群（流复制）
-# 一主二从，自动故障转移
+# PostgreSQL HA — CNPG Cluster CR（生产调优版）
+# 3 节点 HA，4c8g 规格，ssd 优化，wbouncer 连接池 50000 并发
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-ha
   namespace: postgres
 spec:
-  # 实例数（HA = 3，一主二从）
+  # ── 实例数（HA = 3，一主二从）───────────────────
   instances: 3
 
-  # 同步复制配置
-  # 确保至少 1 个同步从库，保证主库故障时数据不丢失
+  # ── 同步复制 ────────────────────────────────────
   minSyncReplicas: 1
   maxSyncReplicas: 2
 
-  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
 
+  # ── PostgreSQL 参数 ─────────────────────────────
+  # 以下参数对应 4c8g 规格 + ssd 存储 + 50000 并发客户端
+  # 调优依据见 tuning-guide.md
   postgresql:
+    # shared_preload_libraries 是顶层字段，不在 parameters 内
+    shared_preload_libraries:
+      - pg_stat_statements
     parameters:
-      max_connections: "300"
-      shared_buffers: "128MB"
-      # CNPG 自动配置以下参数：
-      # hot_standby = on
-      # wal_level = replica
-      # max_wal_senders = 10
-      # max_replication_slots = 10
-      # hot_standby_feedback = on
+      # ── 连接 ──────────────────────────────────
+      # PG 后端连接上限（50000 客户端通过 PgBouncer 复用）
+      # 详见 tuning-guide.md#61
+      max_connections: "500"
+      superuser_reserved_connections: "10"
 
-  # ================================================================
-  # 初始化配置
-  # ================================================================
+      # ── 内存（8Gi 总量）────────────────────────
+      shared_buffers: "2GB"            # 25% 物理内存
+      effective_cache_size: "6GB"      # 75%，优化器缓存判断
+      work_mem: "16MB"                 # 排序/哈希，500 并发 ≈ 8GB
+      maintenance_work_mem: "512MB"    # 维护操作（vacuum/index）
+      wal_buffers: "16MB"              # WAL 缓冲
+
+      # ── 存储 / ssd 优化 ───────────────────────
+      random_page_cost: "1.1"          # ssd（hdd 默认 4.0）
+      effective_io_concurrency: "200"  # ssd 队列深度
+      wal_compression: "zstd"          # wal I/O 减少 60-80%
+      wal_log_hints: "on"              # pg_rewind 修复裂脑
+
+      # ── WAL / Checkpoint ────────────────────
+      # max_wal_size 须小于 WAL 卷容量（5Gi），留出 ~40% 安全余量
+      min_wal_size: "1GB"
+      max_wal_size: "3GB"
+      checkpoint_timeout: "900"        # 15min
+      checkpoint_completion_target: "0.9"
+
+      # ── 超时保护 ───────────────────────────
+      statement_timeout: "30000"       # 30s，防慢 sql 挂死
+      idle_in_transaction_session_timeout: "60000"  # 60s，防悬挂事务
+      idle_session_timeout: "300000"   # 5min，防死连接
+      tcp_keepalives_idle: "60"
+      tcp_keepalives_interval: "10"
+      tcp_keepalives_count: "6"
+
+      # ── 自动清理 ──────────────────────────
+      autovacuum_max_workers: "4"
+      autovacuum_naptime: "30s"
+      autovacuum_vacuum_scale_factor: "0.01"
+      autovacuum_analyze_scale_factor: "0.005"
+
+      # ── 日志 / 审计 ──────────────────────
+      log_min_duration_statement: "1000"  # 1s 以上记录
+      log_checkpoints: "on"
+      log_connections: "on"
+      log_disconnections: "on"
+      log_lock_waits: "on"
+      deadlock_timeout: "5s"
+
+      # ── 并行查询 ─────────────────────────
+      max_parallel_workers: "8"
+      max_parallel_workers_per_gather: "4"
+      parallel_setup_cost: "100"
+      parallel_tuple_cost: "0.01"
+
+      # ── 监控 ──────────────────────────────
+      track_io_timing: "on"
+      track_functions: "pl"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: "all"
+
+      # — CNPG 自动管理以下参数 —
+      # wal_level: logical
+      # hot_standby: on
+      # max_wal_senders: 10 → 自动调整
+      # max_replication_slots: 32
+      # hot_standby_feedback: on
+
+  # ── 初始化配置 ──────────────────────────────────
   bootstrap:
     initdb:
       database: postgres
@@ -38,41 +98,37 @@ spec:
       secret:
         name: pg-auth-secret
       postInitSQL:
+        # pg_stat_statements 需 shared_preload_libraries 配合
         - CREATE EXTENSION IF NOT EXISTS pg_stat_statements
       postInitTemplateSQL:
+        # 可用扩展列表见 tuning-guide.md
+        # pg_cron / pg_partman 需自定义镜像（见 custom-image/）
         - CREATE EXTENSION IF NOT EXISTS citext
+        - CREATE EXTENSION IF NOT EXISTS pg_stat_statements
+        - CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+        - CREATE EXTENSION IF NOT EXISTS pgcrypto
 
-  # ================================================================
-  # 持久化存储（每个实例 5Gi）
-  # ================================================================
+  # ── 存储 ──────────────────────────────────────
   storage:
+    size: 10Gi
+    storageClass: local-path
+
+  # WAL 独立存储（减少 I/O 争抢）
+  walStorage:
     size: 5Gi
     storageClass: local-path
 
-  # wal 存储（使用独立 PVC 提升写入性能，可选）
-  # walStorage:
-  #   size: 2Gi
-  #   storageClass: local-path
-
-  # ================================================================
-  # 资源限制
-  # ================================================================
+  # ── 资源限制（4c8g）───────────────────────────
+  # memory request 须 ≥ shared_buffers（2GB）
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
       cpu: 500m
-      memory: 512Mi
+      memory: 2Gi
+    limits:
+      cpu: 4
+      memory: 8Gi
 
-  # ================================================================
-  # S3 备份（通过 MinIO）
-  # 保留策略：
-  #   - 全量备份保留 30 天，超出自动删除
-  #   - WAL 保留范围 = 30 天内所有备份所需 WAL（不独立保留）
-  #   - wal.maxAge: 额外安全阀，超过 7 天的 WAL 强制清理
-  #     即使备份保留策略需要更老的 WAL，也不保留超过此值
-  # ================================================================
+  # ── s3 备份（Minio）─────────────────────────
   backup:
     barmanObjectStore:
       destinationPath: s3://postgres-backup/
@@ -91,36 +147,8 @@ spec:
         compression: gzip
         immediateCheckpoint: true
         jobs: 4
-    # 全量备份保留 30 天，最老的备份过期后自动删除
-    # 同时 WAL 不长期保留，防止 MinIO 存储持续增长
     retentionPolicy: "30d"
 
-  # ================================================================
-  # 亲和性 - 确保 3 个实例分到不同节点
-  # ================================================================
+  # ── 亲和性（空 tolerations 避免 CNPG 无限滚动重建）──
   affinity:
     topologyKey: kubernetes.io/hostname
-    tolerations: []
-
-  # ================================================================
-  # 自动故障转移
-  # ================================================================
-  # 当主库不可用时自动选举新主库
-  # PersistentVolume 会自动重新绑定到新主库
-
-  # ================================================================
-  # 节点维护窗口（可选）
-  # ================================================================
-  # nodeMaintenanceWindow:
-  #   inProgress: false
-  #   reusePVC: false
-
-  # ================================================================
-  # 连接池（可选，需要额外 Pooler CR）
-  # ================================================================
-  # pooler:
-  #   instances: 2
-  #   resources:
-  #     requests:
-  #       cpu: 100m
-  #       memory: 128Mi

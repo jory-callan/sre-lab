@@ -11,7 +11,7 @@ spec:
 
   # 镜像（使用 CNPG 官方维护的 PostgreSQL 镜像）
   # 标签格式: <PG版本>-minimal-<Debian版本>
-  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
 
   # PostgreSQL 配置
   postgresql:

@@ -1,6 +1,9 @@
 # PostgreSQL 交付说明
 
 > CloudNativePG 17 集群，S3 备份至 MinIO。本文档面向**对接开发者**。
+>
+> **生产调优版**：4c8g、50,000 并发客户端（PgBouncer 池化）、SSD WAL 优化。
+> 调优详情 → [tuning-guide.md](tuning-guide.md)
 
 ---
 
@@ -8,90 +11,103 @@
 
 | 位置 | 用途 | Host | Port |
 |------|------|------|------|
-| 集群内部 | **读写**（主库） | `pg-ha-rw.postgres.svc` | 5432 |
-| 集群内部 | **只读**（从库） | `pg-ha-ro.postgres.svc` | 5432 |
-| 集群内部 | 负载均衡 | `pg-ha-r.postgres.svc` | 5432 |
+| **集群内部（推荐）** | **读写**（主库，经 Pooler） | `pg-ha-rw.pooler.postgres.svc` | 5432 |
+| 集群内部 | **只读**（从库，经 Pooler） | `pg-ha-ro.pooler.postgres.svc` | 5432 |
+| 集群内部 | **管理调试**（直连主库，绕开 Pooler） | `pg-ha-rw.postgres.svc` | 5432 |
+| 集群内部 | 管理调试（直连从库） | `pg-ha-ro.postgres.svc` | 5432 |
 | 集群外部 | 管理调试 | `<node-ip>` | 30006 |
 
-> ⚠️ **应用始终用内部 Service 连接**，NodePort 仅用于开发调试。
+> ⚠️ **应用始终用 Pooler Service 连接**（`*.pooler.postgres.svc`），绕过 Pooler 直连会占用 `max_connections: 500` 的 PG 后端槽位，不建议用于业务流量。
 
 ### 连接字符串
 
 ```text
-# JDBC
-jdbc:postgresql://pg-ha-rw.postgres.svc:5432/appdb
+# JDBC（通过 Pooler）
+jdbc:postgresql://pg-ha-rw.pooler.postgres.svc:5432/postgres
 
 # Python (psycopg2)
-host=pg-ha-rw.postgres.svc port=5432 dbname=appdb
+host=pg-ha-rw.pooler.postgres.svc port=5432 dbname=postgres
 
-# Go (pgx) / GORM
-postgres://app:<password>@pg-ha-rw.postgres.svc:5432/appdb?sslmode=disable
+# Go (pgx) / GORM（通过 Pooler）
+postgres://postgres:<password>@pg-ha-rw.pooler.postgres.svc:5432/postgres?sslmode=disable
 
-# psql
-psql -h pg-ha-rw.postgres.svc -U postgres -d appdb
+# psql 直连调试（绕开 Pooler）
+psql -h pg-ha-rw.postgres.svc -U postgres -d postgres
 ```
 
 ---
 
 ## 凭证
 
-### 密码获取
+### 认证方式
 
-CNPG 启动后自动生成随机密码并存入 Kubernetes Secret：
+| 用户 | 角色 | 密码来源 |
+|:----|:----|:--------|
+| `postgres` | 超级用户（数据库 owner） | `pg-auth-secret`（首次部署指定） |
 
 ```bash
-# 应用用户（app，默认 owner 数据库 appdb）
-kubectl get secret pg-ha-app -n postgres -o jsonpath='{.data.password}' | base64 -d
-
-# superuser（postgres 超级用户）
-kubectl get secret pg-ha-superuser -n postgres -o jsonpath='{.data.password}' | base64 -d
+# 获取密码
+kubectl get secret pg-auth-secret -n postgres -o jsonpath='{.data.password}' | base64 -d
 ```
 
-> 首次部署时指定了初始密码，CNPG 接管后可能自动轮换。**不要依赖硬编码密码**，始终从 Secret 读取。
+> `pg-auth-secret` 由部署时指定，CNPG bootstrap 阶段读取并初始化。后续密码变更需在 Secret 和 PG 内同时操作。
 
 ### 连接参数
 
 | 参数 | 值 |
 |------|-----|
-| 数据库 | `appdb` |
-| 应用用户 | `app`（owner），密码见 `pg-ha-app` Secret |
-| 超级用户 | `postgres`，密码见 `pg-ha-superuser` Secret |
+| 数据库 | `postgres` |
+| 超级用户 | `postgres`（owner） |
+| 密码 | 见 `pg-auth-secret` |
 
 ---
 
 ## 架构
 
+### 拓扑
+
 ```
-┌─────────────────────────────────────────────────────┐
-│                    pg-ha (Cluster)                   │
-│                                                      │
-│   ┌──────────────┐    ┌──────────────┐              │
-│   │  pg-ha-1     │◄───│  pg-ha-2     │  replicas    │
-│   │  PRIMARY     │    │  REPLICA     │              │
-│   │  5Gi local   │    │  5Gi local   │              │
-│   └──────┬───────┘    └──────────────┘              │
-│          │                                           │
-│   ┌──────┴───────┐                                   │
-│   │  pg-ha-3     │  replica                          │
-│   │  REPLICA     │                                   │
-│   │  5Gi local   │                                   │
-│   └──────────────┘                                   │
-│                                                      │
-│   ┌─ Services ───────────────────────────────────┐   │
-│   │  pg-ha-rw  → PRIMARY (读写)                   │   │
-│   │  pg-ha-ro  → REPLICAs (只读轮询)              │   │
-│   │  pg-ha-r   → ALL (读写分离需应用层控制)       │   │
-│   └───────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                    pg-ha (Cluster — 3 nodes)                      │
+│                                                                   │
+│   ┌──────────┐    ┌──────────┐    ┌──────────┐                   │
+│   │ pg-ha-1  │◄───│ pg-ha-2  │◄───│ pg-ha-3  │  streaming repl  │
+│   │ PRIMARY  │    │ REPLICA  │    │ REPLICA  │                   │
+│   │ 10Gi PVC │    │ 10Gi PVC │    │ 10Gi PVC │                   │
+│   │ 5Gi WAL  │    │ 5Gi WAL  │    │ 5Gi WAL  │                   │
+│   └────┬─────┘    └──────────┘    └──────────┘                   │
+│        │                                                          │
+│   ┌────┴──────────────────────────────────────────────────┐      │
+│   │   Service 路由                                        │      │
+│   │   pg-ha-rw  → PRIMARY（读写直连，绕过 Pooler）         │      │
+│   │   pg-ha-ro  → REPLICAs（只读直连）                     │      │
+│   └───────────────────────────────────────────────────────┘      │
+│                                                                   │
+│   ┌──────────────────────────────────────────────────────────┐   │
+│   │   PgBouncer Pooler（2 实例·transaction 模式）              │   │
+│   │   pg-ha-rw.pooler  → 主库（50,000 客户端→200 PG 后端）    │   │
+│   │   pg-ha-ro.pooler  → 从库（只读流量）                     │   │
+│   └──────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────┘
 ```
+
+### 设计要点
+
+- **连接池化**：PgBouncer × 2 实例，`transaction` 模式
+  - 50,000 客户端连接 → PgBouncer 复用为 ~400 条 PG 连接
+  - `max_client_conn` 每 Pooler 25,000，总计 50,000
+  - `default_pool_size` 每 Pooler 200，总计 400
+- **同步复制**：`minSyncReplicas: 1`，写入至少确认 1 个从库
+- **故障转移**：CNPG Operator 自动选举新主，Pooler 自动重连
 
 ### 故障转移
 
 当主库不可用时，CNPG 自动选举一个新主库：
 1. Operator 检测到主库失联
 2. 选择一个同步延迟最小的从库提升为主
-3. `pg-ha-rw` Service 自动切到新主库
-4. 应用端连接池会自动重连（**建议应用侧配置连接池重试**）
+3. `pg-ha-rw` 和 Pooler Service 自动切到新主库
+4. PgBouncer 检测到连接断开并自动重建连接池
+5. **应用无需重试**（通过 Pooler 连接时）
 
 ---
 
@@ -99,44 +115,46 @@ kubectl get secret pg-ha-superuser -n postgres -o jsonpath='{.data.password}' | 
 
 ### Pod 资源
 
-| 资源 | Request | Limit |
-|------|---------|-------|
-| CPU | 100m | 500m |
-| 内存 | 256Mi | 512Mi |
+| 组件 | Request | Limit | 说明 |
+|:----|:-------:|:-----:|:-----|
+| PostgreSQL 实例 | 不设置（超卖） | **4c / 8Gi** | 3 实例各保留故障转移能力 |
+| PgBouncer Pooler | 100m / 128Mi | 500m / 512Mi | 2 实例 HA |
 
 ### 存储
 
 | 项 | 值 |
 |----|-----|
-| 每个实例 | 5Gi，StorageClass `local-path` |
-| 总容量 | 15Gi（3 × 5Gi） |
-| 数据目录 | `/var/lib/postgresql/data` (PVC) |
-| WAL 目录 | 与数据同卷（未独立 PVC） |
+| 数据 PVC（每实例） | 10Gi，StorageClass `local-path` |
+| WAL PVC（每实例，独立） | 5Gi，StorageClass `local-path` |
+| 总数据容量 | 30Gi（3 × 10Gi） |
+| 总 WAL 容量 | 15Gi（3 × 5Gi） |
 
 ### 命名空间配额
 
-| 资源 | 上限 |
-|------|------|
-| Pod | 10 |
-| CPU Request | 2 核 |
-| 内存 Request | 4Gi |
-| PVC | 10 |
-
-> 3 节点 HA 实际占用 3 Pod + 3 PVC，剩余可容纳 1 个额外部署。
+| 资源 | 上限 | 说明 |
+|:----|:----|:------|
+| Pod | 15 | 3 PG + 2 Pooler + 备份 Job 等 |
+| CPU Request | 4 核 | 超卖运行 |
+| 内存 Request | 8Gi | |
+| CPU Limit | 16 核 | 3×4c + 2×0.5c + 余量 |
+| 内存 Limit | 32Gi | 3×8Gi + 2×0.5Gi + 余量 |
+| PVC | 15 | 3×2（data+wal）+ 余量 |
 
 ---
 
 ## 性能上限估算
 
 | 维度 | 上限 | 瓶颈因素 |
-|------|------|---------|
-| 最大连接数 | 300 | `max_connections` 配置 + Pod 内存 512Mi |
-| 存储上限 | 15Gi（单实例 5Gi） | PVC 容量 |
-| 只读查询吞吐 | 2× replica 分摊 | 每个 replica CPU 500m |
-| 写入吞吐 | ~单节点能力 | 同步复制至少 1 个从库确认 |
-| 并发连接 | ~100-150 活跃 | 512Mi 内存下每个连接约 3-5Mi |
+|:----|:----:|:---------|
+| **客户端并发连接** | **50,000** | PgBouncer `max_client_conn: 25000 × 2` |
+| PG 后端连接 | 500 | `max_connections: 500`（池化后） |
+| 只读查询吞吐 | 2× replica 分摊 | 每个 replica 4c / 8Gi |
+| 写入吞吐 | ~单节点能力 | 同步复制至少 1 从库确认 |
+| 内存 | 8Gi/实例 | `shared_buffers=2GB`，连接 ~2.5GB，OS ~2GB |
+| 存储 | 10Gi 数据 + 5Gi WAL | PVC 容量（可在线扩容） |
+| 慢查询阈值 | 1s 记录 | `log_min_duration_statement=1000` |
 
-> 开发/测试环境估算值。生产环境建议增加 CPU/内存、独立 WAL 卷、开启连接池（PgBouncer）。
+> 生产环境实际吞吐取决于工作负载模型。建议部署后通过 pg_stat_statements + Grafana 持续观察。
 
 ---
 
@@ -147,7 +165,7 @@ kubectl get secret pg-ha-superuser -n postgres -o jsonpath='{.data.password}' | 
 > 💡 完整的备份恢复操作演练见 [drill-backup-restore.md](drill-backup-restore.md)。
 
 | 类型 | 频率 | 保留策略 |
-|------|------|---------|
+|:----|:------|:---------|
 | 全量备份 | 每天 03:00 | 30 天，超期自动删除 |
 | WAL 归档 | 持续实时 | 最多 7 天，与全量备份联动清理 |
 
@@ -163,17 +181,15 @@ kubectl get secret pg-ha-superuser -n postgres -o jsonpath='{.data.password}' | 
      防止写入量暴增时 WAL 失控
 ```
 
-> **WAL 不独立保留**。它的生命周期取决于全量备份——最老的全量备份过期后，对应的 WAL 也一并清理。`maxAge: 7d` 是额外安全阀：即使备份保留策略认为某个 WAL"还需要"，超过 7 天的也会强制删除，防止因 bug 或异常写入导致存储无限增长。
-
 #### 存储估算
 
 | 项目 | 日增量（估算） | 30 天总量 |
-|------|---------------|----------|
-| 全量备份（gzip 压缩，5Gi DB → ~2Gi） | ~2Gi | ~60Gi |
+|:----|:--------------|:---------|
+| 全量备份（gzip 压缩，10Gi DB → ~4Gi） | ~4Gi | ~120Gi |
 | WAL（gzip 压缩，取决于写入量） | ~0.5-2Gi | ~15-60Gi |
-| **合计** | | **~75-120Gi** |
+| **合计** | | **~135-180Gi** |
 
-> 实际用量取决于数据库写入量。WAL 写入量可以通过 `pg_stat_wal` 监控。如果 DB 写入量很小，WAL 可能每天只有几十 MiB。建议定期检查 MinIO `postgres-backup` bucket 用量。
+> 实际用量取决于数据库写入量。WAL 写入量可以通过 `pg_stat_wal` 监控。建议定期检查 MinIO `postgres-backup` bucket 用量。
 
 备份目标：MinIO `postgres-backup` bucket（同集群内）。
 
@@ -194,7 +210,6 @@ kubectl get backup -n postgres
 恢复 = 创建一个新 Cluster，指定从已有的 S3 备份恢复：
 
 ```yaml
-# 示例：创建 pg-ha-restored 从备份恢复
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
@@ -204,7 +219,7 @@ spec:
   instances: 3
   imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
   storage:
-    size: 5Gi
+    size: 10Gi
     storageClass: local-path
 
   # ── 指定恢复来源 ─────────────────────────
@@ -244,7 +259,7 @@ kubectl get cluster -n postgres
 kubectl logs -n postgres -l cnpg.io/cluster=pg-ha-restored -c postgres
 
 # 4. 确认数据
-kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d appdb -c "SELECT count(*) FROM ..."
+kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d postgres -c "SELECT count(*) FROM ..."
 ```
 
 > **注意**：恢复是一个**新集群**，原集群继续运行。确认恢复成功后再切换流量。
@@ -253,7 +268,7 @@ kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d appdb -c "S
 
 ## 监控
 
-- **PodMonitor**: CNPG 自动创建，VMAgent 每 20s 抓取
+- **PodMonitor**: CNPG 自动创建（`monitoring.enablePodMonitor: true`），VMAgent 每 20s 抓取
 - **Grafana Dashboard**: 官方原版 JSON 见 `monitor/dashboard/cnpg-cluster.json`
   - 一键导入: `bash monitor/import-dashboard.sh`
 - **告警规则**: 7 条内置规则（install.sh 自动安装，见 `monitor/rule/cnpg-alerts.yaml`）
@@ -262,17 +277,19 @@ kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d appdb -c "S
   - `cnpg_pg_replication_lag` — 复制延迟
   - `cnpg_backends_total` — 连接数
   - `cnpg_pg_database_size_bytes` — 数据库大小
+  - `pg_stat_statements` — 慢查询 / 高频查询识别
 
 ---
 
 ## 故障排查
 
 | 现象 | 原因 | 解决 |
-|------|------|------|
-| 连接被拒绝 | 用错 Service 或端口 | 内部用 `pg-ha-rw.postgres.svc:5432` |
-| `password authentication failed` | 密码过期或读错 Secret | `kubectl get secret pg-ha-app -o jsonpath='{.data.password}' \| base64 -d` |
-| 写入超时 | 主库压力大或从库同步延迟 | 检查 `pg_replication_lag`，考虑扩容 |
-| 主库宕机后无法连接 | 故障转移还未完成 | 等待 10-30s，客户端配置重试逻辑 |
-| PVC 空间不足 | `local-path` 存储满 | 扩容 PVC 或清理旧数据 |
+|:----|:-----|:------|
+| 连接被拒绝 | 用错 Service 或端口 | 应用用 `*.pooler.postgres.svc:5432` |
+| `password authentication failed` | 密码错误 | `kubectl get secret pg-auth-secret -n postgres -o jsonpath='{.data.password}' \| base64 -d` |
+| 写入超时 | 主库压力大或从库同步延迟 | 检查 `pg_replication_lag`，或降低 `maxSyncReplicas` |
+| 主库宕机后无法连接 | 故障转移未完成 | 等待 10-30s，Pooler 自动重建连接 |
+| PVC 空间不足 | `local-path` 存储满 | 扩容 PVC（10Gi 数据 / 5Gi WAL）或清理旧数据 |
 | 备份失败 | MinIO 不可达 | `kubectl -n minio get pods` 检查 MinIO 状态 |
-| `cluster in recovery` 错误 | 应用连到了只读节点 | 用 `pg-ha-rw`（读写）而非 `pg-ha-ro` |
+| `bas too many clients` | PG 后端连接满 | 检查 Pooler `max_db_connections` + PG `max_connections` |
+| `cluster in recovery` 错误 | 应用连到了只读节点 | 确认应用使用的是 rw（读写）而非 ro Service |

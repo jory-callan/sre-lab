@@ -1,0 +1,42 @@
+# PgBouncer 连接池 — pg-ha 集群
+# 实现 50,000 并发客户端 → 复用 ~400 PG 后端连接
+# 原理见 tuning-guide.md
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: pg-ha-pooler-rw
+  namespace: postgres
+spec:
+  # ── 关联集群 ──────────────────────────────────
+  cluster:
+    name: pg-ha
+
+  # ── 实例 ──────────────────────────────────────
+  instances: 2
+  type: rw  # 读写，所有流量走主库
+
+  # ── PgBouncer 参数 ────────────────────────────
+  pgbouncer:
+    poolMode: transaction
+    parameters:
+      default_pool_size: "200"          # 每个 pooler 保留 n 个 PG 后端
+      max_client_conn: "25000"          # 每个 pooler 接受 25000 客户端
+      max_db_connections: "500"         # 数据库级总连接上限
+      reserve_pool_size: "10"           # 紧急保留连接
+      reserve_pool_timeout: "5"         # 队列超时后启用保留池
+      query_timeout: "30"               # sql 超时
+      idle_transaction_timeout: "60"    # 事务超时
+      server_idle_timeout: "300"        # 后端连接回收
+
+  # ── Pod 模板（资源通过 template 设置）───────────
+  template:
+    spec:
+      containers:
+        - name: pgbouncer
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
