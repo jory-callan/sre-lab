@@ -18,13 +18,11 @@ if [ ! -f "$CHART_FILE" ]; then
 fi
 
 # 安装 operator
-if ! helm list -n "$OPERATOR_NS" 2>/dev/null | grep -q minio-operator; then
-  echo ">> 安装 MinIO Operator ..."
-  helm upgrade --install minio-operator "$CHART_FILE" \
-    --namespace "$OPERATOR_NS" --create-namespace \
-    -f "$SCRIPT_DIR/values-operator.yaml" \
-    --timeout 5m --wait
-fi
+echo ">> 安装/升级 MinIO Operator ..."
+helm upgrade --install minio-operator "$CHART_FILE" \
+  --namespace "$OPERATOR_NS" --create-namespace \
+  -f "$SCRIPT_DIR/values-operator.yaml" \
+  --timeout 5m --wait
 
 # 创建 tenant namespace + 应用核心资源
 kubectl create namespace "$TENANT_NS" --dry-run=client -o yaml | kubectl apply -f -
