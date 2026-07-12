@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitea-runner
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitea-runner
+  namespace: gitea-runner
+type: Opaque
+stringData:
+  # ── 替换为实际 registration token ──
+  # 获取方式:
+  #   curl -sk -X POST -H "Authorization: token <你的TOKEN>" \
+  #     "https://gitea.czw-sre.internal/api/v1/repos/<owner>/<repo>/actions/runners/registration-token"
+  # 或 Gitea Web UI → 仓库 → Settings → Actions → Runners → Create Token
+  token: "REPLACE_WITH_YOUR_TOKEN"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gitea-runner-config
+  namespace: gitea-runner
+data:
+  config.yaml: |
+    log:
+      level: info
+    runner:
+      file: .runner
+      capacity: 1
+    container:
+      # host 网络模式让 job 容器能直接访问集群内 Service
+      network_mode: host
+      # 挂载 docker.sock 到 job 容器，使 workflow 内可用 docker build
+      options: -v /var/run/docker.sock:/var/run/docker.sock
+      valid_volumes:
+        - /var/run/docker.sock
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-runner
+  namespace: gitea-runner
+  labels:
+    app: gitea-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea-runner
+  template:
+    metadata:
+      labels:
+        app: gitea-runner
+    spec:
+      containers:
+        - name: runner
+          image: gitea/act_runner:0.3.1
+          imagePullPolicy: IfNotPresent
+          env:
+            # ── 关键：必须用集群内 Service 地址，不能用 HTTPS 域名 ──
+            # 原因：ingress-nginx 默认证书不被 runner 信任
+            - name: GITEA_INSTANCE_URL
+              value: "http://gitea-http.gitea:3000"
+            - name: GITEA_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-runner
+                  key: token
+            - name: GITEA_RUNNER_NAME
+              value: "k8s-runner-1"
+            # labels 决定 workflow 中 runs-on 的取值
+            - name: GITEA_RUNNER_LABELS
+              value: "ubuntu-latest:docker://node:24-alpine,ubuntu-24.04:docker://node:24-alpine"
+            # 指定配置文件路径
+            - name: CONFIG_FILE
+              value: /runner/config.yaml
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: runner-config
+              mountPath: /runner/config.yaml
+              subPath: config.yaml
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: runner-config
+          configMap:
+            name: gitea-runner-config

@@ -80,6 +80,9 @@ gitea:
     metrics:
       ENABLED: true                    # 开启 /metrics（给 VMAgent 采集）
 
+    packages:
+      ENABLED: true                    # 开启容器注册表
+
 # 子图表禁用（SQLite + 文件 session，无需外部 DB/缓存）
 postgresql:
   enabled: false
