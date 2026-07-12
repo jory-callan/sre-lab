@@ -1,36 +1,66 @@
 #!/bin/bash
-# install.sh — Redis (OT-Container-KIT Operator)
-# 用法: bash install.sh [standalone|sentinel-ha|cluster]
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODE="${1:-standalone}"
-OPERATOR_NS="redis-operator"
-REDIS_NS="redis"
-CHART_VERSION="0.25.0"
-CHART_FILE="$SCRIPT_DIR/helm/redis-operator-${CHART_VERSION}.tgz"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PASSWORD="${1:-redis@czw}"
 
-# 下载 chart
-if [ ! -f "$CHART_FILE" ]; then
-  echo ">> 下载 redis-operator chart ${CHART_VERSION} ..."
-  helm repo add ot-helm https://ot-container.github.io/helm-charts/ 2>/dev/null || true
-  helm pull ot-helm/redis-operator --version "$CHART_VERSION" --destination "$SCRIPT_DIR/helm/"
-  mv "$SCRIPT_DIR/helm/redis-operator-${CHART_VERSION}.tgz" "$CHART_FILE" 2>/dev/null || true
-fi
+echo "=============================="
+echo "redis-core 部署"
+echo "=============================="
 
-# 安装 operator
-if ! helm list -n "$OPERATOR_NS" 2>/dev/null | grep -q redis-operator; then
-  echo ">> 安装 redis-operator ..."
-  helm upgrade --install redis-operator "$CHART_FILE" \
-    --namespace "$OPERATOR_NS" --create-namespace \
-    --values "$SCRIPT_DIR/helm/values-prod.yaml" \
-    --timeout 5m --wait
-fi
+# ── 1. Operator（命名空间: operators）──
+echo ""
+echo "[1/4] 部署 Operator → operators 命名空间"
+kubectl create ns operators --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "$SCRIPT_DIR/operator/spotahome/00-operator.yaml"
+kubectl wait --for=condition=available -n operators deployment/redisoperator --timeout=120s
+echo "       Operator 就绪"
 
-# 创建 namespace + 应用 CR
-kubectl create namespace "$REDIS_NS" --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "$SCRIPT_DIR/operator/$MODE/"
+# ── 2. 命名空间 redis ──
+echo ""
+echo "[2/4] 创建 redis 命名空间 + 公共 Secret"
+kubectl create ns redis --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f "$SCRIPT_DIR/cr/common/secret.yaml"
+echo "       完成"
+
+# ── 3. RedisFailover CR ──
+echo ""
+echo "[3/4] 部署 redis-core CR + Service + 备份"
+kubectl apply -f "$SCRIPT_DIR/cr/sentinel-ha/redis-failover.yaml"
+kubectl apply -f "$SCRIPT_DIR/cr/sentinel-ha/service-external.yaml"
+kubectl apply -f "$SCRIPT_DIR/cr/sentinel-ha/backup-cronjob.yaml"
+echo "       完成"
+
+# ── 4. 等待就绪 ──
+echo ""
+echo "[4/4] 等待 Pod 就绪..."
+for i in $(seq 1 60); do
+  READY=$(kubectl get pods -n redis \
+    -l redisfailovers.databases.spotahome.com/name=redis-core \
+    -o jsonpath='{.items[*].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
+  ALL_READY=$(echo "$READY" | tr ' ' '\n' | grep -v "True" | wc -l | tr -d ' ')
+  COUNT=$(echo "$READY" | wc -w | tr -d ' ')
+  if [ "$ALL_READY" = "0" ] && [ "$COUNT" -ge 6 ]; then
+    echo "       所有 Pod 已就绪！"
+    kubectl get pods -n redis -o wide
+    break
+  fi
+  printf "\r       等待中... %ds" $((i * 2))
+  sleep 2
+done
 
 echo ""
-echo "✅ Redis $MODE 部署完成"
-echo "   查看: kubectl get redis,redisreplication,rediscluster -n $REDIS_NS"
+echo "=============================="
+echo "部署完成"
+echo "=============================="
+echo ""
+echo "连接信息:"
+echo "  集群内: redis://:${PASSWORD}@rfrm-redis-core.redis.svc:6379"
+echo "  外部:   redis://:${PASSWORD}@<节点IP>:30207"
+echo ""
+
+# 快速验证
+echo "--- 快速验证 ---"
+MASTER=$(kubectl get pods -n redis -l redisfailovers-role=master -o name 2>/dev/null | head -1)
+echo "  Master: ${MASTER#pod/}"
+kubectl exec -n redis "${MASTER#pod/}" -- redis-cli -a "$PASSWORD" --no-auth-warning PING 2>/dev/null || echo "  (等待就绪)"

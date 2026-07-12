@@ -1,0 +1,111 @@
+# RedisFailover CR — redis-core
+# 1 主 2 从 + 3 Sentinel，应用通过 rfrm-redis-core Service 单机模式连接
+# 部署命名空间: redis
+apiVersion: databases.spotahome.com/v1
+kind: RedisFailover
+metadata:
+  name: redis-core
+  namespace: redis
+spec:
+  auth:
+    secretPath: redis-auth
+
+  redis:
+    image: redis:7.0.15
+    imagePullPolicy: IfNotPresent
+    replicas: 3
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # 防脑裂 + 网络稳定性配置
+    customConfig:
+      - "tcp-keepalive 60"
+      - "min-replicas-to-write 1"
+      - "min-replicas-max-lag 10"
+      - "repl-timeout 60"
+      - "repl-backlog-size 104857600"
+
+    storage:
+      keepAfterDeletion: true
+      persistentVolumeClaim:
+        metadata:
+          name: redis-core-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 5Gi
+          storageClassName: nfs-client
+
+    exporter:
+      enabled: true
+      image: quay.io/oliver006/redis_exporter:v1.43.0
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+
+    # 硬约束反亲和
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: redis
+                app.kubernetes.io/part-of: redis-failover
+
+    tolerations:
+      - operator: Exists
+
+  sentinel:
+    image: redis:7.0.15
+    imagePullPolicy: IfNotPresent
+    replicas: 3
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
+      limits:
+        cpu: 200m
+        memory: 200Mi
+
+    customConfig:
+      - "down-after-milliseconds 15000"
+      - "failover-timeout 30000"
+
+    exporter:
+      enabled: true
+      image: quay.io/oliver006/redis_exporter:v1.43.0
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: sentinel
+                app.kubernetes.io/part-of: redis-failover
+
+    tolerations:
+      - operator: Exists

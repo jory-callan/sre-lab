@@ -1,0 +1,83 @@
+---
+# RDB 备份 PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-core-backup
+  namespace: redis
+  labels:
+    app.kubernetes.io/name: redis-core
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: nfs-client
+---
+# 每天 03:00 RDB 备份
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-core-backup
+  namespace: redis
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: redis-backup
+            image: redis:7.0.15
+            command:
+            - /bin/sh
+            - -ec
+            - |
+              TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+              BACKUP_DIR="/backup"
+              SERVICE="rfrm-redis-core"
+              RDB_FILE="${BACKUP_DIR}/redis-core-${TIMESTAMP}.rdb"
+              LATEST_LINK="${BACKUP_DIR}/latest.rdb"
+
+              echo "[${TIMESTAMP}] Connecting to ${SERVICE}..."
+              redis-cli -a "${REDIS_PASSWORD}" \
+                -h "${SERVICE}" --no-auth-warning \
+                --rdb "${RDB_FILE}"
+
+              SIZE=$(stat -c%s "${RDB_FILE}" 2>/dev/null || stat -f%z "${RDB_FILE}" 2>/dev/null)
+              echo "[${TIMESTAMP}] RDB saved: ${RDB_FILE} (${SIZE} bytes)"
+
+              ln -sf "redis-core-${TIMESTAMP}.rdb" "${LATEST_LINK}"
+              find "${BACKUP_DIR}" -name "redis-core-*.rdb" -mtime +7 -delete
+              echo "[${TIMESTAMP}] Done."
+
+            env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-auth
+                  key: password
+
+            resources:
+              requests:
+                cpu: 100m
+                memory: 64Mi
+              limits:
+                memory: 128Mi
+
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: redis-core-backup

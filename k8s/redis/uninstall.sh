@@ -1,74 +1,31 @@
 #!/bin/bash
-# Redis 卸载脚本
-# 每个模式完全自包含，按模式独立卸载
-#
-# 用法:
-#   ./uninstall.sh                  # 删除所有 Redis 实例 + operator
-#   ./uninstall.sh standalone       # 只删 standalone，保留 operator
-#   ./uninstall.sh sentinel-ha      # 只删 sentinel-ha，保留 operator
-#   ./uninstall.sh cluster          # 只删 cluster，保留 operator
+set -euo pipefail
 
-set -e
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
-OPERATOR_NS="redis-operator"
-REDIS_NS="redis"
-
-MODE="${1:-all}"
-VALID_MODES="all standalone sentinel-ha cluster"
-if ! echo "$VALID_MODES" | grep -qw "$MODE"; then
-  echo "❌ 无效参数: $MODE"
-  echo "   用法: $0 [all|standalone|sentinel-ha|cluster]"
-  exit 1
-fi
-
-echo "🗑️  卸载模式: $MODE"
+echo "=============================="
+echo "redis-core 卸载"
+echo "=============================="
 echo ""
 
-# ============================================================
-# 删除 Redis 实例 CR
-# ============================================================
-delete_instance() {
-  local mode="$1"
-  local cr_dir="$SCRIPT_DIR/operator/$mode"
+# 1. 删除 CR（级联删除 StatefulSet/Deployment/PVC/Service）
+echo "[1/3] 删除 RedisFailover CR..."
+kubectl delete -f "$SCRIPT_DIR/cr/sentinel-ha/redis-failover.yaml" --ignore-not-found --timeout=60s 2>/dev/null || true
+kubectl delete -f "$SCRIPT_DIR/cr/sentinel-ha/service-external.yaml" --ignore-not-found 2>/dev/null || true
+kubectl delete -f "$SCRIPT_DIR/cr/sentinel-ha/backup-cronjob.yaml" --ignore-not-found 2>/dev/null || true
+sleep 5
 
-  if [ -d "$cr_dir" ]; then
-    echo "→ 删除 $mode 实例..."
-    kubectl delete -f "$cr_dir/" 2>/dev/null || true
-  fi
-}
+# 2. 删除 Secret + 命名空间
+echo "[2/3] 清理命名空间 redis..."
+kubectl delete ns redis --ignore-not-found --timeout=60s 2>/dev/null || true
 
-case "$MODE" in
-  all)
-    delete_instance standalone
-    delete_instance sentinel-ha
-    delete_instance cluster
-    kubectl delete namespace "$REDIS_NS" --ignore-not-found 2>/dev/null || true
-    echo ""
-    echo "🗑️  卸载 redis-operator..."
-    helm uninstall redis-operator --namespace "$OPERATOR_NS" 2>/dev/null || true
-    kubectl delete namespace "$OPERATOR_NS" --ignore-not-found 2>/dev/null || true
-    echo ""
-    echo "⚠️  如需清理 CRD："
-    echo "   kubectl delete crd -l app.kubernetes.io/managed-by=redis-operator"
-    ;;
-  standalone)
-    delete_instance standalone
-    echo ""
-    echo "✅ standalone 实例已删除，operator 保留"
-    ;;
-  sentinel-ha)
-    delete_instance sentinel-ha
-    echo ""
-    echo "✅ sentinel-ha 实例已删除，operator 保留"
-    ;;
-  cluster)
-    delete_instance cluster
-    echo ""
-    echo "✅ cluster 实例已删除，operator 保留"
-    ;;
-esac
+# 3. 删除 Operator（CRD + RBAC + Deployment）
+echo "[3/3] 删除 Operator..."
+kubectl delete -f "$SCRIPT_DIR/operator/spotahome/00-operator.yaml" --ignore-not-found --timeout=60s 2>/dev/null || true
 
 echo ""
-echo "📊 剩余 Redis 实例："
-kubectl get redis,redisreplication,rediscluster -n "$REDIS_NS" 2>/dev/null || echo "   (无)"
+echo "完成！"
+echo ""
+echo "如需保留 Operator 供其他 CR 使用，跳过 [3/3]:"
+echo "  kubectl delete -f operator/spotahome/00-operator.yaml  # 只删 operator"
+echo "  kubectl delete ns redis                                # 只删 redis 数据"
