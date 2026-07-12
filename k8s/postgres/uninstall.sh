@@ -7,28 +7,36 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PG_NS="postgres"
 MODE="${1:-standalone}"
 
+stop_cluster() {
+  local mode="$1"
+  echo ">> 删除 $mode Cluster CR ..."
+  kubectl delete cluster -n "$PG_NS" "pg-${mode}" --grace-period=30 --timeout=60s 2>/dev/null || true
+  echo ">> 等待 Pod 终止 ..."
+  sleep 15
+  echo ">> 删除 $mode 关联的 PVC ..."
+  kubectl get pvc -n "$PG_NS" 2>/dev/null | grep "^pg-${mode}" | awk '{print $1}' | xargs -r kubectl delete pvc -n "$PG_NS" --grace-period=10 --timeout=30s 2>/dev/null || true
+  echo ">> 删除 $mode 关联的 Service ..."
+  kubectl get svc -n "$PG_NS" 2>/dev/null | grep "^pg-${mode}" | awk '{print $1}' | xargs -r kubectl delete svc -n "$PG_NS" --timeout=10s 2>/dev/null || true
+  echo ">> 删除 $mode 关联的 ScheduledBackup ..."
+  kubectl get scheduledbackup -n "$PG_NS" 2>/dev/null | grep "^pg-${mode}" | awk '{print $1}' | xargs -r kubectl delete scheduledbackup -n "$PG_NS" --timeout=10s 2>/dev/null || true
+  echo ">> 删除 $mode 关联的 PodMonitor ..."
+  kubectl get podmonitor -n "$PG_NS" 2>/dev/null | grep "^pg-${mode}" | awk '{print $1}' | xargs -r kubectl delete podmonitor -n "$PG_NS" --timeout=10s 2>/dev/null || true
+  echo ">> 删除 $mode 生成的证书 Secret ..."
+  kubectl get secret -n "$PG_NS" 2>/dev/null | grep "^pg-${mode}-" | awk '{print $1}' | xargs -r kubectl delete secret -n "$PG_NS" --timeout=10s 2>/dev/null || true
+  echo "✅ $mode 实例已删除"
+}
+
 case "$MODE" in
   standalone|ha)
-    echo ">> 删除 $MODE Cluster CR ..."
-    for f in $(ls -r "$SCRIPT_DIR/operator/$MODE/" 2>/dev/null); do
-      kubectl delete -f "$SCRIPT_DIR/operator/$MODE/$f" --grace-period=30 2>/dev/null || true
-    done
-    echo ">> 等待 Pod 终止 ..."
-    sleep 15
-    kubectl get pvc -n "$PG_NS" 2>/dev/null | grep "^pg-$MODE" | awk '{print $1}' | xargs -r kubectl delete pvc -n "$PG_NS" --grace-period=10 2>/dev/null || true
-    echo "✅ $MODE 实例已删除"
+    stop_cluster "$MODE"
     ;;
   all)
-    for f in $(ls -r "$SCRIPT_DIR/operator/standalone/" 2>/dev/null); do
-      kubectl delete -f "$SCRIPT_DIR/operator/standalone/$f" --grace-period=30 2>/dev/null || true
-    done
-    for f in $(ls -r "$SCRIPT_DIR/operator/ha/" 2>/dev/null); do
-      kubectl delete -f "$SCRIPT_DIR/operator/ha/$f" --grace-period=30 2>/dev/null || true
-    done
-    kubectl delete -f "$SCRIPT_DIR/operator/common/" 2>/dev/null || true
-    sleep 15
-    kubectl get pvc -n "$PG_NS" 2>/dev/null | grep "^pg-" | awk '{print $1}' | xargs -r kubectl delete pvc -n "$PG_NS" --grace-period=10 2>/dev/null || true
-    kubectl delete namespace "$PG_NS" --grace-period=30 2>/dev/null || true
+    stop_cluster "standalone"
+    stop_cluster "ha"
+    kubectl delete -f "$SCRIPT_DIR/cr/common/" --timeout=10s 2>/dev/null || true
+    kubectl delete -f "$SCRIPT_DIR/dep-minio/pg-s3-creds.yaml" --timeout=10s 2>/dev/null || true
+    kubectl delete -f "$SCRIPT_DIR/resourcequota.yaml" --timeout=10s 2>/dev/null || true
+    kubectl delete namespace "$PG_NS" --grace-period=30 --timeout=60s 2>/dev/null || true
     echo "✅ PostgreSQL 实例已完全卸载"
     ;;
   *)
