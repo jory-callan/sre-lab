@@ -35,8 +35,8 @@ k3s 节点占用 22 端口，Gitea SSH 通过 NodePort 30022 暴露：
 # 查看 NodePort
 kubectl -n gitea get svc gitea-ssh
 
-# 克隆示例
-git clone ssh://git@192.168.5.205:30022/<user>/<repo>.git
+# 克隆示例（node-ip 替换为任意集群节点 IP）
+git clone ssh://git@<node-ip>:30022/<user>/<repo>.git
 ```
 
 ## 指标采集
@@ -54,7 +54,7 @@ Gitea 已开启 `/metrics` 端点，VMAgent 自动发现并采集。
 
 | 账号 | 初始密码 | 说明 |
 |------|---------|------|
-| `admin` | `admin123` | 预配置，安装后直接使用 |
+| `admin` | `Admin@czw123` | 预配置，安装后直接使用 |
 
 > 首次登录后建议修改密码。
 
@@ -85,6 +85,17 @@ helm upgrade gitea gitea-charts/gitea -n gitea -f values.yaml
 | `gitea.config.metrics.ENABLED` | `true` | 开启指标端点 |
 | `resources.requests.memory` | `256Mi` | 内存请求 |
 | `resources.limits.memory` | `512Mi` | 内存上限 |
+
+## 访问方式
+
+| 方式 | 地址 | 用途 |
+|------|------|------|
+| Web | `https://gitea.czw-sre.internal` | 浏览器访问 |
+| Git HTTPS | `https://gitea.czw-sre.internal/<user>/<repo>.git` | 日常 clone |
+| Git SSH | `ssh://git@<node-ip>:30022/<user>/<repo>.git` | SSH 推送 |
+| HTTP NodePort | `<node-ip>:30021` | 无 DNS 或 Ingress 调试 |
+| SSH NodePort | `<node-ip>:30022` | 无 DNS 或 Ingress 调试 |
+| 本地转发 | `kubectl -n gitea port-forward svc/gitea-http 3000:3000` | 本地调试 |
 
 ### 客户端 IP 保留
 

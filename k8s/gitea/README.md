@@ -8,7 +8,7 @@
 | Helm Chart | `helm-hosted/gitea` (12.6.0) |
 | 命名空间 | `gitea` |
 | 域名 | `gitea.czw-sre.internal` |
-| 默认管理员 | `admin / admin123` |
+| 默认管理员 | `admin / Admin@czw123` |
 
 ## 部署
 
@@ -39,7 +39,8 @@ bash install.sh
 |------|------|
 | Web | `https://gitea.czw-sre.internal` |
 | Git (HTTP) | `https://gitea.czw-sre.internal/<user>/<repo>.git` |
-| Git (SSH) | `ssh://git@192.168.5.205:30022/<user>/<repo>.git` |
+| Git (SSH) | `ssh://git@<node-ip>:30022/<user>/<repo>.git` |
+| NodePort HTTP | `<node-ip>:30021` |
 | 指标 | `https://gitea.czw-sre.internal/metrics` |
 
 ## 验证

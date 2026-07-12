@@ -8,6 +8,19 @@ image:
   tag: 1.26.4
   pullPolicy: IfNotPresent
 
+# Service — HTTP + SSH NodePort 暴露
+service:
+  http:
+    type: NodePort
+    port: 3000
+    nodePort: 30021
+    clusterIP: ""
+  ssh:
+    type: NodePort
+    port: 22
+    nodePort: 30022
+    clusterIP: ""
+
 # 持久化（NFS RWX）
 persistence:
   enabled: true
@@ -39,7 +52,7 @@ ingress:
 gitea:
   admin:
     username: admin
-    password: admin123
+    password: Admin@czw123
     email: admin@gitea.local
 
   config:
@@ -50,7 +63,7 @@ gitea:
       PROTOCOL: http
       OFFLINE_MODE: false
       DISABLE_SSH: false
-      START_SSH_SERVER: false
+      START_SSH_SERVER: true
       SSH_DOMAIN: gitea.czw-sre.internal
       LFS_START_SERVER: true
     database:
