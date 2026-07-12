@@ -31,12 +31,12 @@ pg-ha-3     1/1     Running   0          5h
 ## 第一步：写入测试数据
 
 ```bash
-# 获取应用用户密码
-APP_PASS=$(kubectl get secret pg-ha-app -n postgres -o jsonpath='{.data.password}' | base64 -d)
-echo "app password: $APP_PASS"
+# 获取超级用户密码
+PG_PASS=$(kubectl get secret pg-auth-secret -n postgres -o jsonpath='{.data.password}' | base64 -d)
+echo "postgres password: $PG_PASS"
 
 # 写入测试数据
-kubectl exec -n postgres -it pg-ha-1 -- psql -U app -d appdb -c "
+kubectl exec -n postgres -it pg-ha-1 -- psql -U postgres -d postgres -c "
 CREATE TABLE IF NOT EXISTS demo_data (
     id SERIAL PRIMARY KEY,
     value TEXT,
@@ -97,7 +97,7 @@ kubectl -n minio exec deploy/minio-pool-0-0 -c minio -- mc ls --recursive local/
 
 ```bash
 # 删除测试数据（模拟事故）
-kubectl exec -n postgres -it pg-ha-1 -- psql -U app -d appdb -c "
+kubectl exec -n postgres -it pg-ha-1 -- psql -U postgres -d postgres -c "
 DELETE FROM demo_data;
 SELECT count(*) AS 剩余行数 FROM demo_data;
 "
@@ -106,7 +106,7 @@ SELECT count(*) AS 剩余行数 FROM demo_data;
 确认是 0 行。再写入一些"新数据"（模拟删数据后又继续写入了）：
 
 ```bash
-kubectl exec -n postgres -it pg-ha-1 -- psql -U app -d appdb -c "
+kubectl exec -n postgres -it pg-ha-1 -- psql -U postgres -d postgres -c "
 INSERT INTO demo_data (value) VALUES ('错误写入的数据');
 SELECT * FROM demo_data;
 "
@@ -139,8 +139,11 @@ metadata:
   namespace: postgres
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
+    size: 10Gi
+    storageClass: local-path
+  walStorage:
     size: 5Gi
     storageClass: local-path
   bootstrap:
@@ -170,7 +173,7 @@ watch -n 10 kubectl get cluster -n postgres
 当 `STATUS` 变为 `Cluster in healthy state` 时，验证数据：
 
 ```bash
-kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U app -d appdb -c "
+kubectl exec -n postgres -it pg-ha-restored-1 -- psql -U postgres -d postgres -c "
 SELECT * FROM demo_data;
 "
 ```
@@ -204,8 +207,11 @@ metadata:
   namespace: postgres
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
+    size: 10Gi
+    storageClass: local-path
+  walStorage:
     size: 5Gi
     storageClass: local-path
   bootstrap:

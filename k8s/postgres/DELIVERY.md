@@ -217,9 +217,12 @@ metadata:
   namespace: postgres
 spec:
   instances: 3
-  imageName: ghcr.io/cloudnative-pg/postgresql:17-minimal-trixie
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
     size: 10Gi
+    storageClass: local-path
+  walStorage:
+    size: 5Gi
     storageClass: local-path
 
   # ── 指定恢复来源 ─────────────────────────
