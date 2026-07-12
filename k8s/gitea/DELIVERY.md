@@ -149,3 +149,6 @@ helm upgrade gitea gitea-charts/gitea -n gitea -f values.yaml --wait
 2. **NFS 性能** — git 操作以小文件 IO 为主，大量 clone/push 建议升级 Longhorn
 3. **内存** — SQLite 模式下 Gitea 使用内存约 200-400MB，512MB 限制足够
 4. **多副本** — SQLite 不支持多副本，如需 HA 必须切 PostgreSQL
+
+## 管理 Access Token
+新增一个token  9e870c1e368ec0c430b113095ff82dc147acf130
