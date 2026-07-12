@@ -19,5 +19,5 @@ k8s规则:
 - 不要搞复杂统一入口，每个方案独立完整，简单直接
 - 不同部署方式（manifests/helm/kustomize）通过文件夹区分
 - 对于k8s内部应用的连接地址采用内部域名连接方式，不要走外部域名,例如 grafana 配置的连接源是k8s的就走内部 dns ，不要走 ingress 域名。
-- 本地托管如下：
-helm 仓库： http://192.168.5.103:8081/repository/helm-hosted/  无密码
+- 本地托管如下：helm 仓库： http://192.168.5.103:8081/repository/helm-hosted/  无密码
+- k8s 资源限制，request 不要设置通过注释保留，只设置 limit 。

@@ -22,6 +22,7 @@ if ! helm list -n "$OPERATOR_NS" 2>/dev/null | grep -q minio-operator; then
   echo ">> 安装 MinIO Operator ..."
   helm upgrade --install minio-operator "$CHART_FILE" \
     --namespace "$OPERATOR_NS" --create-namespace \
+    -f "$SCRIPT_DIR/values-operator.yaml" \
     --timeout 5m --wait
 fi
 

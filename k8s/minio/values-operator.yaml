@@ -1,0 +1,12 @@
+# MinIO Operator 资源覆盖
+# 经验值：Operator 在 reconcile 多个 Tenant CRD 时需要稳定 CPU
+operator:
+  resources:
+    requests:
+      cpu: 500m
+      memory: 256Mi
+      ephemeral-storage: 500Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+      ephemeral-storage: 1Gi
