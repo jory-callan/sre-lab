@@ -22,7 +22,7 @@ echo ">> 安装/升级 MinIO Operator ..."
 helm upgrade --install minio-operator "$CHART_FILE" \
   --namespace "$OPERATOR_NS" --create-namespace \
   -f "$SCRIPT_DIR/values-operator.yaml" \
-  --timeout 5m --wait
+  --timeout 5m
 
 # 创建 tenant namespace + 应用核心资源
 kubectl create namespace "$TENANT_NS" --dry-run=client -o yaml | kubectl apply -f -
