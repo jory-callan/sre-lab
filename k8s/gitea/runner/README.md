@@ -54,7 +54,7 @@ bash runner-image/build-runner-image.sh
 
 ```bash
 # 获取 Gitea admin token
-curl -sk -X POST "http://192.168.5.107:30021/api/v1/users/admin/tokens" \
+curl -sk -X POST "https:/gitea.czw-sre.internal/api/v1/users/admin/tokens" \
   -u "admin:Admin@czw123" \
   -H "Content-Type: application/json" \
   -d '{"name":"runner-setup","scopes":["write:admin"]}'
@@ -62,7 +62,7 @@ curl -sk -X POST "http://192.168.5.107:30021/api/v1/users/admin/tokens" \
 # 用 admin token 获取 registration token (实例级，所有 runner 共用)
 curl -sk -X POST \
   -H "Authorization: token <gitea-admin-token>" \
-  "http://192.168.5.107:30021/api/v1/admin/actions/runners/registration-token"
+  "https:/gitea.czw-sre.internal/api/v1/admin/actions/runners/registration-token"
 ```
 
 ### 3. 配置并部署 Runner

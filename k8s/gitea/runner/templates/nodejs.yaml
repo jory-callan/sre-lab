@@ -21,7 +21,7 @@ env:
   IMAGE: 192.168.5.103:5001/admin/<your-project>
   NAMESPACE: <your-namespace>
   K8S_API: https://192.168.5.107:6443
-  GITEA_URL: http://192.168.5.107:30021
+  GITEA_URL: https:/gitea.czw-sre.internal
 
 jobs:
   build-and-deploy:

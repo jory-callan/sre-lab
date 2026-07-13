@@ -99,7 +99,7 @@ act_runner 的 `.runner` 注册文件持久化在 NFS PVC 上，pod 重启免重
 ### 7. 全内网执行
 
 workflow 中所有网络请求都走内网:
-- git clone: `http://192.168.5.107:30021` (Gitea NodePort)
+- git clone: `https:/gitea.czw-sre.internal` (Gitea NodePort)
 - docker push: `192.168.5.103:5001` (Nexus)
 - kubectl: `https://192.168.5.107:6443` (K3s API)
 - 通知: `http://webhook2im.webhook2im:3000` (集群内 Service)
