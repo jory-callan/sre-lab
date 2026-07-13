@@ -1,208 +1,123 @@
-# Gitea Actions Runner — 部署指南
+# Gitea Actions Runner - 部署指南
 
 ## 架构
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│  K3s 集群                                                 │
-│                                                           │
-│  ┌──────────────┐     ┌──────────────────────────────┐   │
-│  │  Gitea        │     │  act_runner (Deployment)      │   │
-│  │  gitea:3000   │◄────│  k8s-runner-1                 │   │
-│  │  (集群内 Service) │     │                              │   │
-│  └──────────────┘     │  labels: ubuntu-latest          │   │
-│                        │  docker.sock: /var/run/docker   │   │
-│                        └──────────┬───────────────────┘   │
-│                                   │                        │
-│                        ┌──────────▼───────────────────┐   │
-│                        │  Job 容器 (workflow 执行)      │   │
-│                        │  docker build/push            │   │
-│                        │  kubectl set image            │   │
-│                        └──────────────────────────────┘   │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  K3s 集群                                                     │
+│                                                               │
+│  ┌──────────────┐     ┌──────────────────────────────┐       │
+│  │  Gitea        │     │  act_runner (Deployment)      │       │
+│  │  gitea:3000   │◄────│  PVC 持久化 .runner            │       │
+│  │  (集群内 svc) │     │  docker.sock 挂载             │       │
+│  └──────────────┘     └──────────┬───────────────────┘       │
+│                                   │                            │
+│                        ┌──────────▼───────────────────┐       │
+│                        │  Job 容器 (runner-base 镜像)  │       │
+│                        │  预装: git/docker/kubectl/    │       │
+│                        │        helm/curl/jq/yq/...    │       │
+│                        │  docker build/push            │       │
+│                        │  kubectl apply                │       │
+│                        └──────────────────────────────┘       │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-- **act_runner** 作为 K8s Deployment 运行，通过集群内 Service 连接 Gitea
+- **act_runner** 作为 K8s Deployment 运行，PVC 持久化 .runner 文件，pod 重启免重新注册
+- **runner-base** 预装工具镜像，job 容器直接使用，无需每次安装工具
 - 挂载宿主机 `docker.sock`，workflow job 容器内可直接执行 `docker build/push`
-- 使用 `host` 网络模式，job 容器可直接访问集群内 Service（如 `kubernetes.default.svc`）
+- 使用 `host` 网络模式，job 容器可直接访问集群内 Service
 
-## 前置条件
+## 文件清单
 
-- Gitea 已部署（见 `../README.md`）
-- Gitea 容器注册表已启用（`values.yaml` 中 `packages.ENABLED: true`）
-- 宿主机有 Docker 运行时（K3s 节点上已有 docker）
+| 文件 | 说明 |
+|------|------|
+| `runner.yaml` | act_runner Deployment (含 Namespace/Secret/ConfigMap/PVC/Deployment) |
+| `runner-config.yaml` | runner 配置文件 (同 ConfigMap 内容) |
+| `ci-deployer.yaml` | 集群级 ci-deployer ServiceAccount + ClusterRole |
+| `install.sh` | 幂等部署脚本 |
+| `uninstall.sh` | 卸载脚本 |
+| `runner-image/Dockerfile` | runner-base 预装工具镜像 |
+| `runner-image/build-runner-image.sh` | 在 K3s 节点构建并推送 runner-base 镜像 |
+| `templates/` | 各语言 CI/CD workflow 模板 |
 
 ## 部署步骤
 
-### 1. 获取 Runner Registration Token
+### 1. 构建 runner-base 镜像（一次性）
 
 ```bash
-# 方式一：API（替换 TOKEN 和 owner/repo）
-curl -sk -X POST \
-  -H "Authorization: token <你的AccessToken>" \
-  "https://gitea.czw-sre.internal/api/v1/repos/<owner>/<repo>/actions/runners/registration-token"
-
-# 方式二：Gitea Web UI
-# 仓库 → Settings → Actions → Runners → Create Registration Token
+bash runner-image/build-runner-image.sh
 ```
 
-### 2. 配置并部署 Runner
+在 K3s 节点上构建并推送到 Nexus: `192.168.5.103:5001/admin/runner-base:latest`
+
+### 2. 获取 Runner Registration Token
 
 ```bash
-# 编辑 runner.yaml，将 token 替换为实际值
+# 获取 Gitea admin token
+curl -sk -X POST "http://192.168.5.107:30021/api/v1/users/admin/tokens" \
+  -u "admin:Admin@czw123" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"runner-setup","scopes":["write:admin"]}'
+
+# 用 admin token 获取 registration token (实例级，所有 runner 共用)
+curl -sk -X POST \
+  -H "Authorization: token <gitea-admin-token>" \
+  "http://192.168.5.107:30021/api/v1/admin/actions/runners/registration-token"
+```
+
+### 3. 配置并部署 Runner
+
+```bash
+# 编辑 runner.yaml，将 Secret 中的 token 替换为实际 registration token
 vim runner/runner.yaml
 
-# 部署
-kubectl apply -f runner/runner.yaml
+# 部署 (幂等)
+bash runner/install.sh
 ```
 
-### 3. 验证
+### 4. 验证
 
 ```bash
-kubectl get pods -n gitea-runner
-# NAME                            READY   STATUS    RESTARTS   AGE
-# gitea-runner-58565666f9-jwphf   1/1     Running   0          1m
-
-kubectl logs -n gitea-runner deploy/gitea-runner --tail=10
-# 应看到:
-#   Runner registered successfully.
-#   Starting runner daemon
-#   runner: k8s-runner-1 ... declare successfully
+kubectl -n gitea-runner get pods
+kubectl -n gitea-runner logs deploy/gitea-runner --tail=10
+# 应看到: Runner registered successfully / Starting runner daemon
 ```
 
-### 4. 在 Gitea 仓库设置 Secrets
+## ci-deployer ServiceAccount
 
-workflow 中需要以下 Secrets（在仓库 Settings → Actions → Secrets 中添加）：
+集群级 SA，所有项目的 CI/CD workflow 共用此 SA 部署到 K8s。
 
-| Secret | 用途 | 获取方式 |
-|--------|------|---------|
-| `KUBE_TOKEN` | K8s API 认证 | `kubectl get secret -n <ns> ci-deployer-token -o jsonpath='{.data.token}' \| base64 -d` |
-| `REGISTRYTOKEN` | Docker login 到 Gitea 容器注册表 | Gitea Access Token（用户 Settings → Applications → Generate Token） |
-
-#### 创建 ci-deployer ServiceAccount
+获取 token（存到 Gitea Secret `KUBE_TOKEN`）:
 
 ```bash
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: <你的项目命名空间>
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ci-deployer
-  namespace: <你的项目命名空间>
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: ci-deployer
-  namespace: <你的项目命名空间>
-rules:
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: ci-deployer
-  namespace: <你的项目命名空间>
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ci-deployer
-subjects:
-  - kind: ServiceAccount
-    name: ci-deployer
-    namespace: <你的项目命名空间>
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ci-deployer-token
-  namespace: <你的项目命名空间>
-  annotations:
-    kubernetes.io/service-account.name: ci-deployer
-type: kubernetes.io/service-account-token
-EOF
-
-# 获取 token
-kubectl get secret -n <你的项目命名空间> ci-deployer-token -o jsonpath='{.data.token}' | base64 -d
+kubectl -n kube-system get secret ci-deployer-token -o jsonpath='{.data.token}' | base64 -d
 ```
 
-## 工作流模板
-
-`templates/` 目录下提供了以下模板：
-
-| 模板 | 适用场景 |
-|------|---------|
-| `nodejs.yaml` | Node.js 项目（Dockerfile 构建） |
-| `golang.yaml` | Go 项目（多阶段构建） |
-| `java21.yaml` | Java 21 + Maven 项目 |
-
-使用方式：复制到项目 `.gitea/workflows/` 目录，按需修改。
+权限: namespaces/pods/services/configmaps/secrets/deployments/ingresses 的 CRUD。
 
 ## 常见问题
 
+### Q: Runner 重启后需要重新注册吗？
+
+不需要。`.runner` 文件持久化在 PVC (NFS) 上，pod 重启直接复用。仅当 PVC 丢失或在 Gitea UI 里 regenerate token 时才需要重新注册。
+
 ### Q: Runner 注册失败，报证书错误
 
-```
-Cannot ping the Gitea instance server
-error: tls: failed to verify certificate: x509: certificate is valid for ingress.local, not gitea.czw-sre.internal
-```
+`GITEA_INSTANCE_URL` 必须用集群内 Service 地址 `http://gitea-http.gitea:3000`，不能用 HTTPS 域名（ingress-nginx 默认证书不匹配）。
 
-**原因**：用 HTTPS 域名连接 Gitea，但 ingress-nginx 默认证书不匹配。
+### Q: job 容器找不到 docker/kubectl 等工具
 
-**解决**：`GITEA_INSTANCE_URL` 改为集群内 Service 地址：
+确认 runner labels 指向 runner-base 镜像:
 ```
-http://gitea-http.gitea:3000
+ubuntu-latest:docker://192.168.5.103:5001/admin/runner-base:latest
 ```
 
-### Q: Workflow 中 docker build 失败
+### Q: Helm upgrade 后 Gitea Pod 起不来 (SQLite 锁)
 
-```
-docker: command not found
-```
-
-**原因**：job 容器内没有 docker CLI。
-
-**解决**：在 workflow 中安装 docker CLI，并确保 runner 配置了 `options: -v /var/run/docker.sock:/var/run/docker.sock`。
-
-### Q: Gitea 容器注册表返回 401
-
-**原因**：Gitea 的 `packages.ENABLED` 未开启。
-
-**解决**：在 `values.yaml` 中添加：
-```yaml
-gitea:
-  config:
-    packages:
-      ENABLED: true
-```
-然后 `helm upgrade`。注意 SQLite 锁问题（见下方）。
-
-### Q: Helm upgrade 后新 Pod 起不来
-
-```
-Failed to create queue "notification-service":
-unable to lock level db at /data/queues/common: resource temporarily unavailable
-```
-
-**原因**：旧 Pod 持有 SQLite 锁，新 Pod 无法获取。
-
-**解决**：force delete 旧 Pod：
 ```bash
 kubectl delete pod -n gitea <旧pod名> --force --grace-period=0
 ```
 
-### Q: Gitea Secrets API 拒绝 secret 名
+### Q: Secret 命名限制
 
-```
-invalid variable or secret name
-```
-
-**原因**：Gitea 对 secret 名字有限制（不能含下划线等字符）。
-
-**解决**：使用全大写字母或连字符，如 `REGISTRYTOKEN`、`KUBE_TOKEN`（KUBE_TOKEN 实测可用）。
+Gitea 1.26.4 的 secret 名不能包含下划线，用全大写无下划线命名（如 `REGISTRYTOKEN`、`KUBE_TOKEN` 实测可用）。

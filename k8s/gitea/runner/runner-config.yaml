@@ -2,13 +2,9 @@ log:
   level: info
 
 runner:
-  file: .runner
-  capacity: 1
+  file: /runner-data/.runner
+  capacity: 2
 
 container:
   # host 网络模式：job 容器直接使用宿主机网络，可访问集群内 Service
   network_mode: host
-  # 挂载 docker.sock 使 workflow 内可用 docker build/push
-  options: -v /var/run/docker.sock:/var/run/docker.sock
-  valid_volumes:
-    - /var/run/docker.sock

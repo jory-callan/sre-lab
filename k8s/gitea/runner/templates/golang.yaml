@@ -1,56 +1,65 @@
 # Go 项目 CI/CD 模板
-# 使用方式：复制到项目 .gitea/workflows/build.yaml，按需修改
+# 使用方式：复制到项目 .gitea/workflows/build.yaml，修改 env 中的 IMAGE 和 NAMESPACE
 #
 # 前置条件：
 # - Gitea Secrets 已设置 REGISTRYTOKEN、KUBE_TOKEN
-# - K8s 命名空间已创建 ci-deployer ServiceAccount
-# - 项目根目录有 Dockerfile（多阶段构建推荐）
+# - ci-deployer SA 已部署 (sre-lab/k8s/gitea/runner/install.sh)
+# - 项目 deploy/ 目录有扁平 yaml (namespace/secret/deployment/service/ingress)
+# - deployment.yaml 中 image 用 ${IMAGE}，checksum/config 用 ${CONFIG_HASH}
+# - 项目根目录有 Dockerfile (多阶段构建，不 COPY 配置文件)
 
 name: Build and Deploy
 
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  REGISTRY: 192.168.5.103:5001
+  IMAGE: 192.168.5.103:5001/admin/<your-project>
+  NAMESPACE: <your-namespace>
+  K8S_API: https://192.168.5.107:6443
+  GITEA_URL: http://192.168.5.107:30021
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Tools
+      - name: Checkout
         run: |
-          apk add --no-cache docker-cli curl
-          curl -sLO "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl"
-          chmod +x kubectl && mv kubectl /usr/local/bin/
+          git clone --depth 1 --branch "${{ gitea.ref_name }}" \
+            "${{ env.GITEA_URL }}/admin/<your-project>.git" /tmp/repo
+          cp -a /tmp/repo/. .
 
-      - name: Login to Gitea Container Registry
-        run: echo "${{ secrets.REGISTRYTOKEN }}" | docker login gitea.czw-sre.internal -u admin --password-stdin
-
-      - name: Build and Push Docker image
+      - name: Build and Push Docker Image
         run: |
-          TAG="${{ github.ref_name }}"
-          # ── 修改为你的镜像名 ──
-          IMAGE="gitea.czw-sre.internal/admin/<your-project>:${TAG}"
-          docker build -t "${IMAGE}" .
-          docker push "${IMAGE}"
-          docker tag "${IMAGE}" "gitea.czw-sre.internal/admin/<your-project>:latest"
-          docker push "gitea.czw-sre.internal/admin/<your-project>:latest"
+          TAG="${{ gitea.ref_name }}"
+          echo "${{ secrets.REGISTRYTOKEN }}" | docker login $REGISTRY -u admin --password-stdin
+          docker build -t "${IMAGE}:${TAG}" .
+          docker push "${IMAGE}:${TAG}"
+
+      - name: Render Manifests
+        run: |
+          TAG="${{ gitea.ref_name }}"
+          IMAGE="${IMAGE}:${TAG}"
+          CONFIG_HASH=$(sha256sum deploy/secret.yaml | awk '{print $1}')
+          export IMAGE CONFIG_HASH
+          for f in deploy/*.yaml; do
+            envsubst < "$f" > "/tmp/$(basename $f)"
+          done
 
       - name: Deploy to K8s
         env:
           KUBE_TOKEN: ${{ secrets.KUBE_TOKEN }}
         run: |
-          TAG="${{ github.ref_name }}"
-          IMAGE="gitea.czw-sre.internal/admin/<your-project>:${TAG}"
-
           cat > /tmp/kubeconfig << EOF
           apiVersion: v1
           kind: Config
           clusters:
           - cluster:
-              server: https://kubernetes.default.svc:443
+              server: ${K8S_API}
               insecure-skip-tls-verify: true
             name: k3s
           contexts:
@@ -65,46 +74,11 @@ jobs:
               token: ${KUBE_TOKEN}
           EOF
 
-          # ── 修改为你的命名空间和 Deployment 名 ──
-          kubectl --kubeconfig=/tmp/kubeconfig create namespace <your-namespace> --dry-run=client -o yaml | kubectl --kubeconfig=/tmp/kubeconfig apply -f -
+          for f in /tmp/*.yaml; do
+            kubectl --kubeconfig=/tmp/kubeconfig apply -f "$f"
+          done
 
-          kubectl --kubeconfig=/tmp/kubeconfig set image -n <your-namespace> deploy/<your-deployment> \
-            "<your-container>=${IMAGE}" --record 2>/dev/null || \
-          kubectl --kubeconfig=/tmp/kubeconfig apply -f - << YAML
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: <your-deployment>
-            namespace: <your-namespace>
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                app: <your-app>
-            template:
-              metadata:
-                labels:
-                  app: <your-app>
-              spec:
-                containers:
-                  - name: <your-container>
-                    image: ${IMAGE}
-                    ports:
-                      - containerPort: 8080
-                    resources:
-                      limits:
-                        cpu: 200m
-                        memory: 256Mi
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: <your-service>
-            namespace: <your-namespace>
-          spec:
-            ports:
-              - port: 8080
-                targetPort: 8080
-            selector:
-              app: <your-app>
-          YAML
+      - name: Health Check
+        run: |
+          kubectl --kubeconfig=/tmp/kubeconfig -n $NAMESPACE \
+            rollout status deploy/<your-deployment> --timeout=120s

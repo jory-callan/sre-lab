@@ -31,3 +31,4 @@ Nexus 管理界面: http://192.168.5.103:8081  admin admin123
 - k8s 资源限制，request 不要设置通过注释保留，只设置 limit 。
 - 如果需要修改资源，不要尝试直接 patch/apply ，而是执行 install.sh 必须是幂等的。
 - 需要debug等特殊情况允许直接 patch/apply 等直接操作。最终验证ok依旧需要修复相关文件和安装脚本
+- 资源应用命名统一采用类型-名称。例如 mysql-xxx redis-xxx pg-xxx app-xxx
