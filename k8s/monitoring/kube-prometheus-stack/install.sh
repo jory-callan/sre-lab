@@ -11,10 +11,11 @@ kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -
 
 # ── 1. kube-prometheus-stack ──────────────────────────
 echo ">> 安装 kube-prometheus-stack ..."
+# operator 管理的组件不加 --wait，避免异步调谐导致超时
 helm upgrade --install prometheus "$SCRIPT_DIR/kube-prometheus-stack.tgz" \
   --namespace "$NAMESPACE" \
   --values "$SCRIPT_DIR/values-kps.yaml" \
-  --timeout 10m --wait
+  --timeout 10m
 
 # ── 2. Loki ───────────────────────────────────────────
 echo ">> 安装 Loki ..."

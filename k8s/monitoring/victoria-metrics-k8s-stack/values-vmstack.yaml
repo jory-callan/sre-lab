@@ -100,7 +100,15 @@ alertmanager:
       group_wait: 10s
       group_interval: 30s
       repeat_interval: 6h
+      routes:
+        - receiver: 'null'
+          matchers:
+            - alertname = "Watchdog"
+        - receiver: 'null'
+          matchers:
+            - alertname = "InfoInhibitor"
     receivers:
+      - name: 'null'
       - name: feishu
         webhook_configs:
           - url: "http://webhook2im.webhook2im:3000/alertmanager"

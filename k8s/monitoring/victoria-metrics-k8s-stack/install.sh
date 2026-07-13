@@ -11,10 +11,11 @@ CHART_FILE="$SCRIPT_DIR/victoria-metrics-k8s-stack-0.85.9.tgz"
 kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
 
 echo ">>> 安装 victoria-metrics-k8s-stack（指标 + 日志）..."
+# operator 管理的组件不加 --wait，避免异步调谐导致超时
 helm upgrade --install vm "$CHART_FILE" \
   --namespace "$NAMESPACE" \
   --values "$SCRIPT_DIR/values-vmstack.yaml" \
-  --timeout 10m --wait
+  --timeout 10m
 
 echo ""
 echo "============================================"
