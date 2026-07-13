@@ -103,7 +103,7 @@ alertmanager:
     receivers:
       - name: feishu
         webhook_configs:
-          - url: "https://open.feishu.cn/open-apis/bot/v2/hook/fc5d3692-ef65-4e8c-8151-9509aeedccf5"
+          - url: "http://webhook2im.webhook2im:3000/alertmanager"
             send_resolved: true
 
 # ── Node Exporter + kube-state-metrics ─────────────────

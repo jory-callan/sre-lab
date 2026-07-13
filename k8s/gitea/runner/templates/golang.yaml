@@ -6,6 +6,7 @@
 # - ci-deployer SA 已部署 (sre-lab/k8s/gitea/runner/install.sh)
 # - 项目 deploy/ 目录有扁平 yaml (namespace/secret/deployment/service/ingress)
 # - deployment.yaml 中 image 用 ${IMAGE}，checksum/config 用 ${CONFIG_HASH}
+# - secret.yaml 中敏感值用 ${VAR} 占位符，通过 Gitea Secrets 注入 (envsubst 替换)
 # - 项目根目录有 Dockerfile (多阶段构建，不 COPY 配置文件)
 
 name: Build and Deploy
@@ -21,7 +22,7 @@ env:
   IMAGE: 192.168.5.103:5001/admin/<your-project>
   NAMESPACE: <your-namespace>
   K8S_API: https://192.168.5.107:6443
-  GITEA_URL: https:/gitea.czw-sre.internal
+  GITEA_URL: http://192.168.5.107:30021
 
 jobs:
   build-and-deploy:
@@ -44,9 +45,15 @@ jobs:
         run: |
           TAG="${{ gitea.ref_name }}"
           IMAGE="${IMAGE}:${TAG}"
-          CONFIG_HASH=$(sha256sum deploy/secret.yaml | awk '{print $1}')
-          export IMAGE CONFIG_HASH
+          export IMAGE
+          # 1. 先渲染 secret (若含 ${DB_DSN} 等敏感占位符，env 注入后替换)
+          envsubst < deploy/secret.yaml > /tmp/secret.yaml
+          # 2. 从渲染后的 secret 计算 hash (配置/密码变更均触发滚动更新)
+          CONFIG_HASH=$(sha256sum /tmp/secret.yaml | awk '{print $1}')
+          export CONFIG_HASH
+          # 3. 渲染其余 yaml (deployment.yaml 需要 ${IMAGE} + ${CONFIG_HASH})
           for f in deploy/*.yaml; do
+            [ "$(basename $f)" = "secret.yaml" ] && continue
             envsubst < "$f" > "/tmp/$(basename $f)"
           done
 
@@ -74,9 +81,11 @@ jobs:
               token: ${KUBE_TOKEN}
           EOF
 
-          for f in /tmp/*.yaml; do
-            kubectl --kubeconfig=/tmp/kubeconfig apply -f "$f"
-          done
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f /tmp/namespace.yaml
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f /tmp/secret.yaml
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f /tmp/deployment.yaml
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f /tmp/service.yaml
+          kubectl --kubeconfig=/tmp/kubeconfig apply -f /tmp/ingress.yaml
 
       - name: Health Check
         run: |

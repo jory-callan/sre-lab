@@ -11,30 +11,24 @@
 Gitea Actions (act_runner)
     │  job 容器: admin/runner-base (预装工具)
     │
-    ├─ 1. Checkout          git clone (Gitea NodePort)
+    ├─ 1. Checkout          git clone (Gitea NodePort HTTP)
     ├─ 2. Build & Push      docker build -> Nexus 5001
-    ├─ 3. Render            envsubst 替换 ${IMAGE} ${CONFIG_HASH}
-    ├─ 4. Deploy            kubectl apply -f deploy/*.yaml
+    ├─ 3. Render            envsubst 渲染 secret -> 算 hash -> 渲染 deployment
+    ├─ 4. Deploy            kubectl apply (namespace -> secret -> deployment -> service -> ingress)
     ├─ 5. Health Check      kubectl rollout status
     └─ 6. Notify            curl webhook2im -> IM
-
-deploy/ 目录 (扁平 yaml):
-├── namespace.yaml
-├── secret.yaml             # config.yaml 作为 Secret 挂载
-├── deployment.yaml         # ${IMAGE} + ${CONFIG_HASH} 占位符
-├── service.yaml
-└── ingress.yaml
 ```
 
 ## 组件清单
 
 | 组件 | 部署方式 | 地址 | 职责 |
 |------|---------|------|------|
-| Gitea | Helm (k8s/gitea/) | https://gitea.czw-sre.internal | 代码仓库 + Actions 调度 |
+| Gitea | Helm (k8s/gitea/) | NodePort 30021 | 代码仓库 + Actions 调度 |
 | act_runner | K8s Deployment (k8s/gitea/runner/) | gitea-http.gitea:3000 | 接收任务并执行 workflow |
 | runner-base | Docker 镜像 (Nexus 5001) | 192.168.5.103:5001/admin/runner-base | 预装工具的 job 容器 |
 | Nexus | 外部 VM | 192.168.5.103:5001 | Docker 镜像存储 (docker-hosted, HTTP) |
 | ci-deployer | K8s ClusterRole (k8s/gitea/runner/) | kube-system | CI/CD 部署专用 SA |
+| webhook2im | K8s Deployment | http://webhook2im.webhook2im:3000 | Alertmanager -> 飞书转发 |
 | K3s | 4 节点 | 192.168.5.107-111 | 运行工作负载 |
 
 ## 核心设计
@@ -43,9 +37,11 @@ deploy/ 目录 (扁平 yaml):
 
 不用 `kubectl set image`，改为 `kubectl apply -f deploy/*.yaml`。git 里的 yaml 就是部署的真实状态，回滚就是 git revert。
 
-### 2. envsubst 模板替换
+apply 顺序固定: namespace -> secret -> deployment -> service -> ingress。
 
-deployment.yaml 中用 `${IMAGE}` 和 `${CONFIG_HASH}` 占位符，CI 时 envsubst 替换为实际值:
+### 2. envsubst 模板替换 + hash 正确顺序
+
+deployment.yaml 中用 `${IMAGE}` 和 `${CONFIG_HASH}` 占位符。关键: **先渲染 secret，再从渲染结果算 hash，最后渲染 deployment**。
 
 ```yaml
 # deployment.yaml (模板)
@@ -57,26 +53,67 @@ annotations:
 ```bash
 # workflow 中
 export IMAGE="192.168.5.103:5001/admin/webhook2im:${TAG}"
-CONFIG_HASH=$(sha256sum deploy/secret.yaml | awk '{print $1}')
+# 1. 先渲染 secret (敏感占位符在此步替换)
+envsubst < deploy/secret.yaml > /tmp/secret.yaml
+# 2. 从渲染后的 secret 算 hash (配置/密码变更均触发滚动更新)
+CONFIG_HASH=$(sha256sum /tmp/secret.yaml | awk '{print $1}')
 export CONFIG_HASH
-envsubst < deploy/deployment.yaml > /tmp/deployment.yaml
-kubectl apply -f /tmp/deployment.yaml
+# 3. 渲染其余 yaml
+for f in deploy/*.yaml; do
+  [ "$(basename $f)" = "secret.yaml" ] && continue
+  envsubst < "$f" > "/tmp/$(basename $f)"
+done
 ```
 
-### 3. 配置挂载不进镜像
+### 3. 敏感信息处理
+
+两层方案，按场景选用:
+
+**方案 A: 环境变量注入 (优先)**
+应用支持环境变量时，deployment.yaml 用 secretKeyRef:
+```yaml
+env:
+  - name: DB_DSN
+    valueFrom:
+      secretKeyRef:
+        name: app-secret
+        key: db-conn
+```
+app-secret 由运维手动创建，CI 流水线只 apply 不含密码的 deployment 模板。
+
+**方案 B: envsubst 占位符替换**
+应用只支持配置文件时，secret.yaml 中用 `${VAR}` 占位符:
+```yaml
+# secret.yaml (模板，提交到 git)
+stringData:
+  config.yaml: |
+    db_conn: ${DB_DSN}
+```
+Gitea Secret 中设置 DB_DSN，workflow Render 步骤通过 env 注入后 envsubst 替换。密码流向: Gitea Secret -> env var -> envsubst 渲染 -> K8s Secret -> Pod 挂载。git 仓库和 Docker 镜像里永远没有明文密码。
+
+### 4. 配置挂载不进镜像
 
 - Dockerfile 不 COPY config.yaml
 - K8s 用 Secret 挂载 config.yaml 到容器内
 - 配置变更时 `checksum/config` annotation 变化触发 Pod 滚动更新
 
-### 4. 敏感信息通过 Gitea Secrets
+### 5. Ingress HTTP/HTTPS 双支持
+
+自签证书无安全增益，ingress 加 `ssl-redirect: "false"` 注解，HTTP 不强制跳转 HTTPS:
+```yaml
+annotations:
+  nginx.ingress.kubernetes.io/ssl-redirect: "false"
+```
+
+### 6. Gitea Secrets
 
 | Secret | 用途 |
 |--------|------|
 | `KUBE_TOKEN` | ci-deployer SA token，kubectl 认证 |
 | `REGISTRYTOKEN` | Nexus docker registry 密码 |
+| `DB_DSN` 等 | 按需，envsubst 注入到 secret.yaml 占位符 |
 
-### 5. runner-base 预装工具镜像
+### 7. runner-base 预装工具镜像
 
 | 工具 | 用途 |
 |------|------|
@@ -92,29 +129,46 @@ kubectl apply -f /tmp/deployment.yaml
 
 构建: `bash k8s/gitea/runner/runner-image/build-runner-image.sh`
 
-### 6. PVC 持久化 .runner
+### 8. PVC 持久化 .runner
 
 act_runner 的 `.runner` 注册文件持久化在 NFS PVC 上，pod 重启免重新注册。
 
-### 7. 全内网执行
+### 9. 全内网执行
 
 workflow 中所有网络请求都走内网:
-- git clone: `https:/gitea.czw-sre.internal` (Gitea NodePort)
+- git clone: `http://192.168.5.107:30021` (Gitea NodePort HTTP)
 - docker push: `192.168.5.103:5001` (Nexus)
 - kubectl: `https://192.168.5.107:6443` (K3s API)
 - 通知: `http://webhook2im.webhook2im:3000` (集群内 Service)
 
+GITEA_URL 使用 NodePort IP 而非 ingress 域名，原因:
+- runner job 容器是 host 网络模式，走 IP 最直接不依赖 DNS
+- ingress 是自签证书，git clone 需额外跳过证书校验
+- 路由器 DNS 在 k3s 节点上不一定可解析
+
+## Alertmanager -> 飞书通道
+
+Alertmanager 的 webhook 与飞书机器人格式不兼容，通过 webhook2im 转发:
+
+```
+Alertmanager -> http://webhook2im.webhook2im:3000/alertmanager -> 飞书
+```
+
+两套监控栈均已配置:
+- kube-prometheus-stack: `k8s/monitoring/kube-prometheus-stack/values-kps.yaml`
+- victoria-metrics-k8s-stack: `k8s/monitoring/victoria-metrics-k8s-stack/values-vmstack.yaml`
+
 ## 新项目接入 CI/CD
 
-### 1. 在项目仓库创建 deploy/ 目录
+### 1. 创建 deploy/ 目录
 
 ```
 deploy/
 ├── namespace.yaml          # Namespace
-├── secret.yaml             # 应用配置 (作为 Secret 挂载)
+├── secret.yaml             # 应用配置 (作为 Secret 挂载，敏感值用 ${VAR} 占位符)
 ├── deployment.yaml         # 镜像用 ${IMAGE}，annotation 用 ${CONFIG_HASH}
 ├── service.yaml
-└── ingress.yaml            # 可选
+└── ingress.yaml            # 加 ssl-redirect: "false" 注解
 ```
 
 ### 2. 创建 .gitea/workflows/build.yaml
@@ -126,6 +180,7 @@ deploy/
 在仓库 Settings -> Actions -> Secrets 中添加:
 - `KUBE_TOKEN`: `kubectl -n kube-system get secret ci-deployer-token -o jsonpath='{.data.token}' | base64 -d`
 - `REGISTRYTOKEN`: Nexus 密码 (admin123)
+- 按需添加敏感变量 (如 `DB_DSN`)，对应 secret.yaml 中的 `${DB_DSN}` 占位符
 
 ### 4. Dockerfile
 
