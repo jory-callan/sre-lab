@@ -1,6 +1,10 @@
-# ── victoria-metrics-k8s-stack values ──────────────────
+# ── victoria-metrics-k8s-stack values ──────────────────────
 # 统一监控栈：指标 + 日志
 # 使用 chart 内置的 VLSingle/VLAgent（替代独立安装）
+
+# fullnameOverride 统一命名前缀，所有组件名变为 <component>-monitoring
+# 如: vmsingle-monitoring / vmagent-monitoring / vmalert-monitoring
+fullnameOverride: "monitoring"
 
 # ── VictoriaMetrics Operator ────────────────────────────
 victoria-metrics-operator:

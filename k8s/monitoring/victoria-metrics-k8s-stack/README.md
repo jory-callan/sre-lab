@@ -68,11 +68,26 @@ bash install.sh
 bash uninstall.sh
 ```
 
+## Service 命名规则
+
+通过 `fullnameOverride: "monitoring"` 统一命名，所有组件 Service 名为 `<component>-monitoring`：
+
+| 组件 | Service 名 | 端口 |
+|------|-----------|------|
+| VMSingle | vmsingle-monitoring | 8428 |
+| VLSingle | vlsingle-monitoring | 9428 |
+| VMAgent | vmagent-monitoring | 8429 |
+| VLAgent | vlagent-monitoring | 9429 |
+| VMAlert | vmalert-monitoring | 8080 |
+| VMAlertmanager | vmalertmanager-monitoring | 9093 |
+
+集群内其他服务连接 VM 组件时使用 `<service>.monitoring:<port>` 格式。
+
 ## 注意事项
 
 - k3s 无独立 kube-controller-manager/kube-scheduler endpoints，相关面板无数据
 - VLAgent 自动采集所有命名空间容器日志
-- 告警通过 AlertManager → 飞书通知
+- 告警通过 AlertManager -> 飞书通知
 - Chart 自动加载 kube-prometheus 系列 Dashboard（含 VM/Node/Pod/Cluster 等）
 
 ## 原始资源
