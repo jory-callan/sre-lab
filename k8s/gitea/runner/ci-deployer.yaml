@@ -14,7 +14,7 @@ metadata:
   name: ci-deployer
 rules:
   - apiGroups: [""]
-    resources: ["namespaces", "pods", "pods/log", "services", "configmaps", "secrets"]
+    resources: ["namespaces", "pods", "pods/log", "services", "configmaps", "secrets", "persistentvolumeclaims"]
     verbs: ["get", "list", "create", "patch", "update", "delete"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
