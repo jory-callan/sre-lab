@@ -158,6 +158,27 @@ Alertmanager -> http://webhook2im.webhook2im:3000/alertmanager -> 飞书
 - kube-prometheus-stack: `k8s/monitoring/kube-prometheus-stack/values-kps.yaml`
 - victoria-metrics-k8s-stack: `k8s/monitoring/victoria-metrics-k8s-stack/values-vmstack.yaml`
 
+### 噪音抑制
+
+内置告警 Watchdog 和 InfoInhibitor 路由到 null receiver，不发送通知:
+- Watchdog: 心跳告警，仅用于检测告警链路是否存活
+- InfoInhibitor: 用于抑制 info 级别告警，本身无意义
+
+### 告警消息格式
+
+webhook2im 使用 Handlebars 模板渲染告警，每条告警包含:
+- severity 图标 (🔴critical/🟡warning/🔵info)
+- 告警名称、命名空间、实例
+- 描述 (含当前值)、摘要
+- 开始/结束时间 (可读格式)
+- runbook 链接 (如有)
+
+模板位置: `webhook2im/deploy/secret.yaml` 中的 transform 字段。
+
+### 飞书机器人关键词
+
+飞书机器人安全设置需配置关键词 "告警"，否则消息会被拒绝 (返回 Key Words Not Found)。
+
 ## 新项目接入 CI/CD
 
 ### 1. 创建 deploy/ 目录
