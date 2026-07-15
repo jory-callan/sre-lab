@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "st.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "st.labels" . | nindent 4 }}
+data:
+  hazelcast.yaml: |
+    hazelcast:
+      cluster-name: seatunnel-engine
+      network:
+        rest-api:
+          enabled: true
+          endpoint-groups:
+            CLUSTER_READ:
+              enabled: true
+            CLUSTER_WRITE:
+              enabled: true
+            DATA:
+              enabled: true
+        join:
+          tcp-ip:
+            enabled: true
+            member-list:
+              - {{ include "st.fullname" . }}-0.{{ include "st.fullname" . }}-hs.{{ .Release.Namespace }}.svc.cluster.local
+              - {{ include "st.fullname" . }}-1.{{ include "st.fullname" . }}-hs.{{ .Release.Namespace }}.svc.cluster.local
+              - {{ include "st.fullname" . }}-2.{{ include "st.fullname" . }}-hs.{{ .Release.Namespace }}.svc.cluster.local
+          multicast:
+            enabled: false
+        port:
+          auto-increment: false
+          port: {{ .Values.service.hazelcastPort }}
+      properties:
+        hazelcast.invocation.max.retry.count: 100
+        hazelcast.tcp.join.port.try.count: 30
+        hazelcast.logging.type: log4j2
+        hazelcast.operation.call.timeout.millis: 600000
+        hazelcast.serialization.ioutils.disable.threadlocal: true
+
+  seatunnel.yaml: |
+    seatunnel:
+      engine:
+        backup-count: 1
+        queue-type: blockingqueue
+        print-execution-interval: 10
+        print-job-metrics-info-interval: 60
+        slot-service:
+          dynamic-slot: true
+        checkpoint:
+          interval: 6000
+          timeout: 300000
+          storage:
+            type: localfile
+            max-retained: 3
+            plugin-config:
+              namespace: /tmp/seatunnel/checkpoint
+        jar-storage:
+          enable: true
+          storage:
+            type: hdfs
+            plugin-config:
+              namespace: /tmp/seatunnel/jar
+
+  log4j2.properties: |
+    rootLogger.level = info
+    rootLogger.appenderRef.stdout.ref = consoleAppender
+    appender.consoleAppender.name = consoleAppender
+    appender.consoleAppender.type = CONSOLE
+    appender.consoleAppender.layout.type = PatternLayout
+    appender.consoleAppender.layout.pattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+    logger.seatunnel.name = org.apache.seatunnel
+    logger.seatunnel.level = info
+    logger.hazelcast.name = com.hazelcast
+    logger.hazelcast.level = info

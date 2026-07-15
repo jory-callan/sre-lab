@@ -1,0 +1,30 @@
+image:
+  registry: "192.168.5.103:5000"
+  repository: seatunnel-engine
+  tag: "2.3.13"
+  pullPolicy: IfNotPresent
+  pullSecret: ""
+
+replicaCount: 3
+podManagementPolicy: Parallel
+
+resources:
+  limits:
+    memory: "8Gi"
+
+persistence:
+  storageClass: nfs-client
+  size: 50Gi
+
+service:
+  hazelcastPort: 5801
+  engineApiPort: 5802
+
+env:
+  TZ: Asia/Shanghai
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  labels:
+    release: kube-prometheus-stack

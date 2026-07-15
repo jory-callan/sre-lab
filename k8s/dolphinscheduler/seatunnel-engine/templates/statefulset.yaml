@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "st.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ include "st.fullname" . }}
+    {{- include "st.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "st.fullname" . }}-hs
+  replicas: {{ .Values.replicaCount }}
+  podManagementPolicy: {{ .Values.podManagementPolicy }}
+  selector:
+    matchLabels:
+      app: {{ include "st.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "st.fullname" . }}
+    spec:
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: seatunnel-engine
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.hazelcastPort }}
+              name: hazelcast
+            - containerPort: {{ .Values.service.engineApiPort }}
+              name: engine-api
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: TZ
+              value: {{ .Values.env.TZ }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/seatunnel/config/hazelcast.yaml
+              subPath: hazelcast.yaml
+            - name: config
+              mountPath: /opt/seatunnel/config/seatunnel.yaml
+              subPath: seatunnel.yaml
+            - name: config
+              mountPath: /opt/seatunnel/config/log4j2.properties
+              subPath: log4j2.properties
+            - name: data
+              mountPath: /opt/seatunnel/storage
+            - name: data
+              mountPath: /tmp/seatunnel
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.service.hazelcastPort }}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.service.hazelcastPort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  volumes:
+    - name: config
+      configMap:
+        name: {{ include "st.fullname" . }}-config

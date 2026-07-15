@@ -1,0 +1,20 @@
+1. Get the SeaTunnel Engine client address:
+
+   kubectl get svc -n {{ .Release.Namespace }} {{ include "st.fullname" . }}
+
+   Internal: {{ include "st.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
+
+2. Check pod status:
+
+   kubectl get pods -n {{ .Release.Namespace }} -l app={{ include "st.fullname" . }}
+
+3. View logs:
+
+   kubectl logs -n {{ .Release.Namespace }} {{ include "st.fullname" . }}-0
+
+4. Connect to DolphinScheduler:
+
+   In DS SeaTunnel task node, set:
+   - Deploy mode: cluster
+   - Cluster address: {{ include "st.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
+   - Client path: /opt/seatunnel

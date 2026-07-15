@@ -1,0 +1,12 @@
+apiVersion: v2
+name: seatunnel-engine
+description: Apache SeaTunnel Engine - a high-performance distributed data integration engine
+home: https://seatunnel.apache.org
+icon: https://seatunnel.apache.org/img/seatunnel-logo.png
+keywords:
+  - seatunnel
+  - data-integration
+  - etl
+type: application
+version: 2.3.13
+appVersion: 2.3.13
