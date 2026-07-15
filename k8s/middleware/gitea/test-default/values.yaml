@@ -1,0 +1,108 @@
+# test-default values — Gitea 测试实例
+# 覆盖 chart 默认值
+---
+image:
+  registry: ""
+  repository: gitea/gitea
+  tag: 1.26.4
+  pullPolicy: IfNotPresent
+
+# Service — HTTP + SSH NodePort 暴露
+service:
+  http:
+    type: NodePort
+    port: 3000
+    nodePort: 30021
+  ssh:
+    type: NodePort
+    port: 22
+    nodePort: 30022
+
+# 持久化（NFS RWX）
+persistence:
+  enabled: true
+  storageClass: nfs-client
+  size: 10Gi
+  accessModes:
+    - ReadWriteMany
+
+# Ingress（HTTP only，自签证书无安全增益，见 cicd.md）
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: gitea.czw-sre.internal
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  # ──────────────────────────────────────────
+  # 生产推荐值:
+  #   requests:
+  #     cpu: 500m
+  #     memory: 512Mi
+  #   limits:
+  #     cpu: 1000m
+  #     memory: 1Gi
+  # ──────────────────────────────────────────
+  # 当前环境最低配置（仅 limits）:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+# 管理员预配置
+gitea:
+  admin:
+    username: admin
+    password: Admin@czw123
+    email: admin@gitea.local
+
+  config:
+    server:
+      DOMAIN: gitea.czw-sre.internal
+      ROOT_URL: https://gitea.czw-sre.internal
+      HTTP_PORT: 3000
+      PROTOCOL: http
+      OFFLINE_MODE: false
+      DISABLE_SSH: false
+      START_SSH_SERVER: true
+      SSH_DOMAIN: gitea.czw-sre.internal
+      LFS_START_SERVER: true
+    database:
+      DB_TYPE: sqlite3
+      PATH: /data/gitea.db
+    session:
+      PROVIDER: file
+    security:
+      INSTALL_LOCK: true
+      PASSWORD_COMPLEXITY: off
+    service:
+      DISABLE_REGISTRATION: false
+      REQUIRE_SIGNIN_VIEW: false
+    metrics:
+      ENABLED: true
+    packages:
+      ENABLED: true
+
+# 子图表禁用
+postgresql:
+  enabled: false
+postgresql-ha:
+  enabled: false
+valkey-cluster:
+  enabled: false
+valkey:
+  enabled: false
+
+# 单副本
+replicaCount: 1
+
+# 启动探针（Gitea 首次启动较慢）
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  failureThreshold: 30
