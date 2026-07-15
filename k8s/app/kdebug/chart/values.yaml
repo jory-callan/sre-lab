@@ -25,7 +25,8 @@ resources:
   #     cpu: 200m
   #     memory: 128Mi
   # ──────────────────────────────────────────
-  # 当前环境最低配置（仅 limits）:
+  # 当前环境最低配置（requests.memory + limits.memory 必配，CPU 不做限制）:
+  requests:
+    memory: 32Mi
   limits:
-    cpu: 200m
     memory: 128Mi

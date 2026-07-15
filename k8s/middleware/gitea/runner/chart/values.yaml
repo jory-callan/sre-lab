@@ -31,6 +31,17 @@ persistence:
   size: 1Gi
 
 resources:
+  # ──────────────────────────────────────────
+  # 生产推荐值:
+  #   requests:
+  #     cpu: 200m
+  #     memory: 256Mi
+  #   limits:
+  #     cpu: 500m
+  #     memory: 512Mi
+  # ──────────────────────────────────────────
+  # 当前环境最低配置（requests.memory + limits.memory 必配，CPU 不做限制）:
+  requests:
+    memory: 256Mi
   limits:
-    cpu: 500m
     memory: 512Mi

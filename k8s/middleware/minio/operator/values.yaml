@@ -4,22 +4,23 @@ operator:
   image:
     tag: v5.0.18
   resources:
+    # ──────────────────────────────────────────
+    # 当前环境最低配置（仅 memory，CPU 不做限制）:
     requests:
-      cpu: 500m
       memory: 64Mi
-      ephemeral-storage: 50Mi
     limits:
-      cpu: 1000m
       memory: 128Mi
-      ephemeral-storage: 100Mi
 
 # Console 跟随 operator 版本
 console:
   image:
     tag: v5.0.18
   resources:
+    # ──────────────────────────────────────────
+    # 当前环境最低配置（仅 memory，CPU 不做限制）:
     requests:
-      cpu: 100m
+      memory: 128Mi
+    limits:
       memory: 256Mi
   ingress:
     enabled: false  # 我们用独立 Ingress，不走 console 内置
