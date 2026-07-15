@@ -15,7 +15,7 @@ k8s规则:
 - README 中保留原始远程资源地址说明，只讲怎么用，不列出文件树
 - 多版本应用作为独立应用目录处理，应用名称使用小写字母，无空格，用数字表示版本（如 mysql5.7）
 - 不要搞复杂统一入口，每个方案独立完整，简单直接
-- 不同部署方式（manifests/helm/kustomize）通过文件夹区分
+- 部署方式采用 helm 优先 或者原生直接 apply
 - 对于k8s内部应用的连接地址采用内部域名连接方式，不要走外部域名,例如 grafana 配置的连接源是k8s的就走内部 dns ，不要走 ingress 域名。
 - 本地托管如下：helm 仓库： http://192.168.5.103:8081/repository/helm-hosted/  无密码
 - 本地有私有化仓库：nexus3
@@ -33,10 +33,9 @@ Nexus 管理界面: http://192.168.5.103:8081  admin admin123
 - 需要debug等特殊情况允许直接 patch/apply 等直接操作。最终验证ok依旧需要修复相关文件和安装脚本
 - 资源应用命名统一采用类型-名称。例如 mysql-xxx redis-xxx pg-xxx app-xxx
 - operator 管理的组件（如 Alertmanager CRD 由 Prometheus Operator 调谐）helm upgrade 时不要加 --wait，operator 异步调谐会导致 --wait 卡住超时，配置写入 Secret 即算成功
+- chart 目录 如果是官方 chart 存 tgz，自己的就写 chart 存源码
 - helm-chart-*.tgz → 不忽略，进 git
-- 官方 chart 存 tgz，自写 chart 存源码
 - tgz 命名 helm-chart-<name>-<version>.tgz
-
 
 helm 编写规则：
 - 应用优先生成 Helm Chart，以下是建议：你需要充分考虑到单组件和多组件的差异：

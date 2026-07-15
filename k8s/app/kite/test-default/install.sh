@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ===== 配置区 =====
 NAME="kite"
 NAMESPACE="kite"
-CHART="$SCRIPT_DIR/../chart"
+CHART="$SCRIPT_DIR/../chart/helm-chart-kite-0.13.0.tgz"
 VALUES="$SCRIPT_DIR/values.yaml"
 # ===================
 
