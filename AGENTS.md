@@ -12,7 +12,6 @@ k8s规则:
 - 资源限制去掉 cpu 的限制只做内存限制
 - 用户已经配置好了 kubectl 和 helm 可以直接使用
 - 避免使用 *.local 域名，统一使用 *.czw-sre.internal 域名，此域名不是互联网域名，是内网域名，已经在路由器里解析过，可以直接用
-- 每个组件最少提供 install.sh 和 uninstall.sh ，其余脚本看情况是否需要新增
 - README 中保留原始远程资源地址说明，只讲怎么用，不列出文件树
 - 多版本应用作为独立应用目录处理，应用名称使用小写字母，无空格，用数字表示版本（如 mysql5.7）
 - 不要搞复杂统一入口，每个方案独立完整，简单直接
@@ -34,7 +33,9 @@ Nexus 管理界面: http://192.168.5.103:8081  admin admin123
 - 需要debug等特殊情况允许直接 patch/apply 等直接操作。最终验证ok依旧需要修复相关文件和安装脚本
 - 资源应用命名统一采用类型-名称。例如 mysql-xxx redis-xxx pg-xxx app-xxx
 - operator 管理的组件（如 Alertmanager CRD 由 Prometheus Operator 调谐）helm upgrade 时不要加 --wait，operator 异步调谐会导致 --wait 卡住超时，配置写入 Secret 即算成功
-
+- helm-chart-*.tgz → 不忽略，进 git
+- 官方 chart 存 tgz，自写 chart 存源码
+- tgz 命名 helm-chart-<name>-<version>.tgz
 
 
 helm 编写规则：

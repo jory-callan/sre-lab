@@ -54,6 +54,13 @@ _post_deploy() {
   kubectl -n "$NAMESPACE" exec "$pod" -c minio -- mc admin policy detach L consoleAdmin --user=svc-poweruser 2>/dev/null || true
   kubectl -n "$NAMESPACE" exec "$pod" -c minio -- mc admin policy attach L readwrite --user=svc-poweruser 2>/dev/null || true
 
+  # 创建 svc-private 用户（operator spec.users 因连接失败未创建）
+  local PRIV_SK
+  PRIV_SK=$(kubectl -n "$NAMESPACE" get secret svc-private -o jsonpath='{.data.CONSOLE_SECRET_KEY}' 2>/dev/null | base64 -d)
+  if [ -n "$PRIV_SK" ]; then
+    kubectl -n "$NAMESPACE" exec "$pod" -c minio -- mc admin user add L svc-private "$PRIV_SK" 2>/dev/null || true
+  fi
+
   # 配置 svc-private 策略
   local PF="/tmp/private-rw.json"
   kubectl -n "$NAMESPACE" exec "$pod" -c minio -- sh -c "cat > $PF << 'JSON'
