@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "ds.name" . }}-worker-headless
+  labels:
+    {{- include "ds.componentLabels" (dict "context" $ "component" "worker-headless") | nindent 4 }}
+spec:
+  clusterIP: None
+  ports:
+    - port: 1234
+      targetPort: worker-port
+      protocol: TCP
+      name: worker-port
+    - port: 1235
+      targetPort: metrics-port
+      protocol: TCP
+      name: metrics-port
+  selector:
+    {{- include "ds.componentSelector" (dict "context" $ "component" "worker") | nindent 4 }}

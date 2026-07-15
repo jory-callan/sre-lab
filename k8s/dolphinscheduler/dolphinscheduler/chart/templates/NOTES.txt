@@ -1,50 +1,30 @@
-#
-# Licensed to the Apache Software Foundation (ASF) under one or more
-# contributor license agreements.  See the NOTICE file distributed with
-# this work for additional information regarding copyright ownership.
-# The ASF licenses this file to You under the Apache License, Version 2.0
-# (the "License"); you may not use this file except in compliance with
-# the License.  You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+🧬 DolphinScheduler {{ .Chart.AppVersion }} 已部署
 
-** Please be patient while the chart DolphinScheduler {{ .Chart.AppVersion }} is being deployed **
+访问方式：
 
-Access DolphinScheduler UI URL by:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ds.name" . }}-api 12345:12345
 
-{{- if .Values.ingress.enabled }}
+  -> http://127.0.0.1:12345/dolphinscheduler
+  默认账号: admin / dolphinscheduler123
 
-  DolphinScheduler UI URL: http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.host }}/dolphinscheduler
+常用命令：
 
-{{- else if eq .Values.api.service.type "ClusterIP" }}
+  # 查看 Pod
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
 
-  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ template "dolphinscheduler.fullname" . }}-api 12345:12345
+  # 查看日志
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=master
+  kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/component=worker
 
-  DolphinScheduler UI URL: http://127.0.0.1:12345/dolphinscheduler
+  # 扩容
+  kubectl scale statefulset/{{ include "ds.name" . }}-worker -n {{ .Release.Namespace }} --replicas=3
 
-{{- else if eq .Values.api.service.type "NodePort" }}
+  # 配置
+  helm get values {{ .Release.Name }} -n {{ .Release.Namespace }}
 
-  NODE_IP=$(kubectl get no -n {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
-  NODE_PORT=$(kubectl get svc {{ template "dolphinscheduler.fullname" . }}-api -n {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}")
-  echo http://$NODE_IP:$NODE_PORT/dolphinscheduler
+内部连接地址：
 
-  DolphinScheduler UI URL: http://$NODE_IP:$NODE_PORT/dolphinscheduler
-
-{{- else if eq .Values.api.service.type "LoadBalancer" }}
-
-  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-        You can watch the status of by running 'kubectl get svc {{ template "dolphinscheduler.fullname" . }}-api -n {{ .Release.Namespace }} -w'
-
-  SERVICE_IP=$(kubectl get svc {{ template "dolphinscheduler.fullname" . }}-api -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-  echo http://$SERVICE_IP:12345/dolphinscheduler
-
-  DolphinScheduler UI URL: http://$SERVICE_IP:12345/dolphinscheduler
-
-{{- end }}
+  ZooKeeper:   {{ .Values.zookeeper.quorum }}
+  PostgreSQL:  {{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}
+  DS API:      {{ include "ds.name" . }}-api.{{ .Release.Namespace }}.svc:12345
+  SeaTunnel:   st.{{ .Release.Namespace }}.svc:5802

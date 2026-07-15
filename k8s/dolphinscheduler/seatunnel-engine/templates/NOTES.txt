@@ -1,20 +1,24 @@
-1. Get the SeaTunnel Engine client address:
+🚀 SeaTunnel Engine {{ .Chart.AppVersion }} 已部署
 
-   kubectl get svc -n {{ .Release.Namespace }} {{ include "st.fullname" . }}
+连接方式：
 
-   Internal: {{ include "st.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
+  内部 DNS: {{ include "st.name" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
 
-2. Check pod status:
+  在 DolphinScheduler SeaTunnel 任务节点中配置：
+    - 部署模式: cluster
+    - 集群地址: {{ include "st.name" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
+    - 客户端路径: /opt/seatunnel
 
-   kubectl get pods -n {{ .Release.Namespace }} -l app={{ include "st.fullname" . }}
+常用命令：
 
-3. View logs:
+  # 查看 Pod
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
 
-   kubectl logs -n {{ .Release.Namespace }} {{ include "st.fullname" . }}-0
+  # 查看日志
+  kubectl logs -n {{ .Release.Namespace }} {{ include "st.name" . }}-0
 
-4. Connect to DolphinScheduler:
+  # 进入容器
+  kubectl exec -n {{ .Release.Namespace }} -it {{ include "st.name" . }}-0 -- /bin/bash
 
-   In DS SeaTunnel task node, set:
-   - Deploy mode: cluster
-   - Cluster address: {{ include "st.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.engineApiPort }}
-   - Client path: /opt/seatunnel
+  # 扩容
+  kubectl scale statefulset/{{ include "st.name" . }} -n {{ .Release.Namespace }} --replicas=3

@@ -2,15 +2,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "dolphinscheduler.fullname" . }}-api
+  name: {{ include "ds.name" . }}-api
   labels:
-    app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-api
-    {{- include "dolphinscheduler.common.labels" . | nindent 4 }}
+    {{- include "ds.componentLabels" (dict "context" $ "component" "api") | nindent 4 }}
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-api
+      {{- include "ds.componentSelector" (dict "context" $ "component" "api") | nindent 6 }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
@@ -22,15 +21,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "dolphinscheduler.fullname" . }}-alert
+  name: {{ include "ds.name" . }}-alert
   labels:
-    app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-alert
-    {{- include "dolphinscheduler.common.labels" . | nindent 4 }}
+    {{- include "ds.componentLabels" (dict "context" $ "component" "alert") | nindent 4 }}
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-alert
+      {{- include "ds.componentSelector" (dict "context" $ "component" "alert") | nindent 6 }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
@@ -42,15 +40,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "dolphinscheduler.fullname" . }}-master
+  name: {{ include "ds.name" . }}-master
   labels:
-    app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-master-headless
-    {{- include "dolphinscheduler.common.labels" . | nindent 4 }}
+    {{- include "ds.componentLabels" (dict "context" $ "component" "master") | nindent 4 }}
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-master-headless
+      {{- include "ds.componentSelector" (dict "context" $ "component" "master") | nindent 6 }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
@@ -62,15 +59,14 @@ spec:
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "dolphinscheduler.fullname" . }}-worker
+  name: {{ include "ds.name" . }}-worker
   labels:
-    app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-worker-headless
-    {{- include "dolphinscheduler.common.labels" . | nindent 4 }}
+    {{- include "ds.componentLabels" (dict "context" $ "component" "worker") | nindent 4 }}
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "dolphinscheduler.fullname" . }}-worker-headless
+      {{- include "ds.componentSelector" (dict "context" $ "component" "worker") | nindent 6 }}
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}

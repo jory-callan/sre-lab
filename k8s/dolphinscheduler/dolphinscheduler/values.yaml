@@ -1,3 +1,4 @@
+# Overlay values for DS chart deployment
 timezone: "Asia/Shanghai"
 
 image:
@@ -11,9 +12,6 @@ image:
   alert: apache/dolphinscheduler-alert-server
   tools: apache/dolphinscheduler-tools
 
-postgresql:
-  enabled: false
-
 externalDatabase:
   type: "postgresql"
   host: "pg-ha-rw.postgres.svc"
@@ -24,173 +22,47 @@ externalDatabase:
   params: "characterEncoding=utf8"
 
 zookeeper:
-  enabled: true
-  service:
-    port: 2181
-  fourlwCommandsWhitelist: "srvr,ruok,wchs,cons"
-  persistence:
-    enabled: true
-    size: "8Gi"
-    storageClass: "nfs-client"
-
-conf:
-  common:
-    data.basedir.path: /tmp/dolphinscheduler
-    resource.storage.type: NONE
-    datasource.encryption.enable: false
-    support.hive.oneSession: false
-    sudo.enable: true
-    development.state: false
-    alert.rpc.port: 50052
+  quorum: "ds-zookeeper.dolphinscheduler.svc:2181"
 
 master:
-  podManagementPolicy: "Parallel"
   replicas: 1
   resources:
     limits:
       memory: "1Gi"
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  persistentVolumeClaim:
+  persistence:
     enabled: false
-  env:
-    JAVA_OPTS: "-Xms256m -Xmx512m -Xmn128m"
-    MASTER_EXEC_THREADS: "20"
-    MASTER_EXEC_TASK_NUM: "10"
-    MASTER_DISPATCH_TASK_NUM: "3"
-    MASTER_HOST_SELECTOR: "LowerWeight"
-    MASTER_HEARTBEAT_INTERVAL: "10s"
-    MASTER_HEARTBEAT_ERROR_THRESHOLD: "5"
-    MASTER_TASK_COMMIT_RETRYTIMES: "5"
-    MASTER_TASK_COMMIT_INTERVAL: "1s"
-    MASTER_STATE_WHEEL_INTERVAL: "5s"
-    MASTER_MAX_CPU_LOAD_AVG: "-1"
-    MASTER_RESERVED_MEMORY: "0.3"
 
 worker:
-  podManagementPolicy: "Parallel"
   replicas: 1
   resources:
     limits:
       memory: "2Gi"
-  livenessProbe:
+  persistence:
     enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  persistentVolumeClaim:
-    enabled: true
-    dataPersistentVolume:
+    data:
       enabled: false
-    logsPersistentVolume:
+    logs:
       enabled: true
-      accessModes:
-      - "ReadWriteOnce"
-      storageClassName: "nfs-client"
-      storage: "10Gi"
-  env:
-    WORKER_MAX_CPU_LOAD_AVG: "-1"
-    WORKER_RESERVED_MEMORY: "0.3"
-    WORKER_EXEC_THREADS: "20"
-    WORKER_HEARTBEAT_INTERVAL: "10s"
-    WORKER_HEART_ERROR_THRESHOLD: "5"
-    WORKER_HOST_WEIGHT: "100"
-
-alert:
-  replicas: 1
-  strategy:
-    type: "RollingUpdate"
-    rollingUpdate:
-      maxSurge: "25%"
-      maxUnavailable: "25%"
-  resources:
-    limits:
-      memory: "512Mi"
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  persistentVolumeClaim:
-    enabled: false
-  env:
-    JAVA_OPTS: "-Xms128m -Xmx256m -Xmn64m"
+      size: "10Gi"
+      storageClass: "nfs-client"
 
 api:
   replicas: 1
-  strategy:
-    type: "RollingUpdate"
-    rollingUpdate:
-      maxSurge: "25%"
-      maxUnavailable: "25%"
   resources:
     limits:
       memory: "1Gi"
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: "30"
-    periodSeconds: "30"
-    timeoutSeconds: "5"
-    failureThreshold: "3"
-    successThreshold: "1"
-  persistentVolumeClaim:
-    enabled: false
   service:
     type: "ClusterIP"
-  env:
-    JAVA_OPTS: "-Xms128m -Xmx256m -Xmn64m"
-
-common:
-  configmap:
-    DOLPHINSCHEDULER_OPTS: ""
-    DATA_BASEDIR_PATH: "/tmp/dolphinscheduler"
-    RESOURCE_UPLOAD_PATH: "/dolphinscheduler"
-    PYTHON_HOME: "/usr/bin/python"
-    JAVA_HOME: "/opt/java/openjdk"
-  sharedStoragePersistence:
-    enabled: false
-  fsFileResourcePersistence:
+  persistence:
     enabled: false
 
-ingress:
-  enabled: false
+alert:
+  replicas: 1
+  resources:
+    limits:
+      memory: "512Mi"
+  persistence:
+    enabled: false
 
 serviceMonitor:
   enabled: true

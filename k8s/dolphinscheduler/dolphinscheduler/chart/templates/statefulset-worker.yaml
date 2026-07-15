@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "ds.name" . }}-worker
+  labels:
+    {{- include "ds.componentLabels" (dict "context" $ "component" "worker") | nindent 4 }}
+spec:
+  serviceName: {{ include "ds.name" . }}-worker-headless
+  replicas: {{ .Values.worker.replicas }}
+  podManagementPolicy: {{ .Values.worker.podManagementPolicy }}
+  selector:
+    matchLabels:
+      {{- include "ds.componentSelector" (dict "context" $ "component" "worker") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ds.componentLabels" (dict "context" $ "component" "worker") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ds.name" . }}
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.worker.terminationGracePeriodSeconds }}
+      containers:
+        - name: worker
+          image: "{{ .Values.image.registry }}/{{ .Values.image.worker }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 1234
+              name: worker-port
+            - containerPort: 1235
+              name: metrics-port
+          env:
+            - name: TZ
+              value: {{ .Values.timezone }}
+            - name: SPRING_JACKSON_TIME_ZONE
+              value: {{ .Values.timezone }}
+            - name: DATABASE
+              value: {{ .Values.externalDatabase.type }}
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:{{ .Values.externalDatabase.type }}://{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}/{{ .Values.externalDatabase.database }}?{{ .Values.externalDatabase.params }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ds.name" . }}-externaldb
+                  key: database-password
+            - name: REGISTRY_TYPE
+              value: "zookeeper"
+            - name: REGISTRY_ZOOKEEPER_CONNECT_STRING
+              value: {{ .Values.zookeeper.quorum }}
+            - name: WORKER_ALERT_LISTEN_HOST
+              value: {{ include "ds.name" . }}-alert
+            {{- range $key, $value := .Values.worker.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "ds.name" . }}-common
+          {{- if .Values.worker.resources }}
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.worker.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:1235/actuator/health/liveness"]
+            initialDelaySeconds: {{ .Values.worker.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.worker.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.worker.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.worker.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:1235/actuator/health/readiness"]
+            initialDelaySeconds: {{ .Values.worker.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.worker.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.worker.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.worker.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.worker.readinessProbe.failureThreshold }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: {{ default "/tmp/dolphinscheduler" .Values.common.configmap.DATA_BASEDIR_PATH | quote }}
+              name: data
+            - mountPath: "/opt/dolphinscheduler/logs"
+              name: logs
+            - name: config
+              mountPath: /opt/dolphinscheduler/conf/common.properties
+              subPath: common_properties
+      volumes:
+        - name: data
+          {{- if .Values.worker.persistence.data.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "ds.name" . }}-worker-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: logs
+          {{- if .Values.worker.persistence.logs.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "ds.name" . }}-worker-logs
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "ds.name" . }}-configs
+  {{- if or .Values.worker.persistence.data.enabled .Values.worker.persistence.logs.enabled }}
+  volumeClaimTemplates:
+    {{- if .Values.worker.persistence.data.enabled }}
+    - metadata:
+        name: data
+        labels:
+          {{- include "ds.componentLabels" (dict "context" $ "component" "worker") | nindent 10 }}
+      spec:
+        accessModes:
+          {{- range .Values.worker.persistence.data.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        storageClassName: {{ .Values.worker.persistence.data.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.worker.persistence.data.size | quote }}
+    {{- end }}
+    {{- if .Values.worker.persistence.logs.enabled }}
+    - metadata:
+        name: logs
+        labels:
+          {{- include "ds.componentLabels" (dict "context" $ "component" "worker") | nindent 10 }}
+      spec:
+        accessModes:
+          {{- range .Values.worker.persistence.logs.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        storageClassName: {{ .Values.worker.persistence.logs.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.worker.persistence.logs.size | quote }}
+    {{- end }}
+  {{- end }}

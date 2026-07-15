@@ -1,0 +1,117 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "ds.name" . }}-master
+  labels:
+    {{- include "ds.componentLabels" (dict "context" $ "component" "master") | nindent 4 }}
+spec:
+  serviceName: {{ include "ds.name" . }}-master-headless
+  replicas: {{ .Values.master.replicas }}
+  podManagementPolicy: {{ .Values.master.podManagementPolicy }}
+  selector:
+    matchLabels:
+      {{- include "ds.componentSelector" (dict "context" $ "component" "master") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ds.componentLabels" (dict "context" $ "component" "master") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ds.name" . }}
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
+      containers:
+        - name: master
+          image: "{{ .Values.image.registry }}/{{ .Values.image.master }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 5678
+              name: master-port
+            - containerPort: 5679
+              name: metrics-port
+          env:
+            - name: TZ
+              value: {{ .Values.timezone }}
+            - name: SPRING_JACKSON_TIME_ZONE
+              value: {{ .Values.timezone }}
+            - name: DATABASE
+              value: {{ .Values.externalDatabase.type }}
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:{{ .Values.externalDatabase.type }}://{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}/{{ .Values.externalDatabase.database }}?{{ .Values.externalDatabase.params }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ds.name" . }}-externaldb
+                  key: database-password
+            - name: REGISTRY_TYPE
+              value: "zookeeper"
+            - name: REGISTRY_ZOOKEEPER_CONNECT_STRING
+              value: {{ .Values.zookeeper.quorum }}
+            {{- range $key, $value := .Values.master.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "ds.name" . }}-common
+          {{- if .Values.master.resources }}
+          resources:
+            {{- toYaml .Values.master.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.master.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:5679/actuator/health/liveness"]
+            initialDelaySeconds: {{ .Values.master.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.master.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.master.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.master.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:5679/actuator/health/readiness"]
+            initialDelaySeconds: {{ .Values.master.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.master.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.master.readinessProbe.failureThreshold }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: "/opt/dolphinscheduler/logs"
+              name: logs
+            - name: config
+              mountPath: /opt/dolphinscheduler/conf/common.properties
+              subPath: common_properties
+      volumes:
+        - name: logs
+          {{- if .Values.master.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "ds.name" . }}-master
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "ds.name" . }}-configs
+  {{- if .Values.master.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: logs
+        labels:
+          {{- include "ds.componentLabels" (dict "context" $ "component" "master") | nindent 10 }}
+      spec:
+        accessModes:
+          {{- range .Values.master.persistence.accessModes }}
+          - {{ . | quote }}
+          {{- end }}
+        storageClassName: {{ .Values.master.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.master.persistence.size | quote }}
+  {{- end }}

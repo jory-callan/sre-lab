@@ -1,22 +1,23 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "st.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "st.name" . }}
   labels:
-    app: {{ include "st.fullname" . }}
     {{- include "st.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "st.name" . }}
 spec:
-  serviceName: {{ include "st.fullname" . }}-hs
+  serviceName: {{ include "st.name" . }}-hs
   replicas: {{ .Values.replicaCount }}
   podManagementPolicy: {{ .Values.podManagementPolicy }}
   selector:
     matchLabels:
-      app: {{ include "st.fullname" . }}
+      {{- include "st.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/name: {{ include "st.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "st.fullname" . }}
+        {{- include "st.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "st.name" . }}
     spec:
       {{- if .Values.image.pullSecret }}
       imagePullSecrets:
@@ -26,8 +27,8 @@ spec:
       containers:
         - name: seatunnel-engine
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          command: ["/opt/seatunnel/bin/seatunnel-cluster.sh"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/opt/seatunnel/bin/seatunnel-cluster.sh"]
           ports:
             - containerPort: {{ .Values.service.hazelcastPort }}
               name: hazelcast
@@ -73,10 +74,13 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ include "st.fullname" . }}-config
+            name: {{ include "st.name" . }}-config
   volumeClaimTemplates:
     - metadata:
         name: data
+        labels:
+          {{- include "st.labels" . | nindent 10 }}
+          app.kubernetes.io/name: {{ include "st.name" . }}
       spec:
         accessModes:
           - ReadWriteOnce

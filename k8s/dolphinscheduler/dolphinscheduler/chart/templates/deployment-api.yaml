@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ds.name" . }}-api
+  labels:
+    {{- include "ds.componentLabels" (dict "context" $ "component" "api") | nindent 4 }}
+spec:
+  replicas: {{ .Values.api.replicas }}
+  selector:
+    matchLabels:
+      {{- include "ds.componentSelector" (dict "context" $ "component" "api") | nindent 6 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        {{- include "ds.componentLabels" (dict "context" $ "component" "api") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "ds.name" . }}
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.api.terminationGracePeriodSeconds }}
+      containers:
+        - name: api
+          image: "{{ .Values.image.registry }}/{{ .Values.image.api }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 12345
+              name: api-port
+            - containerPort: 25333
+              name: python-api-port
+          env:
+            - name: TZ
+              value: {{ .Values.timezone }}
+            - name: SPRING_JACKSON_TIME_ZONE
+              value: {{ .Values.timezone }}
+            - name: DATABASE
+              value: {{ .Values.externalDatabase.type }}
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:{{ .Values.externalDatabase.type }}://{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}/{{ .Values.externalDatabase.database }}?{{ .Values.externalDatabase.params }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ds.name" . }}-externaldb
+                  key: database-password
+            - name: REGISTRY_TYPE
+              value: "zookeeper"
+            - name: REGISTRY_ZOOKEEPER_CONNECT_STRING
+              value: {{ .Values.zookeeper.quorum }}
+            {{- range $key, $value := .Values.api.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "ds.name" . }}-common
+          {{- if .Values.api.resources }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.api.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:12345/dolphinscheduler/actuator/health/liveness"]
+            initialDelaySeconds: {{ .Values.api.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.api.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.api.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.api.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command: ["curl", "-s", "http://localhost:12345/dolphinscheduler/actuator/health/readiness"]
+            initialDelaySeconds: {{ .Values.api.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.api.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.api.readinessProbe.failureThreshold }}
+          {{- end }}
+          volumeMounts:
+            - mountPath: "/opt/dolphinscheduler/logs"
+              name: logs
+            - name: config
+              mountPath: /opt/dolphinscheduler/conf/common.properties
+              subPath: common_properties
+      volumes:
+        - name: logs
+          {{- if .Values.api.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "ds.name" . }}-api
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: config
+          configMap:
+            name: {{ include "ds.name" . }}-configs
+{{- if .Values.api.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "ds.name" . }}-api
+  labels:
+    {{- include "ds.componentLabels" (dict "context" $ "component" "api") | nindent 4 }}
+spec:
+  accessModes:
+    {{- range .Values.api.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  storageClassName: {{ .Values.api.persistence.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.api.persistence.size | quote }}
+{{- end }}

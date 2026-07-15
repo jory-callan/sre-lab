@@ -1,6 +1,5 @@
 #!/bin/bash
 # install.sh — DolphinScheduler + SeaTunnel Engine 一键部署
-# 用法: bash install.sh
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,11 +1,12 @@
 apiVersion: v2
-name: dolphinscheduler-helm
-description: Dolphin Scheduler is a distributed and easy-to-expand visual DAG workflow scheduling system
+name: dolphinscheduler
+description: Apache DolphinScheduler - distributed workflow scheduler
 home: https://dolphinscheduler.apache.org
 icon: https://dolphinscheduler.apache.org/img/hlogo_colorful.svg
 keywords:
-- dolphinscheduler
-- scheduler
+  - dolphinscheduler
+  - scheduler
+  - workflow
 type: application
 version: 3.1.7
 appVersion: 3.1.7

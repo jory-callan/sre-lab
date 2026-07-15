@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "ds.name" . }}-db-init-job
+  labels:
+    {{- include "ds.labels" . | nindent 4 }}
+    app.kubernetes.io/name: {{ include "ds.name" . }}-db-init-job
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    metadata:
+      labels:
+        {{- include "ds.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ include "ds.name" . }}-db-init-job
+    spec:
+      {{- if .Values.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.pullSecret }}
+      {{- end }}
+      restartPolicy: Never
+      initContainers:
+        - name: wait-for-database
+          image: busybox:1.30
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-xc', 'for i in $(seq 1 180); do nc -z -w3 {{ .Values.externalDatabase.host }} {{ .Values.externalDatabase.port }} && exit 0 || sleep 5; done; exit 1']
+      containers:
+        - name: db-init
+          image: "{{ .Values.image.registry }}/{{ .Values.image.tools }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - tools/bin/upgrade-schema.sh
+          env:
+            - name: TZ
+              value: {{ .Values.timezone }}
+            - name: SPRING_JACKSON_TIME_ZONE
+              value: {{ .Values.timezone }}
+            - name: DATABASE
+              value: {{ .Values.externalDatabase.type }}
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:{{ .Values.externalDatabase.type }}://{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}/{{ .Values.externalDatabase.database }}?{{ .Values.externalDatabase.params }}"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.externalDatabase.username | quote }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ds.name" . }}-externaldb
+                  key: database-password
+            - name: REGISTRY_TYPE
+              value: "zookeeper"
+            - name: REGISTRY_ZOOKEEPER_CONNECT_STRING
+              value: {{ .Values.zookeeper.quorum }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "ds.name" . }}-common
