@@ -1,14 +1,7 @@
-# values.yaml — kdebug 配置
+# test-default values — kdebug 测试实例
+# 覆盖 chart 默认值
 ---
 replicaCount: 2
-
-image:
-  repository: ghcr.io/jory-callan/kdebug
-  tag: v1.0.2
-  pullPolicy: IfNotPresent
-
-nameOverride: ""
-fullnameOverride: ""
 
 # Ingress
 ingress:
@@ -25,20 +18,6 @@ ingress:
 nodePort:
   enabled: true
   port: 30302
-
-# Service
-service:
-  port: 80
-  targetPort: 8080
-
-# 资源限制
-resources:
-  requests:
-    cpu: 50m
-    memory: 32Mi
-  limits:
-    cpu: 200m
-    memory: 128Mi
 
 # HPA
 autoscaling:

@@ -122,12 +122,12 @@ k8s/
 
 ## 脚本约定 — install.sh / uninstall.sh
 
-所有 `install.sh` 和 `uninstall.sh` 遵循统一模板，只改顶部配置区：
+所有 `install.sh` 遵循统一模板，只改顶部配置区：
 
 ```bash
 #!/bin/bash
 # install.sh — <实例说明>
-# Usage: bash install.sh [install|uninstall]
+# Usage: bash install.sh [install|uninstall|purge]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -148,13 +148,21 @@ install() {
 }
 
 uninstall() {
+  # 卸载服务，保留 PVC / PV / 数据
   helm uninstall "$NAME" --namespace "$NAMESPACE"
+}
+
+purge() {
+  # 完全卸载干净
+  helm uninstall "$NAME" --namespace "$NAMESPACE" 2>/dev/null || true
+  kubectl delete namespace "$NAMESPACE" --ignore-not-found
 }
 
 case "${1:-install}" in
   install) install ;;
   uninstall) uninstall ;;
-  *) echo "Usage: $0 [install|uninstall]"; exit 1 ;;
+  purge) purge ;;
+  *) echo "Usage: $0 [install|uninstall|purge]"; exit 1 ;;
 esac
 ```
 
@@ -162,8 +170,10 @@ esac
 
 | 决定 | 原因 |
 |------|------|
-| 一个文件两个参数 | 统一入口，省一个文件 |
-| `helm upgrade --install` | 幂等，重复执行安全 |
+| 一个文件三个参数 | 统一入口，省文件，三种模式一目了然 |
+| `install` — 部署 | `helm upgrade --install` 幂等，重复执行安全 |
+| `uninstall` — 卸载保留数据 | 仅 `helm uninstall`，PVC / 命名空间不动 |
+| `purge` — 完全卸载 | `helm uninstall` + `delete namespace`，数据一并清理 |
 | 4 变量顶部配置区 | 所有实例脚本长得一样，一目了然 |
 | `set -euo pipefail` | 防止静默失败 |
 | `--timeout 5m --wait` | 默认等部署完成 |

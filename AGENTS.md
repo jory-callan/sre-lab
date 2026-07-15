@@ -61,6 +61,7 @@ helm 编写规则：
 - 删除 fullname，永远不用
 三、模板组织方式
 - templates/ 下按 Kind-组件(按需) 拆文件（deployment.yaml、service.yaml...）
+- service-headless.yaml servoce-nodeport.yaml
 四、Kubernetes 生产必备特性（所有特性配 values 开关）
 - 软反亲和性（podAntiAffinity）：默认开启，用于 Pod 分散调度
 - 资源请求与限制（resources）：完全自定义

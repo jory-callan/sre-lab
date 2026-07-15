@@ -7,7 +7,7 @@ metadata:
     app: minio
 spec:
   # ── quay.io 镜像（已验证可正常拉取）────
-  image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+  image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
   imagePullPolicy: IfNotPresent
 
   # v7.x 使用 configuration.name 引用 config.env 格式的 Secret
