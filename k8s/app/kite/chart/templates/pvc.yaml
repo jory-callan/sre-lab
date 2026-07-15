@@ -4,6 +4,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: {{ include "kite.fullname" . }}-storage
   namespace: {{ .Release.Namespace }}
+  annotations:
+    # 卸载时保留 PVC，数据不会丢失
+    helm.sh/resource-policy: keep
   labels:
     {{- include "kite.labels" . | nindent 4 }}
 spec:

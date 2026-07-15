@@ -141,6 +141,10 @@ VALUES="$SCRIPT_DIR/values.yaml"      # 实例 values
 
 install() {
   kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+  # 标记 Helm ownership，使 chart 中的 namespace.yaml 可以接管
+  kubectl label namespace "$NAMESPACE" app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+  kubectl annotate namespace "$NAMESPACE" meta.helm.sh/release-name="$NAME" --overwrite 2>/dev/null || true
+  kubectl annotate namespace "$NAMESPACE" meta.helm.sh/release-namespace="$NAMESPACE" --overwrite 2>/dev/null || true
   helm upgrade --install "$NAME" "$CHART" \
     --namespace "$NAMESPACE" \
     --values "$VALUES" \
