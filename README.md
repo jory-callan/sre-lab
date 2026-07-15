@@ -18,7 +18,7 @@ network/  →  provisioning/  →  docker-compose/  →  k8s/
 | `provisioning/scripts/` | 运维脚本（linux / windows / mac） |
 | `docker-compose/` | 单机 Docker 服务 |
 | `k8s/bootstrap/` | 底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS / monitoring） |
-| `k8s/kubeblocks/` | KubeBlocks 家族（新派中间件管理，ns: operators） |
+| `k8s/kubeblock/` | KubeBlocks 家族（新派中间件管理，按 addon 引擎分组实例，ns: operators） |
 | `k8s/middleware/` | 传统中间件产品（postgres / redis / mysql / gitea / minio / temporal / velero / dolphinscheduler） |
 | `k8s/app/` | 自研应用（kite / kdebug） |
 | `k8s/lab/` | 选型测试沙箱 / 实验空间 |

@@ -29,11 +29,14 @@ k8s/
 │   ├── metallb/
 │   ├── monitoring/     可观测性栈（独立测试多种方案）
 │   └── nfs-storageclass/
-├── kubeblocks/         新派中间件管理家族（KubeBlocks + 其管理的所有中间件实例）
+├── kubeblock/          新派中间件管理家族（KubeBlocks + addon 分组实例）
 │   ├── operator/        KubeBlocks operator 本体
-│   ├── chart/           KubeBlocks Helm chart 源码
+│   ├── chart/           Helm chart 源码
 │   ├── common/          共享资源
-│   └── <env>-<instance>/  具体实例
+│   ├── redis/           按 addon 引擎分组，实例用 <prefix>-<name>/
+│   │   └── cr-auth/     KubeBlocks 管理的 Redis 实例
+│   └── apecloud-mysql/
+│       └── cr-default/  KubeBlocks 管理的 ApeCloud MySQL 实例
 ├── middleware/          传统中间件产品
 │   ├── dolphinscheduler/
 │   ├── gitea/
