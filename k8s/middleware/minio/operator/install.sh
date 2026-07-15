@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ===== 配置区 =====
 NAME="minio-operator"
 NAMESPACE="operators"
-CHART="$SCRIPT_DIR/chart"
+CHART="$SCRIPT_DIR/chart/helm-chart-minio-operator-5.0.18.tgz"
 VALUES="$SCRIPT_DIR/values.yaml"
 # ===================
 

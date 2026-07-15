@@ -14,5 +14,7 @@ data
 logs
 log
 *.log
-*.tar.gz
+
+helm 
 *.tgz
+!helm-chart-*.tgz

@@ -11,7 +11,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ===== 配置区 =====
 NAME="gitea"
 NAMESPACE="gitea"
-CHART="$SCRIPT_DIR/../chart"
+CHART="$SCRIPT_DIR/../chart/helm-chart-gitea-12.6.0.tgz"
 VALUES="$SCRIPT_DIR/values.yaml"
 # ===================
 

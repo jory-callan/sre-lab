@@ -35,6 +35,8 @@ Nexus 管理界面: http://192.168.5.103:8081  admin admin123
 - 资源应用命名统一采用类型-名称。例如 mysql-xxx redis-xxx pg-xxx app-xxx
 - operator 管理的组件（如 Alertmanager CRD 由 Prometheus Operator 调谐）helm upgrade 时不要加 --wait，operator 异步调谐会导致 --wait 卡住超时，配置写入 Secret 即算成功
 
+
+
 helm 编写规则：
 - 应用优先生成 Helm Chart，以下是建议：你需要充分考虑到单组件和多组件的差异：
 - "组件" = 一个应用内有多个不同角色的进程，如 dolphinscheduler 的 master、worker、api
