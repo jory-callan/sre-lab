@@ -14,7 +14,7 @@ dolphinscheduler ns
 ├── ds-worker             # DS Worker（StatefulSet, 1副本, 含Python3.10+SeaTunnel客户端）
 ├── ds-api                # DS API（Deployment, 1副本）
 ├── ds-alert              # DS Alert（Deployment, 1副本）
-├── st-*                  # SeaTunnel Engine（StatefulSet, 3节点）
+├── st-*                  # SeaTunnel Engine（StatefulSet, 1节点）
 └── 外部依赖
     └── pg-ha-rw.postgres.svc:5432  # PostgreSQL（外部）
 ```
@@ -69,31 +69,6 @@ helm upgrade --install st ./seatunnel-engine \
   --timeout 5m
 ```
 
-### 构建自定义镜像
-
-Worker 镜像包含 Python 3.10 + SeaTunnel 客户端：
-
-```bash
-export SEATUNNEL_VERSION=2.3.13
-export SEATUNNEL_URL=https://gh-proxy.com/https://github.com/apache/seatunnel/releases/download/${SEATUNNEL_VERSION}/apache-seatunnel-${SEATUNNEL_VERSION}-bin.tar.gz
-
-docker build \
-  --build-arg SEATUNNEL_VERSION=${SEATUNNEL_VERSION} \
-  --build-arg SEATUNNEL_URL=${SEATUNNEL_URL} \
-  -t 192.168.5.103:5001/ds-worker-custom:3.1.7 \
-  -f dolphinscheduler/custom-image/Dockerfile \
-  dolphinscheduler/custom-image/
-docker push 192.168.5.103:5001/ds-worker-custom:3.1.7
-
-docker build \
-  --build-arg SEATUNNEL_VERSION=${SEATUNNEL_VERSION} \
-  --build-arg SEATUNNEL_URL=${SEATUNNEL_URL} \
-  -t 192.168.5.103:5001/seatunnel-engine:2.3.13 \
-  -f seatunnel-engine/custom-image/Dockerfile \
-  seatunnel-engine/custom-image/
-docker push 192.168.5.103:5001/seatunnel-engine:2.3.13
-```
-
 ## 访问
 
 ### DolphinScheduler UI
@@ -132,7 +107,7 @@ ServiceMonitor 默认 label 为 `release: kube-prometheus-stack`，若使用 Vic
 
 ## 资源限制
 
-仅设置内存 limit，不设 CPU 限制（避免 CPU 节流影响任务性能）：
+仅设置内存 limit，不设 CPU 限制：
 
 | 组件 | 内存 limit |
 |------|-----------|
@@ -143,21 +118,16 @@ ServiceMonitor 默认 label 为 `release: kube-prometheus-stack`，若使用 Vic
 | ZooKeeper | 1Gi |
 | SeaTunnel Engine | 8Gi |
 
-## 端口说明
+## 自定义镜像构建
 
-| 组件 | 端口 | 用途 |
-|------|------|------|
-| ds-zookeeper | 2181 | 客户端连接 |
-| ds-master | 5678 | 主服务 |
-| ds-master | 5679 | Actuator/Metrics |
-| ds-worker | 1234 | 主服务 |
-| ds-worker | 1235 | Actuator/Metrics |
-| ds-api | 12345 | API 服务 |
-| ds-api | 25333 | Python API |
-| ds-alert | 50052 | Alert 服务 |
-| ds-alert | 50053 | Actuator/Metrics |
-| st engine | 5801 | Hazelcast 集群通信 |
-| st engine | 5802 | Engine API |
+Worker 镜像（含 Python 3.10 + SeaTunnel 客户端）：
+
+```bash
+docker build -t 192.168.5.103:5001/ds-worker-custom:3.1.7 \
+  -f dolphinscheduler/custom-image/Dockerfile \
+  dolphinscheduler/custom-image/
+docker push 192.168.5.103:5001/ds-worker-custom:3.1.7
+```
 
 ## 卸载
 
@@ -180,9 +150,5 @@ kubectl logs -n dolphinscheduler st-0
 kubectl scale statefulset ds-worker -n dolphinscheduler --replicas=3
 
 # 扩容 SeaTunnel（修改 values.yaml 中 replicaCount 后重新 helm upgrade）
-# 注意：扩容后需同步更新 configmap 中的 hazelcast member-list
-
-# 更新 Worker 镜像
-kubectl set image statefulset/ds-worker -n dolphinscheduler \
-  ds-worker=192.168.5.103:5000/ds-worker-custom:3.1.7-new
+helm upgrade --install st ./seatunnel-engine --namespace dolphinscheduler --timeout 5m
 ```

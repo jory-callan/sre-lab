@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: zookeeper
-          image: 192.168.5.103:5000/bitnamicharts/zookeeper:13.8.7
+          image: 192.168.5.103:5000/library/zookeeper:3.8.4
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 2181
@@ -47,9 +47,6 @@ spec:
               name: follower
             - containerPort: 3888
               name: election
-          env:
-            - name: ALLOW_ANONYMOUS_LOGIN
-              value: "yes"
           livenessProbe:
             tcpSocket:
               port: 2181
@@ -65,7 +62,7 @@ spec:
               memory: "1Gi"
           volumeMounts:
             - name: data
-              mountPath: /bitnami/zookeeper
+              mountPath: /data
   volumeClaimTemplates:
     - metadata:
         name: data

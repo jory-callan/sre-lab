@@ -16,6 +16,10 @@ FROM apache/dolphinscheduler-worker:3.1.7
 
 USER root
 
+# 创建 dolphinscheduler 用户（基镜像中不存在该用户）
+RUN groupadd -r dolphinscheduler --gid=1000 && \
+    useradd -r -g dolphinscheduler --uid=1000 --home-dir=/opt/dolphinscheduler --shell=/bin/bash dolphinscheduler
+
 # 安装 Python 3.10 + 常用开发工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
@@ -42,6 +46,8 @@ COPY --from=seatunnel-client /opt/seatunnel /opt/seatunnel
 ENV SEATUNNEL_HOME=/opt/seatunnel \
     PATH=$PATH:/opt/seatunnel/bin \
     PYTHONPATH=/opt/dolphinscheduler/python:$PYTHONPATH
+
+RUN chown -R dolphinscheduler:dolphinscheduler /opt/dolphinscheduler /opt/seatunnel
 
 USER dolphinscheduler
 

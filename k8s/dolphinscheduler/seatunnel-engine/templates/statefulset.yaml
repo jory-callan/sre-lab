@@ -26,6 +26,7 @@ spec:
       containers:
         - name: seatunnel-engine
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["/opt/seatunnel/bin/seatunnel-cluster.sh"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.hazelcastPort }}
@@ -69,6 +70,10 @@ spec:
             periodSeconds: 10
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "st.fullname" . }}-config
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -79,7 +84,3 @@ spec:
         resources:
           requests:
             storage: {{ .Values.persistence.size }}
-  volumes:
-    - name: config
-      configMap:
-        name: {{ include "st.fullname" . }}-config
