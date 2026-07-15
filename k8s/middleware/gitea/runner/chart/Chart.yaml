@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gitea-runner
+description: Gitea Actions Runner — act_runner
+type: application
+version: 0.1.0
+appVersion: 0.3.1

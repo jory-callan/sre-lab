@@ -8,30 +8,32 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-install() {
-  kubectl apply -f "$SCRIPT_DIR/ci-deployer.yaml"
-  kubectl apply -f "$SCRIPT_DIR/runner.yaml"
-  kubectl -n gitea-runner rollout status deploy/gitea-runner --timeout=120s
+# ===== 配置区 =====
+NAME="gitea-runner"
+VALUES="$SCRIPT_DIR/chart/values.yaml"
+# ===================
 
-  echo ""
-  echo "✅ Runner 部署完成"
-  echo ""
-  echo "   ci-deployer token（存到 Gitea Secret KUBE_TOKEN）:"
-  echo "   kubectl -n kube-system get secret ci-deployer-token -o jsonpath='{.data.token}' | base64 -d"
+install() {
+  kubectl create namespace gitea-runner --dry-run=client -o yaml | kubectl apply -f -
+  kubectl label namespace gitea-runner app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+  kubectl annotate namespace gitea-runner meta.helm.sh/release-name="$NAME" --overwrite 2>/dev/null || true
+  kubectl annotate namespace gitea-runner meta.helm.sh/release-namespace=gitea-runner --overwrite 2>/dev/null || true
+  # 可选：集群级 ci-deployer SA
+  kubectl apply -f "$SCRIPT_DIR/common/ci-deployer.yaml" 2>/dev/null || true
+  helm upgrade --install "$NAME" "$SCRIPT_DIR/chart" \
+    --namespace gitea-runner \
+    --values "$VALUES" \
+    --timeout 3m --wait
 }
 
 uninstall() {
-  # 卸载 runner，保留 PVC（runner 注册信息）
-  kubectl delete -f "$SCRIPT_DIR/runner.yaml" --ignore-not-found
-  kubectl delete -f "$SCRIPT_DIR/ci-deployer.yaml" --ignore-not-found
-  echo "✅ Runner 已卸载（PVC 保留）"
+  helm uninstall "$NAME" --namespace gitea-runner
 }
 
 purge() {
-  kubectl delete -f "$SCRIPT_DIR/runner.yaml" --ignore-not-found
-  kubectl delete -f "$SCRIPT_DIR/ci-deployer.yaml" --ignore-not-found
+  helm uninstall "$NAME" --namespace gitea-runner 2>/dev/null || true
+  kubectl delete pvc --namespace gitea-runner --all --ignore-not-found 2>/dev/null || true
   kubectl delete namespace gitea-runner --ignore-not-found
-  echo "✅ Runner 已完全清理"
 }
 
 case "${1:-install}" in

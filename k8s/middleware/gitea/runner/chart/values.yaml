@@ -1,0 +1,36 @@
+# values.yaml — Gitea Actions Runner
+---
+namespace: gitea-runner
+
+image:
+  repository: gitea/act_runner
+  tag: 0.3.1
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Gitea 实例地址（集群内 Service 地址）
+giteaURL: "http://gitea-http.gitea:3000"
+
+# Runner 注册 token（必填，需从 Gitea 获取并替换）
+registrationToken: "Shxm70Ujl4o0jz27WHEzR39zijWGuyNyvtRONE1v"
+
+# Runner 名称
+name: "k8s-runner-1"
+
+# Runner labels（决定 workflow 中 runs-on 的取值）
+labels: "ubuntu-latest:docker://192.168.5.103:5001/admin/runner-base:latest,ubuntu-24.04:docker://192.168.5.103:5001/admin/runner-base:latest"
+
+# Runner 并发数
+capacity: 2
+
+# 持久化 .runner 文件（pod 重启免重新注册）
+persistence:
+  enabled: true
+  storageClass: nfs-client
+  size: 1Gi
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi

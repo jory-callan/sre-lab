@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.namespace }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "runner.fullname" . }}
+  namespace: {{ .Values.namespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "runner.fullname" . }}
+  namespace: {{ .Values.namespace }}
+type: Opaque
+stringData:
+  token: {{ required "registrationToken is required" .Values.registrationToken | quote }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "runner.fullname" . }}-config
+  namespace: {{ .Values.namespace }}
+data:
+  config.yaml: |
+    log:
+      level: info
+    runner:
+      file: /runner-data/.runner
+      capacity: {{ .Values.capacity }}
+    container:
+      network_mode: host
+---
+{{- if .Values.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "runner.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- with .Values.persistence.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "runner.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "runner.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "runner.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "runner.fullname" . }}
+    spec:
+      serviceAccountName: {{ include "runner.fullname" . }}
+      containers:
+        - name: runner
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: GITEA_INSTANCE_URL
+              value: {{ .Values.giteaURL | quote }}
+            - name: GITEA_RUNNER_REGISTRATION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "runner.fullname" . }}
+                  key: token
+            - name: GITEA_RUNNER_NAME
+              value: {{ .Values.name | quote }}
+            - name: GITEA_RUNNER_LABELS
+              value: {{ .Values.labels | quote }}
+            - name: CONFIG_FILE
+              value: /runner/config.yaml
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: runner-config
+              mountPath: /runner/config.yaml
+              subPath: config.yaml
+            {{- if .Values.persistence.enabled }}
+            - name: runner-data
+              mountPath: /runner-data
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: runner-config
+          configMap:
+            name: {{ include "runner.fullname" . }}-config
+        {{- if .Values.persistence.enabled }}
+        - name: runner-data
+          persistentVolumeClaim:
+            claimName: {{ include "runner.fullname" . }}
+        {{- end }}
