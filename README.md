@@ -17,19 +17,11 @@ network/  →  provisioning/  →  docker-compose/  →  k8s/
 | `provisioning/ansible/` | Ansible roles（linux-init / docker / k3s） |
 | `provisioning/scripts/` | 运维脚本（linux / windows / mac） |
 | `docker-compose/` | 单机 Docker 服务 |
-| `k8s/bootstrap/` | 底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS） |
-| `k8s/operators/` | Operator 控制面（cnpg / redis / minio，ns: operators） |
-| `k8s/monitoring/` | 监控告警（VictoriaMetrics / VictoriaLogs / FluentBit / Grafana，ns: monitoring） |
-| `k8s/postgresql/` | PostgreSQL 17（CNPG operator，ns: postgresql） |
-| `k8s/redis/` | Redis 7.4（manifests / helm / operator，ns: redis） |
-| `k8s/minio/` | MinIO 对象存储（Operator，ns: minio） |
-| `k8s/mysql/` | MySQL（manifests / operator，ns: mysql） |
-| `k8s/gitea/` | 自托管 Git 服务（ns: gitea） |
-| `k8s/kite/` | K8s Web UI（ns: kite） |
-| `k8s/kdebug/` | 调试工具（ns: kdebug） |
-| `k8s/temporal/` | 工作流引擎（ns: temporal） |
-| `k8s/velero/` | 集群备份（ns: velero） |
-| `k8s/lab/` | 选型测试沙箱 |
+| `k8s/bootstrap/` | 底座安装（Cilium / MetalLB / ingress-nginx / cert-manager / NFS / monitoring） |
+| `k8s/kubeblocks/` | KubeBlocks 家族（新派中间件管理，ns: operators） |
+| `k8s/middleware/` | 传统中间件产品（postgres / redis / mysql / gitea / minio / temporal / velero / dolphinscheduler） |
+| `k8s/app/` | 自研应用（kite / kdebug） |
+| `k8s/lab/` | 选型测试沙箱 / 实验空间 |
 | `docs/` | 架构文档、决策记录 |
 
 ## 快速开始
@@ -53,8 +45,9 @@ bash k8s/apps/install.sh
 
 ## 设计原则
 
-- 每个组件独立完整，提供 `install.sh` + `uninstall.sh`
+- 每个组件独立完整，提供 `install.sh` + `uninstall.sh`（支持 install / uninstall 两个参数）
 - 远程资源下载到本地，`remote-<name>-<version>` 格式命名，原始文件不修改
-- 部署方式（manifests / helm / kustomize）通过子目录区分
-- 不区分 dev/prod 环境文件夹，确需区分时用文件名后缀
+- 目录即实例，平铺展开。前缀区分功能，不嵌套子目录
+- 不区分 dev/prod 环境文件夹，环境和实例名统一用前缀
 - 域名统一使用 `*.czw-sre.internal`
+- 目录详细规范见 `k8s/README.md`

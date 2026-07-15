@@ -1,0 +1,6 @@
+# 资源配额（默认不启用）
+# 生产推荐值:
+#   requests: cpu: 500m memory: 256Mi
+#   limits: cpu: 1000m memory: 512Mi
+# 当前环境（仅 limits）:
+#   limits: cpu: 500m memory: 128Mi

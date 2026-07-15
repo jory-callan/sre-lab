@@ -1,0 +1,31 @@
+## KubeBlocks operator values
+## 自定义 values，覆盖 Chart 默认值
+
+## 移除 kb-controller tolerations/affinity（集群无此标签）
+tolerations: []
+affinity: {}
+
+## 资源限制：只做内存限制，不做 CPU 限制
+resources:
+  memory: 1Gi
+
+dataProtection:
+  tolerations: []
+  affinity: {}
+  resources:
+    memory: 1Gi
+
+## 无需创建备份存储
+backupRepo:
+  create: false
+
+## 使用内嵌的 addon charts（file:// 协议）
+addonChartLocationBase: file://
+
+## 自动安装的 addon 列表
+autoInstalledAddons:
+  - "apecloud-mysql"
+  - "redis"
+
+## 只管理当前集群
+managedNamespaces: ""

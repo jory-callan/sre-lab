@@ -1,0 +1,22 @@
+# ──────────────────────────────────────────
+# PostgreSQL standalone 实例配置
+# ──────────────────────────────────────────
+
+# 参考: https://cloudnative-pg.io/documentation/current/
+
+# ──────────────────────────────────────────
+# 资源配额（默认不启用，走 chart 默认值）
+# ──────────────────────────────────────────
+# 生产推荐值:
+#   requests:
+#     cpu: 500m
+#     memory: 256Mi
+#     ephemeral-storage: 100Mi
+#   limits:
+#     cpu: 1000m
+#     memory: 512Mi
+#     ephemeral-storage: 200Mi
+# 当前环境最低配置（仅 limits）:
+#   limits:
+#     cpu: 500m
+#     memory: 128Mi

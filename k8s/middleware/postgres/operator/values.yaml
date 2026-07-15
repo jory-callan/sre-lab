@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────
+# CloudNativePG Operator 配置
+# ──────────────────────────────────────────
+replicaCount: 1
+
+image:
+  repository: ghcr.io/cloudnative-pg/cloudnative-pg
+  pullPolicy: IfNotPresent
+  tag: ""
+
+crds:
+  create: true
+
+config:
+  create: true
+  clusterWide: true
+  data: {}
+  maxConcurrentReconciles: 10
+
+# ──────────────────────────────────────────
+# 资源配额（默认不启用，走 chart 默认值）
+# ──────────────────────────────────────────
+# 生产推荐值:
+#   requests:
+#     cpu: 200m
+#     memory: 128Mi
+#   limits:
+#     cpu: 500m
+#     memory: 512Mi
+# 当前环境最低配置（仅 limits）:
+#   limits:
+#     cpu: 300m
+#     memory: 256Mi
+
+# 镜像拉取策略
+resources: {}
