@@ -10,7 +10,7 @@ MinIO 兼容 AWS S3 的访问控制模型：**Access Key (AK) = 用户名，Secr
 | `svc-poweruser` | 见 Secret | `readwrite` | 所有 bucket 读写 | 通用服务账号（备份、迁移） |
 | `svc-private` | 见 Secret | `private-rw` | 仅 `private` bucket 读写 | 仅需访问特定 bucket 的服务 |
 
-> **生产环境必须修改** root 密码：更新 `secret.yaml` 中 `MINIO_ROOT_PASSWORD`。
+> **生产环境必须修改** root 密码：更新 `test-default/secret-root.yaml` 中 `MINIO_ROOT_PASSWORD`。
 
 ## 三种创建方式
 

@@ -1,0 +1,25 @@
+# operator values — MinIO Operator v5.0.18
+# 覆盖 chart 默认值
+operator:
+  image:
+    tag: v5.0.18
+  resources:
+    requests:
+      cpu: 500m
+      memory: 64Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 1000m
+      memory: 128Mi
+      ephemeral-storage: 100Mi
+
+# Console 跟随 operator 版本
+console:
+  image:
+    tag: v5.0.18
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  ingress:
+    enabled: false  # 我们用独立 Ingress，不走 console 内置

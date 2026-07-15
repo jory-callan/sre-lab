@@ -6,11 +6,11 @@ metadata:
   labels:
     app: minio
 spec:
-  # ── quay.io 镜像（已验证可正常拉取）────
+  # ── quay.io 镜像（版本锁定，不再主动升级）────
   image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
   imagePullPolicy: IfNotPresent
 
-  # v7.x 使用 configuration.name 引用 config.env 格式的 Secret
+  # 使用 configuration.name 引用 config.env 格式的 Secret
   configuration:
     name: minio-env-config
 
@@ -37,14 +37,21 @@ spec:
           resources:
             requests:
               storage: 2Gi
-      # ── 资源限制（降低 CPU request 以便在集群中调度）──
+      # ── 容器资源限制 ────────────────────────────
       resources:
-        requests:
-          cpu: 50m
-          memory: 128Mi
+        # ──────────────────────────────────────────
+        # 生产推荐值:
+        #   requests:
+        #     cpu: 500m
+        #     memory: 1Gi
+        #   limits:
+        #     cpu: 2000m
+        #     memory: 4Gi
+        # ──────────────────────────────────────────
+        # 当前环境最低配置（仅 limits）:
         limits:
-          cpu: 500m
-          memory: 512Mi
+          cpu: 1000m
+          memory: 1Gi
 
   mountPath: /export
   subPath: /data
