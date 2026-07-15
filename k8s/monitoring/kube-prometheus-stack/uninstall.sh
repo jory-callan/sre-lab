@@ -17,7 +17,9 @@ helm uninstall prometheus -n "$NAMESPACE" --ignore-not-found --wait
 
 echo ">> 清理 Prometheus/Loki Ingress ..."
 kubectl delete -f "$SCRIPT_DIR/prometheus-ingress.yaml" --ignore-not-found 2>/dev/null
-kubectl delete namespace "$NAMESPACE" --ignore-not-found --wait=true
 
 echo ""
 echo "✅ kube-prometheus-stack 已完全卸载"
+echo ""
+echo ">> 如需删除命名空间:"
+echo "    kubectl delete namespace $NAMESPACE --ignore-not-found"
