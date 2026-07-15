@@ -1,6 +1,6 @@
-# Kite Helm values — v0.13.0
-# 自包含 chart，SQLite + NFS 持久化 + ingress-nginx 域名访问 + 自定义配置
-
+# test-default values — Kite 测试实例
+# 覆盖 chart 默认值
+---
 image:
   tag: v0.13.0
 
@@ -36,7 +36,7 @@ ingress:
 service:
   type: ClusterIP
 
-# 自定义配置 — 通过 configmap 注入
+# 自定义配置 — 通过 Secret 注入
 config:
   enabled: true
   clusters:

@@ -85,7 +85,7 @@ db:
   # leave empty for use existingSecret to provide it when type is not sqlite
   # Example: "mysql://user:password@tcp(host:port)/dbname"
   dsn: ""
-  
+
   # sqlite-specific options
   sqlite:
     # If true, the chart will create a PVC and mount it into the pod for the sqlite DB file.
@@ -330,19 +330,22 @@ gateway:
     #             value: /api
 
 resources:
-  {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # ──────────────────────────────────────────
+  # 生产推荐值:
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi
+  #   limits:
+  #     cpu: 200m
+  #     memory: 256Mi
+  # ──────────────────────────────────────────
+  # 当前环境最低配置（仅 limits）:
   # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+  #   cpu: 200m
+  #   memory: 256Mi
+  {}
 
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 livenessProbe:
   httpGet:
     path: /healthz
