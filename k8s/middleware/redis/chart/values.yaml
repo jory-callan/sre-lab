@@ -1,0 +1,84 @@
+# ──────────────────────────────────────────
+# redis-sentinel-ha — 默认 values
+# spotahome RedisFailover 哨兵高可用
+# ──────────────────────────────────────────
+
+# ── 实例名 ──────────────────────────────────
+nameOverride: ""
+
+# ── 镜像 ────────────────────────────────────
+image:
+  repository: quay.io/opstree/redis
+  tag: v7.0.15
+  pullPolicy: IfNotPresent
+
+sentinelImage:
+  repository: quay.io/opstree/redis
+  tag: v7.0.15
+  pullPolicy: IfNotPresent
+
+exporterImage:
+  repository: quay.io/oliver006/redis_exporter
+  tag: v1.43.0
+  pullPolicy: IfNotPresent
+
+# ── 认证 ────────────────────────────────────
+# Secret 由 install.sh 提前 kubectl apply
+authSecretName: redis-auth
+
+# ── Redis 配置 ───────────────────────────────
+redis:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  customConfig:
+    - "tcp-keepalive 60"
+    - "min-replicas-to-write 1"
+    - "min-replicas-max-lag 10"
+    - "repl-timeout 60"
+    - "repl-backlog-size 104857600"
+  storage:
+    size: 5Gi
+    storageClass: nfs-client
+
+# ── Sentinel 配置 ────────────────────────────
+sentinel:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+  customConfig:
+    - "down-after-milliseconds 15000"
+    - "failover-timeout 30000"
+
+# ── 外部访问 ────────────────────────────────
+externalService:
+  enabled: true
+  nodePort: 30207
+
+# ── 备份 ────────────────────────────────────
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  storage:
+    size: 5Gi
+    storageClass: nfs-client
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400

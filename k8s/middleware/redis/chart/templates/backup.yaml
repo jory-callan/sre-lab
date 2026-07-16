@@ -1,0 +1,78 @@
+{{- if .Values.backup.enabled }}
+# RDB 备份 PVC — {{ .Release.Name }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "redis-ha.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.backup.storage.size }}
+  storageClassName: {{ .Values.backup.storage.storageClass }}
+---
+# 每天 {{ .Values.backup.schedule }} RDB 备份
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "redis-ha.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.backup.schedule }}"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.backup.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.backup.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.backup.backoffLimit }}
+      ttlSecondsAfterFinished: {{ .Values.backup.ttlSecondsAfterFinished }}
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: redis-backup
+            image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+            command:
+            - /bin/sh
+            - -ec
+            - |
+              TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+              BACKUP_DIR="/backup"
+              SERVICE="{{ .Release.Name }}"
+              RDB_FILE="${BACKUP_DIR}/{{ .Release.Name }}-${TIMESTAMP}.rdb"
+              LATEST_LINK="${BACKUP_DIR}/latest.rdb"
+
+              echo "[${TIMESTAMP}] Connecting to ${SERVICE}..."
+              redis-cli -a "${REDIS_PASSWORD}" \
+                -h "${SERVICE}" --no-auth-warning \
+                --rdb "${RDB_FILE}"
+
+              SIZE=$(stat -c%s "${RDB_FILE}" 2>/dev/null || stat -f%z "${RDB_FILE}" 2>/dev/null)
+              echo "[${TIMESTAMP}] RDB saved: ${RDB_FILE} (${SIZE} bytes)"
+
+              ln -sf "{{ .Release.Name }}-${TIMESTAMP}.rdb" "${LATEST_LINK}"
+              find "${BACKUP_DIR}" -name "{{ .Release.Name }}-*.rdb" -mtime +7 -delete
+              echo "[${TIMESTAMP}] Done."
+            env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authSecretName }}
+                  key: password
+            resources:
+{{ toYaml .Values.backup.resources | indent 14 }}
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: {{ .Release.Name }}-backup
+{{- end }}

@@ -1,0 +1,21 @@
+{{- if .Values.externalService.enabled }}
+# 外部访问 Service — {{ .Release.Name }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "redis-ha.labels" . | nindent 4 }}
+spec:
+  type: NodePort
+  ports:
+    - port: 6379
+      targetPort: 6379
+      nodePort: {{ .Values.externalService.nodePort }}
+  selector:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/part-of: redis-failover
+    redisfailovers-role: master
+{{- end }}

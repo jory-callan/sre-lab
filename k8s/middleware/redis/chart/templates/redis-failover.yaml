@@ -1,0 +1,95 @@
+# RedisFailover CR — {{ .Release.Name }}
+# 由 Helm 模板化生成
+apiVersion: databases.spotahome.com/v1
+kind: RedisFailover
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "redis-ha.labels" . | nindent 4 }}
+spec:
+  auth:
+    secretPath: {{ .Values.authSecretName }}
+
+  redis:
+    image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+    imagePullPolicy: {{ .Values.image.pullPolicy }}
+    replicas: {{ .Values.redis.replicas }}
+
+    resources:
+{{ toYaml .Values.redis.resources | indent 6 }}
+
+    customConfig:
+{{ toYaml .Values.redis.customConfig | indent 6 }}
+
+    storage:
+      keepAfterDeletion: true
+      persistentVolumeClaim:
+        metadata:
+          name: {{ .Release.Name }}-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: {{ .Values.redis.storage.size }}
+          storageClassName: {{ .Values.redis.storage.storageClass }}
+
+    exporter:
+      enabled: true
+      image: {{ .Values.exporterImage.repository }}:{{ .Values.exporterImage.tag }}
+      imagePullPolicy: {{ .Values.exporterImage.pullPolicy }}
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: redis
+                app.kubernetes.io/part-of: redis-failover
+
+    tolerations:
+      - operator: Exists
+
+  sentinel:
+    image: {{ .Values.sentinelImage.repository }}:{{ .Values.sentinelImage.tag }}
+    imagePullPolicy: {{ .Values.sentinelImage.pullPolicy }}
+    replicas: {{ .Values.sentinel.replicas }}
+
+    resources:
+{{ toYaml .Values.sentinel.resources | indent 6 }}
+
+    customConfig:
+{{ toYaml .Values.sentinel.customConfig | indent 6 }}
+
+    exporter:
+      enabled: true
+      image: {{ .Values.exporterImage.repository }}:{{ .Values.exporterImage.tag }}
+      imagePullPolicy: {{ .Values.exporterImage.pullPolicy }}
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 200m
+          memory: 64Mi
+
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/component: sentinel
+                app.kubernetes.io/part-of: redis-failover
+
+    tolerations:
+      - operator: Exists

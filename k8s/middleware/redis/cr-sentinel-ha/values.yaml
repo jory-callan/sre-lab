@@ -1,18 +1,60 @@
 # ──────────────────────────────────────────
-# Redis sentinel-ha 实例配置
+# Redis Sentinel HA 实例配置 — cr-sentinel-ha
+# 1 主 2 从 + 3 Sentinel，RDB 备份至 PVC
 # ──────────────────────────────────────────
 
-# ──────────────────────────────────────────
-# 资源配额（默认不启用，走 chart 默认值）
-# ──────────────────────────────────────────
-# 生产推荐值:
-#   requests:
-#     cpu: 500m
-#     memory: 256Mi
-#   limits:
-#     cpu: 1000m
-#     memory: 512Mi
-# 当前环境最低配置（仅 limits）:
-#   limits:
-#     cpu: 500m
-#     memory: 128Mi
+# ── 认证 Secret ────────────────────────────
+authSecretName: redis-auth
+
+# ── Redis 配置 ──────────────────────────────
+redis:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  customConfig:
+    - "tcp-keepalive 60"
+    - "min-replicas-to-write 1"
+    - "min-replicas-max-lag 10"
+    - "repl-timeout 60"
+    - "repl-backlog-size 104857600"
+  storage:
+    size: 5Gi
+    storageClass: nfs-client
+
+# ── Sentinel 配置 ──────────────────────────
+sentinel:
+  replicas: 3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+  customConfig:
+    - "down-after-milliseconds 15000"
+    - "failover-timeout 30000"
+
+# ── 外部访问 ──────────────────────────────
+externalService:
+  enabled: true
+  nodePort: 30207
+
+# ── 备份 ───────────────────────────────────
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  storage:
+    size: 5Gi
+    storageClass: nfs-client
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
