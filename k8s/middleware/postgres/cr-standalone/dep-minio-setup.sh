@@ -21,7 +21,7 @@ kubectl -n minio exec "$MINIO_POD" -c minio -- mc mb local/postgres-backup --ign
 echo "   ✅ 备份桶 postgres-backup 已就绪"
 
 # Policy
-kubectl -n minio exec -i "$MINIO_POD" -c minio -- sh -c 'cat > /tmp/pg-backup-policy.json' < "$SCRIPT_DIR/backup-policy.json" 2>/dev/null
+kubectl -n minio exec -i "$MINIO_POD" -c minio -- sh -c 'cat > /tmp/pg-backup-policy.json' < "$SCRIPT_DIR/dep-minio-backup-policy.json" 2>/dev/null
 kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin policy create local pg-backup /tmp/pg-backup-policy.json 2>/dev/null || true
 kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin user add local pg-backup Z6rX9pLm8kQw4nSv 2>/dev/null || true
 kubectl -n minio exec "$MINIO_POD" -c minio -- mc admin policy attach local pg-backup --user=pg-backup 2>/dev/null || true

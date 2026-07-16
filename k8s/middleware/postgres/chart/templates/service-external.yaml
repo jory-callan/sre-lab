@@ -1,0 +1,22 @@
+{{- if .Values.externalService.enabled }}
+# 外部访问 Service — {{ .Release.Name }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cnpg-cluster.labels" . | nindent 4 }}
+    cnpg.io/cluster: {{ .Release.Name }}
+spec:
+  type: NodePort
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: {{ .Values.externalService.nodePort }}
+      protocol: TCP
+  selector:
+    cnpg.io/cluster: {{ .Release.Name }}
+    cnpg.io/podRole: instance
+{{- end }}

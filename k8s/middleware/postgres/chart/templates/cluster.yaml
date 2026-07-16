@@ -1,0 +1,86 @@
+# PostgreSQL Cluster — CNPG Cluster CR
+# 由 Helm 模板化生成，参数来自 values.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cnpg-cluster.labels" . | nindent 4 }}
+spec:
+  instances: {{ .Values.instances }}
+
+  {{- if ge (.Values.instances | int) 3 }}
+  # ── 同步复制（≥3 节点时启用）───────────────
+  minSyncReplicas: 1
+  maxSyncReplicas: 2
+  {{- end }}
+
+  imageName: {{ .Values.imageName }}
+
+  # ── 超级用户密码管理（由 initdb.secret 指定）──────
+  enableSuperuserAccess: {{ .Values.enableSuperuserAccess }}
+
+  # ── PostgreSQL 参数 ────────────────────────
+  postgresql:
+    shared_preload_libraries:
+{{ toYaml .Values.postgresql.shared_preload_libraries | indent 6 }}
+    parameters:
+{{ toYaml .Values.postgresql.parameters | indent 6 }}
+
+  # ── 初始化配置 ────────────────────────────
+  bootstrap:
+    initdb:
+      database: {{ .Values.initdb.database }}
+      owner: {{ .Values.initdb.owner }}
+      secret:
+        name: {{ .Values.authSecretName }}
+      postInitSQL:
+        - ALTER USER "{{ .Values.initdb.owner }}" WITH PASSWORD '{{ .Values.initdb.password }}'
+        {{- range .Values.initdb.extensions }}
+        - CREATE EXTENSION IF NOT EXISTS "{{ . }}"
+        {{- end }}
+      postInitTemplateSQL:
+        {{- range .Values.initdb.extensions }}
+        - CREATE EXTENSION IF NOT EXISTS "{{ . }}"
+        {{- end }}
+
+  # ── 存储 ──────────────────────────────────
+  storage:
+    size: {{ .Values.storage.size }}
+    storageClass: {{ .Values.storage.storageClass }}
+
+  walStorage:
+    size: {{ .Values.walStorage.size }}
+    storageClass: {{ .Values.walStorage.storageClass }}
+
+  # ── 资源 ────────────────────────────────
+  resources:
+{{ toYaml .Values.resources | indent 4 }}
+
+  # ── S3 备份 ──────────────────────────────
+  {{- if .Values.backup.enabled }}
+  backup:
+    barmanObjectStore:
+      destinationPath: {{ .Values.backup.destinationPath }}
+      endpointURL: {{ .Values.backup.endpointURL }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ .Values.s3CredentialsSecretName }}
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: {{ .Values.s3CredentialsSecretName }}
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: {{ .Values.backup.wal.compression }}
+        maxParallel: {{ .Values.backup.wal.maxParallel }}
+      data:
+        compression: {{ .Values.backup.data.compression }}
+        immediateCheckpoint: {{ .Values.backup.data.immediateCheckpoint }}
+        jobs: {{ .Values.backup.data.jobs }}
+    retentionPolicy: {{ .Values.backup.retentionPolicy }}
+  {{- end }}
+
+  # ── 亲和性 ──────────────────────────────
+  affinity:
+    topologyKey: {{ .Values.affinity.topologyKey }}

@@ -1,20 +1,149 @@
 # ──────────────────────────────────────────
-# PostgreSQL HA 实例配置
+# PostgreSQL HA 实例配置 — cr-ha
+# 1 主 2 从，PgBouncer 连接池，S3 备份至 MinIO
 # ──────────────────────────────────────────
 
-# ──────────────────────────────────────────
-# 资源配额（默认不启用，走 chart 默认值）
-# ──────────────────────────────────────────
-# 生产推荐值:
-#   requests:
-#     cpu: 500m
-#     memory: 256Mi
-#     ephemeral-storage: 100Mi
-#   limits:
-#     cpu: 1000m
-#     memory: 512Mi
-#     ephemeral-storage: 200Mi
-# 当前环境最低配置（仅 limits）:
-#   limits:
-#     cpu: 500m
-#     memory: 128Mi
+# ── 超级用户密码管理（false = 手动管理密码，install.sh 中设置）───
+enableSuperuserAccess: false
+
+# ── 实例 ──────────────────────────────────
+instances: 3
+imageName: ghcr.io/cloudnative-pg/postgresql:17
+
+# ── PostgreSQL 参数（4c8g 调优，详见 tuning-guide.md）──
+postgresql:
+  shared_preload_libraries:
+    - pg_stat_statements
+  parameters:
+    # ── 连接 ──
+    max_connections: "500"
+    superuser_reserved_connections: "10"
+
+    # ── 内存（8Gi）──
+    shared_buffers: "2GB"
+    effective_cache_size: "6GB"
+    work_mem: "16MB"
+    maintenance_work_mem: "512MB"
+    wal_buffers: "16MB"
+
+    # ── SSD 优化 ──
+    random_page_cost: "1.1"
+    effective_io_concurrency: "200"
+    wal_compression: "zstd"
+    wal_log_hints: "on"
+
+    # ── WAL / Checkpoint ──
+    min_wal_size: "1GB"
+    max_wal_size: "3GB"
+    checkpoint_timeout: "900"
+    checkpoint_completion_target: "0.9"
+
+    # ── 超时保护 ──
+    statement_timeout: "30000"
+    idle_in_transaction_session_timeout: "60000"
+    idle_session_timeout: "300000"
+    tcp_keepalives_idle: "60"
+    tcp_keepalives_interval: "10"
+    tcp_keepalives_count: "6"
+
+    # ── 自动清理 ──
+    autovacuum_max_workers: "4"
+    autovacuum_naptime: "30s"
+    autovacuum_vacuum_scale_factor: "0.01"
+    autovacuum_analyze_scale_factor: "0.005"
+
+    # ── 日志 / 审计 ──
+    log_min_duration_statement: "1000"
+    log_checkpoints: "on"
+    log_connections: "on"
+    log_disconnections: "on"
+    log_lock_waits: "on"
+    deadlock_timeout: "5s"
+
+    # ── 并行查询 ──
+    max_parallel_workers: "8"
+    max_parallel_workers_per_gather: "4"
+    parallel_setup_cost: "100"
+    parallel_tuple_cost: "0.01"
+
+    # ── 监控 ──
+    track_io_timing: "on"
+    track_functions: "pl"
+    pg_stat_statements.max: "10000"
+    pg_stat_statements.track: "all"
+
+# ── 初始化 ────────────────────────────────
+initdb:
+  database: postgres
+  owner: postgres
+  password: postgres@czw123
+  extensions:
+    - citext
+    - pg_stat_statements
+    - "uuid-ossp"
+    - pgcrypto
+
+# ── 存储（local-path）─────────────────────
+storage:
+  size: 10Gi
+  storageClass: local-path
+
+walStorage:
+  size: 5Gi
+  storageClass: local-path
+
+# ── 资源（4c8g）───────────────────────────
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    cpu: 4
+    memory: 8Gi
+
+# ── S3 备份至 MinIO ──────────────────────
+backup:
+  enabled: true
+  destinationPath: s3://postgres-backup/
+  endpointURL: http://minio.minio.svc:80
+  wal:
+    compression: gzip
+    maxParallel: 8
+  data:
+    compression: gzip
+    immediateCheckpoint: true
+    jobs: 4
+  retentionPolicy: "30d"
+
+# ── PgBouncer 连接池 ─────────────────────
+pooler:
+  enabled: true
+  instances: 2
+  type: rw
+  pgbouncer:
+    poolMode: transaction
+    default_pool_size: "200"
+    max_client_conn: "25000"
+    max_db_connections: "500"
+    reserve_pool_size: "10"
+    reserve_pool_timeout: "5"
+    query_timeout: "30"
+    idle_transaction_timeout: "60"
+    server_idle_timeout: "300"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# ── 定时备份（每天 03:00）─────────────────
+scheduledBackup:
+  enabled: true
+  schedule: "0 0 3 * * ?"
+
+# ── 外部 Service ─────────────────────────
+externalService:
+  enabled: true
+  nodePort: 30006

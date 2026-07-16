@@ -1,0 +1,35 @@
+{{- if .Values.pooler.enabled }}
+# PgBouncer 连接池 — {{ .Release.Name }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: {{ .Release.Name }}-pooler-{{ .Values.pooler.type }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cnpg-cluster.labels" . | nindent 4 }}
+spec:
+  cluster:
+    name: {{ .Release.Name }}
+
+  instances: {{ .Values.pooler.instances }}
+  type: {{ .Values.pooler.type }}
+
+  pgbouncer:
+    poolMode: {{ .Values.pooler.pgbouncer.poolMode }}
+    parameters:
+      default_pool_size: "{{ .Values.pooler.pgbouncer.default_pool_size }}"
+      max_client_conn: "{{ .Values.pooler.pgbouncer.max_client_conn }}"
+      max_db_connections: "{{ .Values.pooler.pgbouncer.max_db_connections }}"
+      reserve_pool_size: "{{ .Values.pooler.pgbouncer.reserve_pool_size }}"
+      reserve_pool_timeout: "{{ .Values.pooler.pgbouncer.reserve_pool_timeout }}"
+      query_timeout: "{{ .Values.pooler.pgbouncer.query_timeout }}"
+      idle_transaction_timeout: "{{ .Values.pooler.pgbouncer.idle_transaction_timeout }}"
+      server_idle_timeout: "{{ .Values.pooler.pgbouncer.server_idle_timeout }}"
+
+  template:
+    spec:
+      containers:
+        - name: pgbouncer
+          resources:
+{{ toYaml .Values.pooler.resources | indent 12 }}
+{{- end }}

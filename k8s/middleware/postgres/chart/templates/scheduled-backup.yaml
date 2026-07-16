@@ -1,0 +1,15 @@
+{{- if .Values.scheduledBackup.enabled }}
+# 定时备份 — {{ .Release.Name }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ .Release.Name }}-daily-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cnpg-cluster.labels" . | nindent 4 }}
+spec:
+  schedule: "{{ .Values.scheduledBackup.schedule }}"
+  backupOwnerReference: self
+  cluster:
+    name: {{ .Release.Name }}
+{{- end }}
