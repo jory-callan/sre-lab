@@ -6,6 +6,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: internal-ca
     nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  # 同时支持 HTTP + HTTPS
     nginx.ingress.kubernetes.io/proxy-body-size: "0"  # S3 上传无限制
 spec:
   ingressClassName: nginx

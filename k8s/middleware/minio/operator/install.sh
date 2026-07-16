@@ -21,9 +21,15 @@ install() {
     --namespace "$NAMESPACE" \
     --values "$VALUES" \
     --timeout 5m --wait
+
+  # Operator Console Ingress
+  echo ">> 创建 Operator Console Ingress ..."
+  kubectl apply -f "$SCRIPT_DIR/ingress.yaml"
 }
 
 uninstall() {
+  echo ">> 删除 Operator Console Ingress ..."
+  kubectl delete -f "$SCRIPT_DIR/ingress.yaml" --ignore-not-found 2>/dev/null || true
   helm uninstall "$NAME" --namespace "$NAMESPACE"
 }
 

@@ -10,8 +10,9 @@
 |------|------|----------|------|
 | 集群内部 | S3 API | `http://minio.minio.svc:80` | HTTP（同 namespace 可用 `minio:80`） |
 | 集群内部 | Web Console | `http://minio-console.minio.svc:9090` | HTTP |
-| 集群外部 | S3 API | `https://minio-api.czw-sre.internal` | HTTPS（Ingress TLS 终结） |
-| 集群外部 | Web Console | `https://minio.czw-sre.internal` | HTTPS |
+| 集群外部 | S3 API | `https://minio-api.czw-sre.internal` 或 `http://minio-api.czw-sre.internal` | HTTPS + HTTP 双栈 |
+| 集群外部 | Web Console | `https://minio.czw-sre.internal` 或 `http://minio.czw-sre.internal` | HTTPS + HTTP 双栈 |
+| 集群外部 | Operator Console | `https://minio-operator.czw-sre.internal` 或 `http://minio-operator.czw-sre.internal` | HTTPS + HTTP 双栈 |
 
 ### S3 SDK 配置示例
 

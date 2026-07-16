@@ -100,6 +100,42 @@ kubectl delete deploy echo
 5. **保留真实客户端 IP** — 已启用 `compute-full-forwarded-for` + `use-forwarded-headers`，配合 `externalTrafficPolicy: Local` 可获得真实源 IP
 6. **DaemonSet 优势** — 每 Node 都有 Ingress pod，MetalLB L2 leader 切换时零丢包；任意节点 NodePort 30080/30443 均可访问服务，不依赖 LB
 
+## SSL Redirect 说明
+
+ingress-nginx **默认**行为：当 Ingress 配置了 `tls` 字段时，访问 HTTP 会被自动 301 重定向到 HTTPS。这是由 `ssl-redirect` 配置控制的。
+
+### 按 Ingress 控制
+
+在每个 Ingress 的 `annotations` 中设置：
+
+```yaml
+# HTTP + HTTPS 双栈（不重定向，HTTP 和 HTTPS 都正常服务）
+nginx.ingress.kubernetes.io/ssl-redirect: "false"
+
+# 仅 HTTPS（缺省行为，HTTP → 301 → HTTPS）
+# 不设置该 annotation，或设为 "true"
+```
+
+### 全局控制
+
+> ⚠️ 当前集群未启用全局配置，保持 per-Ingress 控制粒度。
+
+全局修改需在 Helm values 中添加：
+
+```yaml
+controller:
+  config:
+    ssl-redirect: "false"   # 全局关闭 HTTP→HTTPS 重定向
+```
+
+### 判断依据
+
+| 场景 | 配置方式 | 推荐 |
+|------|---------|------|
+| 所有 Ingress 都要 HTTP+HTTPS | 全局 `ssl-redirect: false` | ❌ 不够灵活 |
+| 特定 Ingress 需要 HTTP+HTTPS | annotation `ssl-redirect: "false"` | ✅ 推荐 |
+| 特定 Ingress 需要仅 HTTPS | 不加 annotation（默认行为） | ✅ 推荐 |
+
 ## 故障排查
 
 | 现象 | 可能原因 | 解决 |
