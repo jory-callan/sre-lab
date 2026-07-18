@@ -29,10 +29,6 @@
       {{ groups['k3s_server'] | map('extract', hostvars, 'ansible_hostname') | list }}
   when: k3s_role == 'server'
 
-- name: 获取第一个 server 节点地址
-  set_fact:
-    k3s_first_server_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_default_ipv4']['address'] }}"
-
 - import_tasks: prereq.yml
 
 - import_tasks: config.yml
