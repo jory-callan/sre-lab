@@ -1,30 +1,27 @@
 # K3s Server 配置（生产优化）
 #
 # 动态值由 Ansible 自动注入:
-#   - token          → k3s_token
-#   - tls-san IP     → 遍历 k3s_server 组所有节点 IP
-#   - cluster-init   → 第一个 server 为 true，其余为 false
-#   - server         → 加入的 server 指向第一个 server
-#   - system-default-registry → k3s_system_default_registry
-#
-# 前置条件:
-#   - 数据盘已挂载到 /data（或修改 data-dir）
-#   - 节点间网络互通
-#   - 时间同步已配置
+# 占位符说明:
+#   __CHANGEME_TOKEN__          → k3s_token
+#   __CHANGEME_DATA_DIR__       → k3s_data_dir
+#   __CHANGEME_CLUSTER_INIT__   → 首节点 cluster-init: true，其余 false
+#   __CHANGEME_SERVER_URL__     → 加入节点 server: https://VIP:6443
+#   __CHANGEME_TLS_SAN__        → k3s_tls_san（VIP 域名）
+#   __CHANGEME_TLS_SAN_IPS__    → 所有 server 节点 IP（动态注入）
 
 # ==============================================
 # 基本配置
 # ==============================================
 
-# 集群初始化（第一个 server 为 true，加入的节点改为 false）
-# ANSIBLE_CLUSTER_INIT: true
-# ANSIBLE_SERVER_URL
+# 集群初始化（首节点 true，加入节点 false + server URL）
+# __CHANGEME_CLUSTER_INIT__
+# __CHANGEME_SERVER_URL__
 
 # 集群认证 token（由 Ansible 注入）
-token: "CHANGE_ME"
+token: "__CHANGEME_TOKEN__"
 
 # 数据目录（建议放在独立数据盘）
-data-dir: "/data/k3s"
+data-dir: "__CHANGEME_DATA_DIR__"
 
 # ==============================================
 # 禁用内置组件
@@ -37,6 +34,7 @@ disable:
 
 # 禁用内置 flannel（使用 Cilium CNI）
 flannel-backend: none
+# disable-kube-proxy: true       # 禁用 K3s 自带 kube-proxy 。 使用 cilium eBPF
 
 # ==============================================
 # 镜像仓库
@@ -54,7 +52,8 @@ tls-san:
   - "kubernetes.default"
   - "kubernetes.default.svc"
   - "kubernetes.default.svc.cluster.local"
-# ANSIBLE_TLS_SAN_IPS
+  - "__CHANGEME_TLS_SAN__"
+  # __CHANGEME_TLS_SAN_IPS__
 
 # ==============================================
 # Kubelet 配置（日志轮转 / GC / 资源预留）
@@ -89,7 +88,7 @@ kubelet-arg:
 # 自动快照
 etcd-snapshot-schedule-cron: "0 */6 * * *"
 etcd-snapshot-retention: 30
-etcd-snapshot-dir: "/data/k3s/snapshots"
+etcd-snapshot-dir: "__CHANGEME_DATA_DIR__/snapshots"
 
 # ETCD 性能参数
 etcd-arg:

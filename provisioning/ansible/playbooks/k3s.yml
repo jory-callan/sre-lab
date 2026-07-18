@@ -17,6 +17,8 @@
 # 变量（在 hosts.ini [all:vars] 中定义）:
 #   k3s_version       - k3s 版本号，如 v1.31.5-k3s1
 #   k3s_token         - 集群认证 token
+#   vip_address       - Keepalived VIP（如 192.168.5.254）
+#   k3s_tls_san       - TLS SAN 域名（如 k3s-vip.cz2-sre.internal）
 
 - name: 安装 K3s Server 节点
   hosts: k3s_server
@@ -32,6 +34,13 @@
   roles:
     - role: k3s
       tags: [k3s, agent]
+
+- name: 安装 Keepalived + HAProxy（k3s API Server 高可用）
+  hosts: k3s_server
+  gather_facts: yes
+  roles:
+    - role: keepalived-haproxy
+      tags: [keepalived, haproxy, lb]
 
 - name: 卸载 K3s（手动运行，--tags uninstall / --tags purge）
   hosts: k3s_cluster

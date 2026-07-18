@@ -1,0 +1,14 @@
+---
+# Handlers: keepalived-haproxy
+
+- name: restart haproxy
+  systemd:
+    name: haproxy
+    state: restarted
+    daemon_reload: yes
+
+- name: restart keepalived
+  systemd:
+    name: keepalived
+    state: restarted
+    daemon_reload: yes

@@ -1,0 +1,18 @@
+# {{ ansible_managed }}
+# Keepalived — k3s API Server VIP 漂移
+# 首节点 MASTER，其余 BACKUP，VIP 由 vip_address 变量定义
+
+vrrp_instance VI_K3S {
+    state {{ 'MASTER' if inventory_hostname == groups['k3s_server'][0] else 'BACKUP' }}
+    interface {{ ansible_default_ipv4.interface }}
+    virtual_router_id 51
+    priority {{ 100 if inventory_hostname == groups['k3s_server'][0] else 90 }}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass k3s_ha_vrrp
+    }
+    virtual_ipaddress {
+        {{ vip_address }}
+    }
+}

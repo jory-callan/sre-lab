@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+# HAProxy — k3s API Server 负载均衡
+# 监听所有 server 节点的 6443，转发到后端所有 server 节点
+
+global
+    log /dev/log local0
+    maxconn 4096
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+    retries 3
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+
+frontend k3s-api-server
+    bind 0.0.0.0:6443
+    mode tcp
+    default_backend k3s-servers
+
+backend k3s-servers
+    mode tcp
+    balance roundrobin
+{% for host in groups['k3s_server'] %}
+    server {{ host }} {{ hostvars[host]['ansible_default_ipv4']['address'] }}:6443 check inter 3s fall 3 rise 2
+{% endfor %}

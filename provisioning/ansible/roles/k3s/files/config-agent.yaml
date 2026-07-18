@@ -7,19 +7,19 @@
 # 前置条件:
 #   - 数据盘已挂载到 /data（或修改 data-dir）
 #   - 节点间网络互通
-
+ 
 # ==============================================
 # 基本配置
 # ==============================================
 
 # 连接到 server（由 Ansible 注入）
-server: "https://CHANGE_ME:6443"
+server: "https://__CHANGEME_VIP__:6443"
 
 # 集群认证 token（由 Ansible 注入）
-token: "CHANGE_ME"
+token: "__CHANGEME_TOKEN__"
 
 # 数据目录
-data-dir: "/data/k3s"
+data-dir: "__CHANGEME_DATA_DIR__"
 
 # ==============================================
 # Kubelet 配置

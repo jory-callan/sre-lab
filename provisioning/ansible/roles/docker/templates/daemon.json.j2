@@ -2,13 +2,11 @@
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
   "log-opts": {
-    "max-size": "100m",
-    "max-file": "3"
+    "max-size": "{{ docker_log_max_size | default('100m') }}",
+    "max-file": "{{ docker_log_max_file | default('3') }}"
   },
   "storage-driver": "overlay2",
-  "registry-mirrors": [
-    "{{ docker_registry_mirror }}"
-  ],
+  "registry-mirrors": {{ docker_registry_mirror | default(['http://192.168.5.103:5000']) | tojson }},
   "data-root": "{{ docker_data_root }}",
   "live-restore": true,
   "iptables": true

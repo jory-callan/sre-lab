@@ -22,63 +22,64 @@
 - name: 注入 token
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: '^token: "CHANGE_ME"'
-    replace: 'token: "{{ k3s_token }}"'
+    regexp: '__CHANGEME_TOKEN__'
+    replace: '{{ k3s_token }}'
 
 # ---- 注入 data-dir ----
 - name: 注入 data-dir
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: '^data-dir:.*'
-    replace: 'data-dir: "{{ k3s_data_dir | default("/var/lib/rancher/k3s") }}"'
-
-- name: 注入 etcd 快照目录
-  replace:
-    path: /etc/rancher/k3s/config.yaml
-    regexp: '^etcd-snapshot-dir:.*'
-    replace: 'etcd-snapshot-dir: "{{ k3s_data_dir | default("/var/lib/rancher/k3s") }}/snapshots"'
+    regexp: '__CHANGEME_DATA_DIR__'
+    replace: '{{ k3s_data_dir | default("/var/lib/rancher/k3s") }}'
 
 # ---- Server 特有注入 ----
 - name: 注入 cluster-init（第一个 server）
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: '^# ANSIBLE_CLUSTER_INIT: true'
+    regexp: '# __CHANGEME_CLUSTER_INIT__'
     replace: 'cluster-init: true'
   when: k3s_role == 'server' and k3s_is_first_server
 
 - name: 注入 server 地址（加入的 server）
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: '^# ANSIBLE_CLUSTER_INIT: true'
+    regexp: '# __CHANGEME_CLUSTER_INIT__'
     replace: 'cluster-init: false'
   when: k3s_role == 'server' and not k3s_is_first_server
 
 - name: 注入 server 地址（加入的 server 节点）
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: '^# ANSIBLE_SERVER_URL'
-    replace: 'server: "https://{{ k3s_first_server_ip }}:6443"'
+    regexp: '# __CHANGEME_SERVER_URL__'
+    replace: 'server: "https://{{ vip_address }}:6443"'
   when: k3s_role == 'server' and not k3s_is_first_server
 
 - name: 清理 server 地址占位注释（第一个 server）
   lineinfile:
     path: /etc/rancher/k3s/config.yaml
-    line: '# ANSIBLE_SERVER_URL'
+    line: '# __CHANGEME_SERVER_URL__'
     state: absent
   when: k3s_role == 'server' and k3s_is_first_server
+
+- name: 注入 TLS SAN 域名
+  replace:
+    path: /etc/rancher/k3s/config.yaml
+    regexp: '__CHANGEME_TLS_SAN__'
+    replace: '{{ k3s_tls_san }}'
+  when: k3s_role == 'server'
 
 - name: 注入 tls-san IP 列表
   lineinfile:
     path: /etc/rancher/k3s/config.yaml
     line: '  - "{{ item }}"'
-    insertafter: '# ANSIBLE_TLS_SAN_IPS'
+    insertafter: '# __CHANGEME_TLS_SAN_IPS__'
   loop: "{{ k3s_server_ips }}"
   when: k3s_role == 'server'
 
 - name: 移除 tls-san 占位注释
   lineinfile:
     path: /etc/rancher/k3s/config.yaml
-    line: '# ANSIBLE_TLS_SAN_IPS'
+    line: '# __CHANGEME_TLS_SAN_IPS__'
     state: absent
   when: k3s_role == 'server'
 
@@ -86,8 +87,8 @@
 - name: 注入 server 地址（agent）
   replace:
     path: /etc/rancher/k3s/config.yaml
-    regexp: 'server: "https://CHANGE_ME:6443"'
-    replace: 'server: "https://{{ k3s_first_server_ip }}:6443"'
+    regexp: '__CHANGEME_VIP__'
+    replace: '{{ vip_address }}'
   when: k3s_role == 'agent'
 
 # ---- 镜像源配置 ----
