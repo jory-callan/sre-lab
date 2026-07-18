@@ -121,20 +121,19 @@
     dest: /etc/rancher/k3s/registries.yaml
     mode: '0644'
 
-# ---- /etc/hosts 管理（确保内部域名解析，不依赖路由器 DNS） ----
-- name: 添加 server 节点 hostname 到 /etc/hosts
-  lineinfile:
+# ---- /etc/hosts 管理（使用 blockinfile 保护用户自定义内容） ----
+# 只管理标记块内的条目，不影响用户在其他地方写的 /etc/hosts
+- name: 写入 /etc/hosts 托管块（server 节点 hostname + TLS SAN 域名 → VIP）
+  blockinfile:
     path: /etc/hosts
-    line: "{{ hostvars[item]['ansible_default_ipv4']['address'] }} {{ hostvars[item]['ansible_hostname'] }}"
-    regexp: "\\s{{ hostvars[item]['ansible_hostname'] }}$"
+    block: |
+{% for host in groups['k3s_server'] %}
+      {{ hostvars[host]['ansible_default_ipv4']['address'] }} {{ hostvars[host]['ansible_hostname'] }}
+{% endfor %}
+{% for item in k3s_tls_san %}
+{% if item is not match('^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$') %}
+      {{ vip_address }} {{ item }}
+{% endif %}
+{% endfor %}
+    marker: "# === K3S MANAGED BLOCK {mark} ==="
     state: present
-  loop: "{{ groups['k3s_server'] }}"
-
-- name: 添加 TLS SAN 域名到 /etc/hosts（非 IP 条目指向 VIP）
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ vip_address }} {{ item }}"
-    regexp: "\\s{{ item }}$"
-    state: present
-  loop: "{{ k3s_tls_san }}"
-  when: item is not match('^\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}$')
