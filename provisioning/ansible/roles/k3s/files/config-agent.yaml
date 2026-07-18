@@ -13,7 +13,7 @@
 # ==============================================
 
 # 连接到 server（由 Ansible 注入）
-server: "https://__CHANGEME_VIP__:6443"
+server: "https://__CHANGEME_SERVER_IP__:6443"
 
 # 集群认证 token（由 Ansible 注入）
 token: "__CHANGEME_TOKEN__"

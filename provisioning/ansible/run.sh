@@ -10,7 +10,7 @@ INVENTORY="$DIR/inventories/production/hosts.ini"
 
 [[ $# -lt 1 ]] && {
     echo "用法: bash run.sh <playbook>"
-    echo "  playbook: linux-init | docker | k3s"
+ echo "  playbook: linux-init | docker | k3s | lb"
     echo ""
     echo "卸载（手动运行，不自动执行）:"
     echo "  bash run.sh k3s --tags uninstall -l <host>   # 软卸载，保留数据"

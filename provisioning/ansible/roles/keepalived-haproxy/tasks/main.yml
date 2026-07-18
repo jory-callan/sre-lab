@@ -4,11 +4,13 @@
 #
 # 前置条件:
 #   - k3s server 已安装并运行在 6443 端口
-#   - vip_address 变量已定义（如 192.168.5.254）
 #
 # 工作原理:
-#   - haproxy 在每个 server 节点上监听 VIP:6443，转发到所有 server 节点的 6443
-#   - keepalived 提供 VIP 漂移，首节点为 MASTER，其余为 BACKUP
+#   - haproxy 提供 TCP 负载均衡
+#   - keepalived 通过 VRRP 提供 VIP 漂移
+#
+# 使用说明:
+#   复制配置前，请先替换 files/ 目录中 __CHANGEME_* 占位符为实际值
 
 - name: 安装 haproxy 和 keepalived
   package:
@@ -17,16 +19,35 @@
       - keepalived
     state: present
 
-- name: 部署 haproxy 配置
-  template:
-    src: haproxy.cfg.j2
+- name: 创建 haproxy conf.d 目录
+  file:
+    path: /etc/haproxy/conf.d
+    state: directory
+    mode: '0755'
+
+- name: 部署 haproxy 主配置
+  copy:
+    src: haproxy/haproxy.cfg
     dest: /etc/haproxy/haproxy.cfg
     mode: '0644'
   notify: restart haproxy
 
+- name: 部署 haproxy 模块配置
+  copy:
+    src: "haproxy/conf.d/"
+    dest: /etc/haproxy/conf.d/
+    mode: '0644'
+  notify: restart haproxy
+
+- name: 创建 keepalived conf.d 目录
+  file:
+    path: /etc/keepalived/conf.d
+    state: directory
+    mode: '0755'
+
 - name: 部署 keepalived 配置
-  template:
-    src: keepalived.conf.j2
+  copy:
+    src: keepalived/keepalived.conf
     dest: /etc/keepalived/keepalived.conf
     mode: '0644'
   notify: restart keepalived

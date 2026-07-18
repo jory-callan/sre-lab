@@ -15,7 +15,6 @@
 | `k3s_version` | k3s 版本 | 必填 |
 | `k3s_token` | 集群认证 token | 必填 |
 | `k3s_data_dir` | 数据目录 | 必填 |
-| `vip_address` | Keepalived VIP | 必填 |
 | `k3s_tls_san` | 额外 TLS SAN 条目（JSON 数组） | 可选 |
 
 ## 主机组
@@ -35,9 +34,8 @@ k3s_agent
 
 ## 执行顺序
 
-1. `k3s_server` 组串行执行（`serial: 1`）— 首节点 `cluster-init: true`，其余通过 VIP 加入
-2. `k3s_agent` 组并行执行 — 全部通过 VIP 连接 API Server
-3. `k3s_server` 组安装 keepalived + haproxy — 提供 VIP 高可用
+1. `k3s_server` 组串行执行（`serial: 1`）— 首节点 `cluster-init: true`，其余通过首节点 IP 加入
+2. `k3s_agent` 组并行执行 — 全部通过首节点 IP 连接 API Server
 
 ## 配置文件
 
@@ -54,8 +52,8 @@ k3s_agent
 | `__CHANGEME_TOKEN__` | `k3s_token` | 所有节点 |
 | `__CHANGEME_DATA_DIR__` | `k3s_data_dir` | 所有节点 |
 | `__CHANGEME_CLUSTER_INIT__` | `cluster-init: true/false` | Server |
-| `__CHANGEME_SERVER_URL__` | `server: https://VIP:6443` | 加入的 Server |
-| `__CHANGEME_VIP__` | `vip_address` | Agent |
+| `__CHANGEME_SERVER_URL__` | `server: https://首节点IP:6443` | 加入的 Server |
+| `__CHANGEME_SERVER_IP__` | 首节点 IP 地址 | Agent |
 | `__CHANGEME_TLS_SAN_IPS__` | 所有 server 节点 IP | Server |
 | `__CHANGEME_TLS_SAN_HOSTNAMES__` | 所有 server 节点 hostname | Server |
 | `__CHANGEME_TLS_SAN_EXTRA__` | `k3s_tls_san` 数组条目 | Server |
@@ -67,7 +65,7 @@ k3s_agent
 通过 `blockinfile` 维护以下映射（标记块 `# === K3S MANAGED BLOCK ===`）：
 
 - 所有 server 节点 hostname → 对应 IP
-- `k3s_tls_san` 中的域名条目 → VIP 地址
+- `k3s_tls_san` 中的域名条目 → `keepalived_vip` 地址（需部署 lb playbook 后才生效）
 
 用户自定义的 `/etc/hosts` 条目不受影响。
 

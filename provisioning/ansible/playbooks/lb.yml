@@ -1,0 +1,18 @@
+---
+# Playbook: 部署 Keepalived + HAProxy（高可用负载均衡）
+# 使用: bash run.sh lb
+# 或: ansible-playbook playbooks/lb.yml -i inventories/production/hosts.ini
+#
+# 前置条件:
+#   - 目标主机已安装 Linux（Rocky Linux / CentOS / Ubuntu）
+#   - 使用前请先替换 roles/keepalived-haproxy/files/ 中的 __CHANGEME_* 占位符
+#
+# 变量（在 hosts.ini [all:vars] 中定义，可选）:
+#   keepalived_vip  - VIP 地址（如 192.168.5.254/24），仅作文档记录
+
+- name: 部署 Keepalived + HAProxy
+  hosts: k3s_server
+  gather_facts: yes
+  roles:
+    - role: keepalived-haproxy
+      tags: [keepalived, haproxy, lb]

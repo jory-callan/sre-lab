@@ -5,7 +5,7 @@
 #   __CHANGEME_TOKEN__          → k3s_token
 #   __CHANGEME_DATA_DIR__       → k3s_data_dir
 #   __CHANGEME_CLUSTER_INIT__   → 首节点 cluster-init: true，其余 false
-#   __CHANGEME_SERVER_URL__     → 加入节点 server: https://VIP:6443
+#   __CHANGEME_SERVER_URL__     → 加入节点 server: https://首节点IP:6443
 #   __CHANGEME_TLS_SAN_IPS__        → 所有 server 节点 IP（自动注入）
 #   __CHANGEME_TLS_SAN_HOSTNAMES__  → 所有 server 节点 hostname（自动注入）
 #   __CHANGEME_TLS_SAN_EXTRA__      → 用户自定义额外 SAN（自动注入，数组）
