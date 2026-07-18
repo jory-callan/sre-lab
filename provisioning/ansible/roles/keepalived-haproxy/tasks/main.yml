@@ -11,6 +11,10 @@
 #
 # 使用说明:
 #   复制配置前，请先替换 files/ 目录中 __CHANGEME_* 占位符为实际值
+#
+# 注意:
+#   HAProxy 2.8+ 的 systemd unit 已默认加载 conf.d/ 目录（$CFGDIR），
+#   无需额外配置。配置文件中的注释必须使用 #，; 不被 HAProxy 识别。
 
 - name: 安装 haproxy 和 keepalived
   package:
@@ -37,6 +41,12 @@
     src: "haproxy/conf.d/"
     dest: /etc/haproxy/conf.d/
     mode: '0644'
+  notify: restart haproxy
+
+- name: 清理旧的 systemd drop-in（如果存在）
+  file:
+    path: /etc/systemd/system/haproxy.service.d/override.conf
+    state: absent
   notify: restart haproxy
 
 - name: 创建 keepalived conf.d 目录
