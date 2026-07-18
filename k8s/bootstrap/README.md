@@ -36,6 +36,17 @@ Cilium ── 网络基础
 
 ## 使用方式
 
+### 节点管理
+
+控制平面节点默认允许普通 Pod 调度。如需阻止普通 Pod 调度到控制平面节点（仅允许 DaemonSet），执行：
+
+```bash
+bash bootstrap/taint-control-plane.sh
+```
+
+此操作为控制平面节点添加 `node-role.kubernetes.io/control-plane:NoSchedule` 污点。
+DaemonSet 默认可容忍此污点（如 Cilium、MetalLB），不受影响。
+
 ### 安装
 
 ```bash
