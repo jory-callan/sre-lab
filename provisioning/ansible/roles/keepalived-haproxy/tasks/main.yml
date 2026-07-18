@@ -52,6 +52,13 @@
     mode: '0644'
   notify: restart keepalived
 
+- name: 注入 keepalived VIP 地址
+  replace:
+    path: /etc/keepalived/keepalived.conf
+    regexp: '__CHANGEME_keepalived_vip__'
+    replace: '{{ keepalived_vip }}'
+  notify: restart keepalived
+
 - name: 启用并启动 haproxy
   systemd:
     name: haproxy
