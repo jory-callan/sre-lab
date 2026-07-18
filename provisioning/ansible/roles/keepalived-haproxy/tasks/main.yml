@@ -69,6 +69,13 @@
     replace: '{{ keepalived_vip }}'
   notify: restart keepalived
 
+- name: 注入 keepalived 网络接口
+  replace:
+    path: /etc/keepalived/keepalived.conf
+    regexp: '__CHANGEME_interface__'
+    replace: '{{ ansible_default_ipv4.interface }}'
+  notify: restart keepalived
+
 - name: 启用并启动 haproxy
   systemd:
     name: haproxy
