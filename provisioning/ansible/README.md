@@ -74,3 +74,45 @@ echo "---" > roles/<name>/tasks/main.yml
 - 控制节点须安装 Ansible 8+ (ansible-core 2.15+)
 - 需 root 权限 SSH 免密登录所有目标节点
 - 每个 task 文件按步骤拆分，通过 `main.yml` 的 `import_tasks` 串联
+
+## 约定规范
+
+### 变量设计
+
+- 所有动态值必须走变量，不在配置文件中硬编码
+- 变量定义在 `hosts.ini` 的 `[all:vars]`，能数组就数组（JSON 格式），不写单值字符串
+- `hosts.ini` 中每个变量写注释说明用途和示例值
+
+### 配置文件与变量分离
+
+- k3s 的 `config.yaml` / `config-agent.yaml` 是静态文件，用 `copy` 部署，不写 Jinja2 模板
+- 所有动态注入用 `replace` / `lineinfile` / `blockinfile` 模块替换占位符
+- 占位符统一用 `__CHANGEME_*__` 格式，一眼可识别
+
+### 模板管理
+
+- 需要模板引擎的文件才用 `template` 模块，变量用 `| default()` 给兜底值
+- 数组类型用 `| tojson` 直接渲染 JSON 数组，不手写遍历
+
+### /etc/hosts 管理
+
+- 只用 `blockinfile`，划标记块隔离托管区域，不动用户自定义条目
+- 标记用 `# === <SCOPE> MANAGED BLOCK {mark} ===`，清晰可辨
+
+### Playbook 编排
+
+- 一个 playbook 可以包含多个 play，按依赖顺序排列
+- 串行操作用 `serial: 1` 控制，如 server 节点逐个加入集群
+- 卸载等危险操作用 `tags: [never]` 隔离，不自动执行
+
+### Role 组织
+
+- 按功能拆分：`linux-init` / `docker` / `k3s` / `keepalived-haproxy`
+- `tasks/main.yml` 只做入口编排，实际逻辑拆分到 `prereq.yml` / `config.yml` / `install.yml`
+- 变量收集（`set_fact`）放在 `main.yml`，`config.yml` 只管注入
+
+### 幂等安全
+
+- 安装任务用 `creates` 或 `when: check.rc != 0` 控制只执行一次
+- 配置变更通过 `notify` 触发 handler 重启服务，不在 task 里直接重启
+- `blockinfile` / `replace` 天然幂等，多次运行不会重复注入
