@@ -1,0 +1,25 @@
+1. 获取服务访问地址:
+   ClusterIP: http://{{ include "webhook2im.fqdn" . }}:{{ .Values.service.port }}
+
+{{- if .Values.ingress.enabled }}
+   Ingress:   https://{{ .Values.ingress.host }}
+{{- end }}
+
+{{- if .Values.service.nodePort.enabled }}
+   NodePort:  http://<node-ip>:{{ .Values.service.nodePort.port }}
+{{- end }}
+
+2. 常用命令:
+   # 查看 Pod
+   kubectl get pods -n {{ .Release.Namespace }}
+
+   # 查看日志
+   kubectl logs -n {{ .Release.Namespace }} -l app.kubernetes.io/name={{ include "webhook2im.name" . }}
+
+   # 查看服务
+   kubectl get svc -n {{ .Release.Namespace }}
+
+3. 发送测试 Webhook:
+   curl -X POST http://{{ include "webhook2im.fqdn" . }}:{{ .Values.service.port }}/webhook \
+     -H "Content-Type: application/json" \
+     -d '{"text":"hello"}'

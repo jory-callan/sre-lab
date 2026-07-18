@@ -1,0 +1,6 @@
+apiVersion: v2
+name: webhook2im
+description: Webhook to IM — 将 Webhook 事件转发到即时通讯工具
+type: application
+version: 0.1.0
+appVersion: 0.1.0

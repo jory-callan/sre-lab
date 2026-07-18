@@ -1,0 +1,89 @@
+# chart 默认 values — webhook2im
+# 实例覆盖在 test-default/values.yaml
+---
+replicaCount: 1
+
+image:
+  repository: ghcr.io/jory-callan/webhook2im
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+
+service:
+  port: 80
+  targetPort: 8080
+  nodePort:
+    enabled: false
+    port: 30303
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+podAntiAffinity:
+  enabled: false
+  topologyKey: kubernetes.io/hostname
+
+securityContext:
+  enabled: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+terminationGracePeriodSeconds: 10
+
+probes:
+  enabled: false
+  livenessPath: /health
+  readinessPath: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: webhook2im.local
+  tls:
+    enabled: false
+    secretName: ""
+
+resourceQuota:
+  enabled: false
+  quota: {}
+  limitRange:
+    default:
+      cpu: ""
+      memory: ""
+    defaultRequest:
+      cpu: ""
+      memory: ""
+    max:
+      cpu: ""
+      memory: ""
+
+# 环境变量
+env: []
+
+resources:
+  # ──────────────────────────────────────────
+  # 生产推荐值:
+  #   requests:
+  #     cpu: 100m
+  #     memory: 64Mi
+  #   limits:
+  #     cpu: 200m
+  #     memory: 128Mi
+  # ──────────────────────────────────────────
+  # 当前环境最低配置（requests.memory + limits.memory 必配，CPU 不做限制）:
+  requests:
+    memory: 32Mi
+  limits:
+    memory: 128Mi

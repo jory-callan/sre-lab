@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "webhook2im.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webhook2im.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      name: http
+  selector:
+    {{- include "webhook2im.selectorLabels" . | nindent 4 }}

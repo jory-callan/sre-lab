@@ -1,0 +1,42 @@
+# test-default values — webhook2im 测试实例
+# 覆盖 chart 默认值
+---
+replicaCount: 1
+
+# 安全上下文
+securityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# 健康检查
+probes:
+  enabled: true
+  livenessPath: /health
+  readinessPath: /health
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: internal-ca
+  host: webhook2im.czw-sre.internal
+  tls:
+    enabled: true
+    secretName: webhook2im-tls
+
+# 反亲和
+podAntiAffinity:
+  enabled: true
+  topologyKey: kubernetes.io/hostname
+
+# 环境变量
+env:
+  - name: APP_PORT
+    value: "8080"
+  - name: LOG_LEVEL
+    value: "info"
