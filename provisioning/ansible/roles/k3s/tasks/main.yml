@@ -23,6 +23,12 @@
       {{ groups['k3s_server'] | map('extract', hostvars, 'ansible_default_ipv4') | selectattr('address', 'defined') | map(attribute='address') | list }}
   when: k3s_role == 'server'
 
+- name: 收集所有 server 节点 hostname（用于 tls-san）
+  set_fact:
+    k3s_server_hostnames: >-
+      {{ groups['k3s_server'] | map('extract', hostvars, 'ansible_hostname') | list }}
+  when: k3s_role == 'server'
+
 - name: 获取第一个 server 节点地址
   set_fact:
     k3s_first_server_ip: "{{ hostvars[groups['k3s_server'][0]]['ansible_default_ipv4']['address'] }}"
