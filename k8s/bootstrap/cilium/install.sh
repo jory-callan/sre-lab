@@ -38,6 +38,9 @@ helm upgrade --install cilium "$CHART_FILE" \
     --set autoDirectNodeRoutes=true \
     --set routingMode=native \
     --set ipv4NativeRoutingCIDR=10.42.0.0/16 \
+    # --set kubeProxyReplacement=strict \       `# 使用 eBPF 严格替换模式`
+    # --set k8sServiceHost="<Keepalived VIP>" \ `# eBPF 必须要有 addr`
+    # --set bpf.masquerade=true \               `# eBPF 推荐开启`
     --wait --timeout 10m
 
 echo "[OK] Cilium 安装完成"
