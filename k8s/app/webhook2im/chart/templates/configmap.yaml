@@ -1,0 +1,12 @@
+{{- if .Values.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "webhook2im.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "webhook2im.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+{{ .Values.config.data | indent 4 }}
+{{- end }}

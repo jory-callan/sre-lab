@@ -12,7 +12,7 @@ nameOverride: ""
 
 service:
   port: 80
-  targetPort: 8080
+  targetPort: 3000
   nodePort:
     enabled: false
     port: 30303
@@ -87,3 +87,7 @@ resources:
     memory: 32Mi
   limits:
     memory: 128Mi
+config:
+  enabled: false
+  mountPath: /app/config.yaml
+  data: {}

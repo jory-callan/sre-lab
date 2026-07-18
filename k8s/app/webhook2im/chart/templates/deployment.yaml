@@ -47,6 +47,12 @@ spec:
           env:
             {{- toYaml .Values.env | nindent 12 }}
           {{- end }}
+          {{- if .Values.config.enabled }}
+          volumeMounts:
+            - name: config
+              mountPath: {{ .Values.config.mountPath }}
+              subPath: config.yaml
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- if .Values.probes.enabled }}
@@ -63,3 +69,9 @@ spec:
             initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
             periodSeconds: {{ .Values.probes.periodSeconds }}
           {{- end }}
+      {{- if .Values.config.enabled }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "webhook2im.name" . }}
+      {{- end }}

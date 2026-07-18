@@ -20,6 +20,9 @@
    kubectl get svc -n {{ .Release.Namespace }}
 
 3. 发送测试 Webhook:
-   curl -X POST http://{{ include "webhook2im.fqdn" . }}:{{ .Values.service.port }}/webhook \
+   curl -X POST https://{{ .Values.ingress.host }}/alertmanager \
      -H "Content-Type: application/json" \
-     -d '{"text":"hello"}'
+     -d '{"status":"firing","alerts":[{"labels":{"alertname":"CPU高","severity":"critical"},"annotations":{"description":"CPU 超过 90%"},"startsAt":"2026-01-01T00:00:00Z"}]}'
+
+4. 健康检查:
+   curl http://{{ include "webhook2im.fqdn" . }}:{{ .Values.service.port }}/health

@@ -34,9 +34,40 @@ podAntiAffinity:
   enabled: true
   topologyKey: kubernetes.io/hostname
 
+# 配置注入
+config:
+  enabled: true
+  mountPath: /app/config.yaml
+  data: |
+    # webhook2im 配置
+    port: 3000
+
+    # ── 路由表 ──────────────────────────────────────────────
+    routes:
+      # AlertManager 告警 -> 飞书文本
+      - path: /alertmanager
+        # transform: 将原始 webhook JSON 渲染为纯文本
+        # 支持 Handlebars 模板语法，内置 helper: upper/lower/eq/ne/default/json/len/datetime/severity_icon/truncate
+        transform: |
+          {{#if (eq status "resolved")}}✅ 告警已恢复 ({{len alerts}}条){{else}}{{#if (eq status "firing")}}🚨 告警触发 ({{len alerts}}条){{else}}📊 告警通知 ({{len alerts}}条){{/if}}{{/if}}
+          ━━━━━━━━━━━━━━━━━━━━━━━━━
+          {{#each alerts}}
+          {{severity_icon labels.severity}} [{{upper status}}] {{labels.alertname}}
+          命名空间: {{default labels.namespace "-"}}
+          实例: {{truncate (default labels.instance "-") 60}}
+          描述: {{default annotations.description "-"}}
+          摘要: {{default annotations.summary "-"}}
+          当前值: {{default annotations.value (default labels.value "-")}}
+          开始: {{datetime startsAt}}
+          {{#if endsAt}}结束: {{datetime endsAt}}{{/if}}
+          {{#if annotations.runbook_url}}手册: {{truncate annotations.runbook_url 80}}{{/if}}
+          ───────────────────────────
+          {{/each}}
+        outputs:
+          - type: feishu-text
+            webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/fc5d3692-ef65-4e8c-8151-9509aeedccf5"
+
 # 环境变量
 env:
-  - name: APP_PORT
-    value: "8080"
   - name: LOG_LEVEL
     value: "info"
