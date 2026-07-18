@@ -15,6 +15,47 @@ service:
   port: 80
   targetPort: 8080
 
+nodePort:
+  enabled: false
+  port: 30302
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+podAntiAffinity:
+  enabled: false
+  topologyKey: kubernetes.io/hostname
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: kdebug.local
+  tls:
+    enabled: false
+    secretName: ""
+
+resourceQuota:
+  enabled: false
+  quota: {}
+  limitRange:
+    default:
+      cpu: ""
+      memory: ""
+    defaultRequest:
+      cpu: ""
+      memory: ""
+    max:
+      cpu: ""
+      memory: ""
+
 resources:
   # ──────────────────────────────────────────
   # 生产推荐值:
