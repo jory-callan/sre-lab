@@ -5,7 +5,7 @@
 tolerations: []
 affinity: {}
 
-## 资源限制：只做内存限制，不做 CPU 限制
+## 资源限制：只做内存限制
 resources:
   memory: 1Gi
 
@@ -22,10 +22,11 @@ backupRepo:
 ## 使用内嵌的 addon charts（file:// 协议）
 addonChartLocationBase: file://
 
-## 自动安装的 addon 列表
+## 自动安装的 addon 列表（etcd 是 apecloud-mysql proxy 拓扑的依赖）
 autoInstalledAddons:
   - "apecloud-mysql"
   - "redis"
+  - "etcd"
 
 ## 只管理当前集群
 managedNamespaces: ""
