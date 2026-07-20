@@ -1,32 +1,32 @@
 #!/bin/bash
-# install.sh — ApeCloud MySQL 测试实例（KubeBlocks, 8.0.30）
+# install.sh — Redis 测试实例（KubeBlocks replication, 7.2.4）
 # Usage: bash install.sh [install|uninstall|purge]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ===== 配置区 =====
-NAME="apecloud-mysql"
-NAMESPACE="mysql"
+NAME="redis"
+NAMESPACE="redis"
 CR_FILE="$SCRIPT_DIR/cluster.yaml"
 # ===================
 
 install() {
   kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
   kubectl apply -f "$CR_FILE" --namespace "$NAMESPACE"
-  echo "实例部署完成"
+  echo "Redis 实例部署完成"
 }
 
 uninstall() {
   kubectl delete -f "$CR_FILE" --namespace "$NAMESPACE" 2>/dev/null || true
-  echo "实例已卸载"
+  echo "Redis 实例已卸载"
 }
 
 purge() {
   kubectl delete -f "$CR_FILE" --namespace "$NAMESPACE" 2>/dev/null || true
   kubectl delete pvc --namespace "$NAMESPACE" --all --ignore-not-found 2>/dev/null || true
   kubectl delete namespace "$NAMESPACE" --ignore-not-found
-  echo "实例已完全清理"
+  echo "Redis 实例已完全清理"
 }
 
 case "${1:-install}" in

@@ -10,7 +10,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 APPS=(
   "kdebug"
-  "kite"
+  "kite
+  "webhook2im""
 )
 
 ACTION="${1:-install}"

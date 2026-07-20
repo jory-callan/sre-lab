@@ -1,1 +1,0 @@
-# KubeBlocks redis-auth

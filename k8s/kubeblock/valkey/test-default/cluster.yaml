@@ -1,0 +1,41 @@
+apiVersion: apps.kubeblocks.io/v1
+kind: Cluster
+metadata:
+  name: valkey
+  namespace: valkey
+spec:
+  terminationPolicy: Delete
+  clusterDef: valkey
+  topology: replication-8
+  componentSpecs:
+    - name: valkey
+      serviceVersion: "8.1.8"
+      disableExporter: false
+      replicas: 2
+      resources:
+        limits:
+          memory: 512Mi
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            # storageClassName: ""
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+    - name: valkey-sentinel
+      serviceVersion: "8.1.8"
+      replicas: 3
+      resources:
+        limits:
+          memory: 256Mi
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            # storageClassName: ""
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi

@@ -34,9 +34,7 @@ k8s/
 │   ├── chart/           Helm chart 源码
 │   ├── common/          共享资源
 │   ├── redis/           按 addon 引擎分组，实例用 <prefix>-<name>/
-│   │   └── cr-auth/     KubeBlocks 管理的 Redis 实例
 │   └── apecloud-mysql/
-│       └── cr-default/  KubeBlocks 管理的 ApeCloud MySQL 实例
 ├── middleware/          传统中间件产品
 │   ├── dolphinscheduler/
 │   ├── gitea/
