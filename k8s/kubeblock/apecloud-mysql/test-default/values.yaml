@@ -1,5 +1,10 @@
 # ApeCloud MySQL 测试实例 — 资源配额
 ---
+# 配置模板
+# ConfigMap: mysql8.0-config-template (operators 命名空间)
+# ParametersDefinition: apecloud-mysql8.0-pd
+# 详见 config.md
+
 resources:
   # ──────────────────────────────────────────
   # 生产推荐值:
