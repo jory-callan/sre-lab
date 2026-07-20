@@ -1,0 +1,101 @@
+# ApeCloud MySQL 实例配置 — test-default
+# 编辑此文件后，执行以下命令更新 ConfigMap：
+#   kubectl apply -f config-instance.yaml -n operators
+#   kubectl -n mysql rollout restart statefulset apecloud-mysql-mysql
+#
+# 注意：此 ConfigMap 由 apecloud-mysql/test-default 实例管理，
+# 如果其他 mysql 实例共用此模板，修改会影响到它们。
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql8.0-config-template
+  labels:
+    app.kubernetes.io/instance: mysql-test-default
+    app.kubernetes.io/managed-by: kubeblock
+data:
+  my.cnf: |
+    [mysqld]
+    # 连接
+    port=3306
+    mysqlx=0
+    skip_name_resolve=ON
+    local_infile=ON
+    sql_mode=NO_ENGINE_SUBSTITUTION
+    max_connections=200
+    thread_cache_size=60
+    open_files_limit=1048576
+    back_log=5285
+    host_cache_size=867
+    connect_timeout=10
+
+    # InnoDB
+    innodb_buffer_pool_size=1G
+    innodb_flush_method=O_DIRECT
+    innodb_io_capacity=200
+    innodb_io_capacity_max=2000
+    innodb_log_buffer_size=8388608
+    innodb_open_files=4000
+    innodb_purge_threads=1
+    innodb_read_io_threads=4
+    key_buffer_size=16777216
+
+    # GTID
+    gtid_mode=ON
+    enforce_gtid_consistency=ON
+
+    # 共识（Raft 高可用）
+    loose_consensus_enabled=ON
+    loose_consensus_io_thread_cnt=8
+    loose_consensus_worker_thread_cnt=8
+    loose_consensus_election_timeout=1000
+    loose_consensus_auto_leader_transfer=OFF
+    loose_consensus_prefetch_window_size=100
+    loose_consensus_auto_reset_match_index=ON
+    loose_cluster_mts_recover_use_index=ON
+    loose_consensus_large_trx=ON
+    loose_consensuslog_revise=ON
+
+    # 复制
+    slave_exec_mode=IDEMPOTENT
+    relay_log_recovery=ON
+    relay_log=relay-bin
+    relay_log_index=relay-bin.index
+    log_replica_updates=1
+
+    # Binlog
+    binlog_format=ROW
+    binlog_row_image=FULL
+    binlog_order_commits=ON
+    binlog_expire_logs_seconds=604800
+    binlog_purge_size=102400M
+    max_binlog_size=134217728
+
+    # 日志
+    log_error=/data/mysql/log/mysqld-error.log
+    slow_query_log=ON
+    long_query_time=5
+    slow_query_log_file=/data/mysql/log/mysqld-slowquery.log
+    general_log=OFF
+    general_log_file=/data/mysql/log/mysqld.log
+
+    # 审计
+    plugin_load_add=audit_log=audit_log.so
+    loose_audit_log_handler=FILE
+    loose_audit_log_file=/data/auditlog/audit.log
+    loose_audit_log_buffer_size=1Mb
+    loose_audit_log_policy=QUERIES
+    loose_audit_log_strategy=ASYNCHRONOUS
+    loose_audit_log_rotate_on_size=10485760
+    loose_audit_log_rotations=5
+
+    # 性能
+    performance_schema=OFF
+    table_open_cache=4000
+    max_prepared_stmt_count=16382
+    performance_schema_digests_size=10000
+    performance_schema_events_stages_history_long_size=10000
+    performance_schema_events_transactions_history_long_size=10000
+
+    [client]
+    port=3306
