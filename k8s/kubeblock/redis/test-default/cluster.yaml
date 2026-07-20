@@ -33,7 +33,7 @@ spec:
       volumeClaimTemplates:
         - name: data
           spec:
-            # storageClassName: ""
+            storageClassName: "nfs-client"
             accessModes:
               - ReadWriteOnce
             resources:

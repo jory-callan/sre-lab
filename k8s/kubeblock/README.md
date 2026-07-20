@@ -23,7 +23,7 @@ kubeblock/
 ├── valkey/                 KubeBlocks Valkey 实例
 │   └── test-default/       Valkey 测试实例（replication-8, 8.1.8）
 └── apecloud-mysql/         KubeBlocks ApeCloud MySQL 实例
-    └── cr-default/         ApeCloud MySQL 默认实例（8.0.30）
+    └── test-default/         ApeCloud MySQL 默认实例（8.0.30）
 ```
 
 ## 部署顺序
@@ -37,5 +37,5 @@ kubeblock/
 - 所有 operator 统一部署到 `operators` namespace
 - 实例 namespace 遵循各中间件约定（mysql / redis / valkey）
 - 所有实例统一使用 `install.sh` 管理（install / uninstall / purge）
-- StorageClass 注释掉，使用默认 StorageClass
+- StorageClass 显式指定为 `nfs-client`
 - 资源限制仅配 memory limits，不做 CPU 限制
