@@ -1,0 +1,22 @@
+# BackupSchedule 启用配置（参考示例） — ApeCloud MySQL
+---
+apiVersion: dataprotection.kubeblocks.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: apecloud-mysql-mysql-backup-schedule
+  namespace: mysql
+spec:
+  backupPolicyName: apecloud-mysql-mysql-backup-policy
+  schedules:
+    # 每天凌晨 3:20 全量备份（xtrabackup），保留 7 天
+    - backupMethod: xtrabackup
+      cronExpression: 20 3 * * *
+      enabled: true
+      name: xtrabackup
+      retentionPeriod: 7d
+    # VolumeSnapshot 方式，每周日凌晨 5:00
+    - backupMethod: volume-snapshot
+      cronExpression: 0 5 * * 0
+      enabled: false
+      name: volume-snapshot
+      retentionPeriod: 7d

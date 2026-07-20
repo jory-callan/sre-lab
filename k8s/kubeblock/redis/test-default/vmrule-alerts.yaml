@@ -1,0 +1,94 @@
+# VMRule — Redis 告警规则
+# 与 VictoriaMetrics vmalert 联动，触发告警后发送到 AlertManager
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: redis-alert-rules
+  namespace: redis
+spec:
+  groups:
+    - name: RedisExporter
+      rules:
+        # ======== 严重告警（Critical）========
+        - alert: RedisDown
+          expr: redis_up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis 实例宕机"
+            description: "Redis 实例 {{ $labels.pod }} 已宕机超过 1 分钟（namespace: {{ $labels.namespace }}）"
+
+        - alert: RedisMissingMaster
+          expr: count by (app_kubernetes_io_instance) (redis_instance_info{role="master"}) < 1
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis 缺少主节点"
+            description: "Redis 集群没有标记为 master 的节点，无法处理写入请求"
+
+        - alert: RedisReplicationBroken
+          expr: delta(redis_connected_slaves[1m]) < 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis 主从复制中断"
+            description: "Redis 实例 {{ $labels.pod }} 丢失了一个从节点连接"
+
+        - alert: RedisDisconnectedSlaves
+          expr: count without (instance, job) (redis_connected_slaves) - sum without (instance, job) (redis_connected_slaves) - 1 > 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Redis 从节点全部断开"
+            description: "Redis 所有从节点均未连接，请检查复制状态"
+
+        # ======== 警告告警（Warning）========
+        - alert: RedisMemoryHigh
+          expr: (redis_memory_max_bytes == 0 or redis_memory_used_bytes * 100 / redis_memory_max_bytes) > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis 内存使用率过高"
+            description: "Redis 内存使用率为 {{ $value | printf \"%.2f\" }}%（instance: {{ $labels.pod }}）"
+
+        - alert: RedisCPUHigh
+          expr: (rate(redis_cpu_sys_seconds_total[1m]) + rate(redis_cpu_user_seconds_total[1m])) * 100 > 80
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis CPU 使用率过高（> 80%）"
+            description: "Redis CPU 使用率为 {{ $value | printf \"%.2f\" }}%（instance: {{ $labels.pod }}）"
+
+        - alert: RedisTooManyConnections
+          expr: redis_connected_clients * 100 / redis_config_maxclients > 80
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis 连接数过多（> 80%）"
+            description: "Redis 已使用 {{ $value | printf \"%.2f\" }}% 的最大连接数（instance: {{ $labels.pod }}）"
+
+        - alert: RedisKeyEviction
+          expr: increase(redis_evicted_keys_total[5m]) > 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis 发生键驱逐"
+            description: "最近 5 分钟内 Redis 驱逐了 {{ $value | printf \"%.2f\" }} 个键（instance: {{ $labels.pod }}）"
+
+        - alert: RedisRejectedConnections
+          expr: increase(redis_rejected_connections_total[1m]) > 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Redis 连接被拒绝"
+            description: "Redis 拒绝了 {{ $value | printf \"%.2f\" }} 个连接（instance: {{ $labels.pod }}）"

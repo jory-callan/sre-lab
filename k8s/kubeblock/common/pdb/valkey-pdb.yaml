@@ -1,0 +1,34 @@
+# PodDisruptionBudget — Valkey & Sentinel
+# 防止节点维护时同时驱逐过多副本导致服务不可用
+# - Valkey 数据面（2 副本）：至少保留 1 个可用
+# - Valkey Sentinel（3 副本）：至少保留 2 个以维持 quorum
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: valkey-pdb
+  namespace: valkey
+  labels:
+    app.kubernetes.io/instance: valkey
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: valkey-sentinel-pdb
+  namespace: valkey
+  labels:
+    app.kubernetes.io/instance: valkey
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey-sentinel

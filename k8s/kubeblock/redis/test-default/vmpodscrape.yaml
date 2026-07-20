@@ -1,0 +1,49 @@
+# VMPodScrape — 让 VictoriaMetrics vmagent 抓取 Redis exporter 指标
+# 由于 vmagent 配置了 selectAllByDefault: true，创建此资源后会自动发现
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: redis-pod-scrape
+  namespace: redis
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - redis
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      apps.kubeblocks.io/component-name: redis
+  # 携带这些 pod 标签到指标中，便于告警和 dashboard 区分
+  podTargetLabels:
+    - app.kubernetes.io/instance
+    - app.kubernetes.io/managed-by
+    - apps.kubeblocks.io/component-name
+    - apps.kubeblocks.io/pod-name
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: redis-sentinel-pod-scrape
+  namespace: redis
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - redis
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      apps.kubeblocks.io/component-name: redis-sentinel
+  podTargetLabels:
+    - app.kubernetes.io/instance
+    - app.kubernetes.io/managed-by
+    - apps.kubeblocks.io/component-name
+    - apps.kubeblocks.io/pod-name

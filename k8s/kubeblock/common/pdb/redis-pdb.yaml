@@ -1,0 +1,34 @@
+# PodDisruptionBudget — Redis & Sentinel
+# 防止节点维护时同时驱逐过多副本导致服务不可用
+# - Redis 数据面（2 副本）：至少保留 1 个可用
+# - Redis Sentinel（3 副本）：至少保留 2 个以维持 quorum（法定人数 = 2）
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  namespace: redis
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      apps.kubeblocks.io/component-name: redis
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-sentinel-pdb
+  namespace: redis
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      apps.kubeblocks.io/component-name: redis-sentinel

@@ -1,0 +1,24 @@
+# VMPodScrape — 让 VictoriaMetrics vmagent 抓取 MySQL exporter 指标
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: mysql-pod-scrape
+  namespace: mysql
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - mysql
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: apecloud-mysql
+      apps.kubeblocks.io/component-name: mysql
+  podTargetLabels:
+    - app.kubernetes.io/instance
+    - app.kubernetes.io/managed-by
+    - apps.kubeblocks.io/component-name
+    - apps.kubeblocks.io/pod-name

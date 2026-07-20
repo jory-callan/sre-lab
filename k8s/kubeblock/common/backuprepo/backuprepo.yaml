@@ -1,0 +1,26 @@
+# KubeBlocks BackupRepo — 备份仓库定义
+# 使用 MinIO 作为 S3 兼容的后端存储（Tool 模式，无需 CSI 驱动）
+# 此资源是 cluster-scoped，只需创建一次
+# 所有 Cluster 的 Backup 会自动使用此仓库
+---
+apiVersion: dataprotection.kubeblocks.io/v1alpha1
+kind: BackupRepo
+metadata:
+  name: minio-backuprepo
+  annotations:
+    dataprotection.kubeblocks.io/is-default-repo: "true"
+spec:
+  # 使用 MinIO StorageProvider（预装在 KubeBlocks addon 中）
+  # 它的 datasafed 配置使用 provider = Minio，与 s3-compatible 不同
+  storageProviderRef: minio
+  # Tool 模式：备份进程直接流式上传到 S3，无需挂载 CSI 卷
+  accessMethod: Tool
+  config:
+    bucket: kubeblocks-backup
+    endpoint: http://minio.minio.svc:80
+    region: us-east-1
+    insecure: "true"
+  credential:
+    name: minio-backuprepo-credential
+    namespace: kb-system
+  pvReclaimPolicy: Retain

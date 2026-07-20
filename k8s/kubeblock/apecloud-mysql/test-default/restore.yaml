@@ -1,0 +1,46 @@
+# Restore — 从备份恢复 ApeCloud MySQL 到新集群
+# 用法：先查找可用备份，修改 backup-name 后 apply
+# kubectl get backup -n mysql
+# kubectl apply -f restore.yaml -n <target-ns>
+---
+apiVersion: apps.kubeblocks.io/v1
+kind: Cluster
+metadata:
+  name: mysql-restore-demo
+  namespace: demo
+spec:
+  restore:
+    source:
+      apiGroup: dataprotection.kubeblocks.io
+      kind: Backup
+      # 替换为实际的备份名称：kubectl get backup -n mysql
+      name: apecloud-mysql-mysql-backup-xtrabackup-202607200320
+      namespace: mysql
+    parameters:
+      dataprotection.kubeblocks.io/source-target-name: mysql
+      dataprotection.kubeblocks.io/volume-restore-policy: Parallel
+  terminationPolicy: Delete
+  clusterDef: apecloud-mysql
+  topology: apecloud-mysql
+  componentSpecs:
+    - name: mysql
+      serviceVersion: "8.0.30"
+      disableExporter: false
+      replicas: 3
+      systemAccounts:
+        - name: root
+          secretRef:
+            name: mysql-account-root
+            namespace: mysql
+      resources:
+        limits:
+          memory: 2Gi
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            storageClassName: "nfs-client"
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 10Gi

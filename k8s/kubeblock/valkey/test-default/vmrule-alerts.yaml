@@ -1,0 +1,76 @@
+# VMRule — Valkey 告警规则
+# Valkey 指标兼容 Redis exporter 的 Prometheus 指标格式
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: valkey-alert-rules
+  namespace: valkey
+spec:
+  groups:
+    - name: ValkeyExporter
+      rules:
+        # ======== 严重告警（Critical）========
+        - alert: ValkeyDown
+          expr: redis_up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Valkey 实例宕机"
+            description: "Valkey 实例 {{ $labels.pod }} 已宕机超过 1 分钟（namespace: {{ $labels.namespace }}）"
+
+        - alert: ValkeyMissingMaster
+          expr: count by (app_kubernetes_io_instance) (redis_instance_info{role="master"}) < 1
+          for: 30s
+          labels:
+            severity: critical
+          annotations:
+            summary: "Valkey 缺少主节点"
+            description: "Valkey 集群没有标记为 master 的节点，无法处理写入请求"
+
+        - alert: ValkeyReplicationBroken
+          expr: delta(redis_connected_slaves[1m]) < 0
+          for: 0m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Valkey 主从复制中断"
+            description: "Valkey 实例 {{ $labels.pod }} 丢失了一个从节点连接"
+
+        # ======== 警告告警（Warning）========
+        - alert: ValkeyMemoryHigh
+          expr: (redis_memory_max_bytes == 0 or redis_memory_used_bytes * 100 / redis_memory_max_bytes) > 85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Valkey 内存使用率过高"
+            description: "Valkey 内存使用率为 {{ $value | printf \"%.2f\" }}%（instance: {{ $labels.pod }}）"
+
+        - alert: ValkeyCPUHigh
+          expr: (rate(redis_cpu_sys_seconds_total[1m]) + rate(redis_cpu_user_seconds_total[1m])) * 100 > 80
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Valkey CPU 使用率过高（> 80%）"
+            description: "Valkey CPU 使用率为 {{ $value | printf \"%.2f\" }}%（instance: {{ $labels.pod }}）"
+
+        - alert: ValkeyTooManyConnections
+          expr: redis_connected_clients * 100 / redis_config_maxclients > 80
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Valkey 连接数过多（> 80%）"
+            description: "Valkey 已使用 {{ $value | printf \"%.2f\" }}% 的最大连接数（instance: {{ $labels.pod }}）"
+
+        - alert: ValkeyKeyEviction
+          expr: increase(redis_evicted_keys_total[5m]) > 0
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Valkey 发生键驱逐"
+            description: "最近 5 分钟内 Valkey 驱逐了 {{ $value | printf \"%.2f\" }} 个键（instance: {{ $labels.pod }}）"

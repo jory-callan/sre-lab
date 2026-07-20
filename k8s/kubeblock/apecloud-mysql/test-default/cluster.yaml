@@ -20,6 +20,21 @@ spec:
       resources:
         limits:
           memory: 2Gi
+      # MySQL 3 节点 Raft 集群：尽可能跨节点分布
+      # 注意：当前只有 2 个 agent 节点（agent-1, agent-2），3 个 Pod 必然有 2 个在同一节点
+      # 使用 preferred（软约束）避免 required（硬约束）调度失败
+      # 未来扩到 3+ 节点后，Pod 会自动均匀分布
+      schedulingPolicy:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: apecloud-mysql
+                    apps.kubeblocks.io/component-name: mysql
+                topologyKey: kubernetes.io/hostname
+              weight: 100
       volumeClaimTemplates:
         - name: data
           spec:

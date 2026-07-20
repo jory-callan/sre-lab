@@ -20,6 +20,24 @@ spec:
       resources:
         limits:
           memory: 512Mi
+      # Pod 跨节点均匀分布，避免同一节点上多个副本
+      schedulingPolicy:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: redis
+                    apps.kubeblocks.io/component-name: redis
+                topologyKey: kubernetes.io/hostname
+              weight: 100
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: redis
+                  apps.kubeblocks.io/component-name: redis
+              topologyKey: kubernetes.io/hostname
       volumeClaimTemplates:
         - name: data
           spec:
@@ -40,6 +58,20 @@ spec:
       resources:
         limits:
           memory: 256Mi
+      # Sentinel 3 副本尽可能跨节点分布
+      # 注意：当前只有 2 个 agent 节点，3 个副本无法硬反亲和
+      # 使用 preferred 软约束确保在可用节点上最大化分散
+      schedulingPolicy:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: redis
+                    apps.kubeblocks.io/component-name: redis-sentinel
+                topologyKey: kubernetes.io/hostname
+              weight: 100
       volumeClaimTemplates:
         - name: data
           spec:

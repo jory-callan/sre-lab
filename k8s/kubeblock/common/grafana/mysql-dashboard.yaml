@@ -1,0 +1,1824 @@
+# Grafana Dashboard — auto-loaded via sidecar
+# Source: /tmp/mysql-dashboard-7362.json
+---
+apiVersion: v1
+data:
+  mysql-dashboard.json: "{\n  \"__requires\": [\n    {\n      \"type\": \"grafana\"\
+    ,\n      \"id\": \"grafana\",\n      \"name\": \"Grafana\",\n      \"version\"\
+    : \"5.2.1\"\n    },\n    {\n      \"type\": \"panel\",\n      \"id\": \"graph\"\
+    ,\n      \"name\": \"Graph\",\n      \"version\": \"5.0.0\"\n    },\n    {\n \
+    \     \"type\": \"datasource\",\n      \"id\": \"prometheus\",\n      \"name\"\
+    : \"Prometheus\",\n      \"version\": \"5.0.0\"\n    },\n    {\n      \"type\"\
+    : \"panel\",\n      \"id\": \"singlestat\",\n      \"name\": \"Singlestat\",\n\
+    \      \"version\": \"5.0.0\"\n    }\n  ],\n  \"annotations\": {\n    \"list\"\
+    : [\n      {\n        \"builtIn\": 1,\n        \"datasource\": \"-- Grafana --\"\
+    ,\n        \"enable\": true,\n        \"hide\": false,\n        \"iconColor\"\
+    : \"#e0752d\",\n        \"limit\": 100,\n        \"name\": \"PMM Annotations\"\
+    ,\n        \"showIn\": 0,\n        \"tags\": [\n          \"pmm_annotation\"\n\
+    \        ],\n        \"type\": \"tags\"\n      }\n    ]\n  },\n  \"editable\"\
+    : true,\n  \"gnetId\": 7362,\n  \"graphTooltip\": 1,\n  \"id\": null,\n  \"iteration\"\
+    : 1529322446915,\n  \"links\": [\n    {\n      \"icon\": \"dashboard\",\n    \
+    \  \"includeVars\": true,\n      \"keepTime\": true,\n      \"tags\": [\n    \
+    \    \"QAN\"\n      ],\n      \"targetBlank\": false,\n      \"title\": \"Query\
+    \ Analytics\",\n      \"type\": \"link\",\n      \"url\": \"/graph/dashboard/db/_pmm-query-analytics\"\
+    \n    },\n    {\n      \"asDropdown\": true,\n      \"includeVars\": true,\n \
+    \     \"keepTime\": true,\n      \"tags\": [\n        \"OS\"\n      ],\n     \
+    \ \"targetBlank\": false,\n      \"title\": \"OS\",\n      \"type\": \"dashboards\"\
+    \n    },\n    {\n      \"asDropdown\": true,\n      \"includeVars\": true,\n \
+    \     \"keepTime\": true,\n      \"tags\": [\n        \"MySQL\"\n      ],\n  \
+    \    \"targetBlank\": false,\n      \"title\": \"MySQL\",\n      \"type\": \"\
+    dashboards\"\n    },\n    {\n      \"asDropdown\": true,\n      \"includeVars\"\
+    : true,\n      \"keepTime\": true,\n      \"tags\": [\n        \"MongoDB\"\n \
+    \     ],\n      \"targetBlank\": false,\n      \"title\": \"MongoDB\",\n     \
+    \ \"type\": \"dashboards\"\n    },\n    {\n      \"asDropdown\": true,\n     \
+    \ \"includeVars\": true,\n      \"keepTime\": true,\n      \"tags\": [\n     \
+    \   \"HA\"\n      ],\n      \"targetBlank\": false,\n      \"title\": \"HA\",\n\
+    \      \"type\": \"dashboards\"\n    },\n    {\n      \"asDropdown\": true,\n\
+    \      \"includeVars\": true,\n      \"keepTime\": true,\n      \"tags\": [\n\
+    \        \"Cloud\"\n      ],\n      \"targetBlank\": false,\n      \"title\":\
+    \ \"Cloud\",\n      \"type\": \"dashboards\"\n    },\n    {\n      \"asDropdown\"\
+    : true,\n      \"includeVars\": true,\n      \"keepTime\": true,\n      \"tags\"\
+    : [\n        \"Insight\"\n      ],\n      \"targetBlank\": false,\n      \"title\"\
+    : \"Insight\",\n      \"type\": \"dashboards\"\n    },\n    {\n      \"asDropdown\"\
+    : true,\n      \"includeVars\": true,\n      \"keepTime\": true,\n      \"tags\"\
+    : [\n        \"PMM\"\n      ],\n      \"targetBlank\": false,\n      \"title\"\
+    : \"PMM\",\n      \"type\": \"dashboards\"\n    }\n  ],\n  \"panels\": [\n   \
+    \ {\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"h\": 1,\n  \
+    \      \"w\": 24,\n        \"x\": 0,\n        \"y\": 0\n      },\n      \"id\"\
+    : 382,\n      \"panels\": [],\n      \"repeat\": null,\n      \"title\": \"\"\
+    ,\n      \"type\": \"row\"\n    },\n    {\n      \"cacheTimeout\": null,\n   \
+    \   \"colorBackground\": false,\n      \"colorValue\": true,\n      \"colors\"\
+    : [\n        \"rgba(245, 54, 54, 0.9)\",\n        \"rgba(237, 129, 40, 0.89)\"\
+    ,\n        \"rgba(50, 172, 45, 0.97)\"\n      ],\n      \"datasource\": \"VictoriaMetrics\"\
+    ,\n      \"decimals\": 1,\n      \"description\": \"**MySQL Uptime**\\n\\nThe\
+    \ amount of time since the last restart of the MySQL server process.\",\n    \
+    \  \"editable\": true,\n      \"error\": false,\n      \"format\": \"s\",\n  \
+    \    \"gauge\": {\n        \"maxValue\": 100,\n        \"minValue\": 0,\n    \
+    \    \"show\": false,\n        \"thresholdLabels\": false,\n        \"thresholdMarkers\"\
+    : true\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n\
+    \        \"x\": 0,\n        \"y\": 1\n      },\n      \"height\": \"125px\",\n\
+    \      \"id\": 12,\n      \"interval\": \"$interval\",\n      \"links\": [],\n\
+    \      \"mappingType\": 1,\n      \"mappingTypes\": [\n        {\n          \"\
+    name\": \"value to text\",\n          \"value\": 1\n        },\n        {\n  \
+    \        \"name\": \"range to text\",\n          \"value\": 2\n        }\n   \
+    \   ],\n      \"maxDataPoints\": 100,\n      \"nullPointMode\": \"connected\"\
+    ,\n      \"nullText\": null,\n      \"postfix\": \"s\",\n      \"postfixFontSize\"\
+    : \"80%\",\n      \"prefix\": \"\",\n      \"prefixFontSize\": \"80%\",\n    \
+    \  \"rangeMaps\": [\n        {\n          \"from\": \"null\",\n          \"text\"\
+    : \"N/A\",\n          \"to\": \"null\"\n        }\n      ],\n      \"sparkline\"\
+    : {\n        \"fillColor\": \"rgba(31, 118, 189, 0.18)\",\n        \"full\": false,\n\
+    \        \"lineColor\": \"rgb(31, 120, 193)\",\n        \"show\": false\n    \
+    \  },\n      \"tableColumn\": \"\",\n      \"targets\": [\n        {\n       \
+    \   \"calculatedInterval\": \"10m\",\n          \"datasourceErrors\": {},\n  \
+    \        \"errors\": {},\n          \"expr\": \"mysql_global_status_uptime{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"5m\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 300\n        }\n      ],\n      \"thresholds\": \"300,3600\",\n      \"title\"\
+    : \"MySQL Uptime\",\n      \"transparent\": false,\n      \"type\": \"singlestat\"\
+    ,\n      \"valueFontSize\": \"80%\",\n      \"valueMaps\": [],\n      \"valueName\"\
+    : \"current\"\n    },\n    {\n      \"cacheTimeout\": null,\n      \"colorBackground\"\
+    : false,\n      \"colorValue\": false,\n      \"colors\": [\n        \"rgba(245,\
+    \ 54, 54, 0.9)\",\n        \"rgba(237, 129, 40, 0.89)\",\n        \"rgba(50, 172,\
+    \ 45, 0.97)\"\n      ],\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": 2,\n      \"description\": \"**Current QPS**\\n\\nBased on the queries\
+    \ reported by MySQL's ``SHOW STATUS`` command, it is the number of statements\
+    \ executed by the server within the last second. This variable includes statements\
+    \ executed within stored programs, unlike the Questions variable. It does not\
+    \ count \\n``COM_PING`` or ``COM_STATISTICS`` commands.\",\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"format\": \"short\",\n      \"gauge\"\
+    : {\n        \"maxValue\": 100,\n        \"minValue\": 0,\n        \"show\": false,\n\
+    \        \"thresholdLabels\": false,\n        \"thresholdMarkers\": true\n   \
+    \   },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n        \"\
+    x\": 6,\n        \"y\": 1\n      },\n      \"height\": \"125px\",\n      \"id\"\
+    : 13,\n      \"interval\": \"$interval\",\n      \"links\": [\n        {\n   \
+    \       \"targetBlank\": true,\n          \"title\": \"MySQL Server Status Variables\"\
+    ,\n          \"type\": \"absolute\",\n          \"url\": \"https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Queries\"\
+    \n        }\n      ],\n      \"mappingType\": 1,\n      \"mappingTypes\": [\n\
+    \        {\n          \"name\": \"value to text\",\n          \"value\": 1\n \
+    \       },\n        {\n          \"name\": \"range to text\",\n          \"value\"\
+    : 2\n        }\n      ],\n      \"maxDataPoints\": 100,\n      \"nullPointMode\"\
+    : \"connected\",\n      \"nullText\": null,\n      \"postfix\": \"\",\n      \"\
+    postfixFontSize\": \"50%\",\n      \"prefix\": \"\",\n      \"prefixFontSize\"\
+    : \"80%\",\n      \"rangeMaps\": [\n        {\n          \"from\": \"null\",\n\
+    \          \"text\": \"N/A\",\n          \"to\": \"null\"\n        }\n      ],\n\
+    \      \"sparkline\": {\n        \"fillColor\": \"rgba(31, 118, 189, 0.18)\",\n\
+    \        \"full\": false,\n        \"lineColor\": \"rgb(31, 120, 193)\",\n   \
+    \     \"show\": true\n      },\n      \"tableColumn\": \"\",\n      \"targets\"\
+    : [\n        {\n          \"calculatedInterval\": \"10m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_queries{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_queries{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    \",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": \"35,75\",\n      \"title\":\
+    \ \"Current QPS\",\n      \"transparent\": false,\n      \"type\": \"singlestat\"\
+    ,\n      \"valueFontSize\": \"80%\",\n      \"valueMaps\": [],\n      \"valueName\"\
+    : \"current\"\n    },\n    {\n      \"cacheTimeout\": null,\n      \"colorBackground\"\
+    : false,\n      \"colorValue\": false,\n      \"colors\": [\n        \"rgba(50,\
+    \ 172, 45, 0.97)\",\n        \"rgba(237, 129, 40, 0.89)\",\n        \"rgba(245,\
+    \ 54, 54, 0.9)\"\n      ],\n      \"datasource\": \"VictoriaMetrics\",\n     \
+    \ \"decimals\": 0,\n      \"description\": \"**InnoDB Buffer Pool Size**\\n\\\
+    nInnoDB maintains a storage area called the buffer pool for caching data and indexes\
+    \ in memory.  Knowing how the InnoDB buffer pool works, and taking advantage of\
+    \ it to keep frequently accessed data in memory, is one of the most important\
+    \ aspects of MySQL tuning. The goal is to keep the working set in memory. In most\
+    \ cases, this should be between 60%-90% of available memory on a dedicated database\
+    \ host, but depends on many factors.\",\n      \"editable\": true,\n      \"error\"\
+    : false,\n      \"format\": \"bytes\",\n      \"gauge\": {\n        \"maxValue\"\
+    : 100,\n        \"minValue\": 0,\n        \"show\": false,\n        \"thresholdLabels\"\
+    : false,\n        \"thresholdMarkers\": true\n      },\n      \"gridPos\": {\n\
+    \        \"h\": 4,\n        \"w\": 6,\n        \"x\": 12,\n        \"y\": 1\n\
+    \      },\n      \"height\": \"125px\",\n      \"id\": 51,\n      \"interval\"\
+    : \"$interval\",\n      \"links\": [\n        {\n          \"targetBlank\": true,\n\
+    \          \"title\": \"Tuning the InnoDB Buffer Pool Size\",\n          \"type\"\
+    : \"absolute\",\n          \"url\": \"https://www.percona.com/blog/2015/06/02/80-ram-tune-innodb_buffer_pool_size/\"\
+    \n        }\n      ],\n      \"mappingType\": 1,\n      \"mappingTypes\": [\n\
+    \        {\n          \"name\": \"value to text\",\n          \"value\": 1\n \
+    \       },\n        {\n          \"name\": \"range to text\",\n          \"value\"\
+    : 2\n        }\n      ],\n      \"maxDataPoints\": 100,\n      \"nullPointMode\"\
+    : \"connected\",\n      \"nullText\": null,\n      \"postfix\": \"\",\n      \"\
+    postfixFontSize\": \"50%\",\n      \"prefix\": \"\",\n      \"prefixFontSize\"\
+    : \"80%\",\n      \"rangeMaps\": [\n        {\n          \"from\": \"null\",\n\
+    \          \"text\": \"N/A\",\n          \"to\": \"null\"\n        }\n      ],\n\
+    \      \"sparkline\": {\n        \"fillColor\": \"rgba(31, 118, 189, 0.18)\",\n\
+    \        \"full\": false,\n        \"lineColor\": \"rgb(31, 120, 193)\",\n   \
+    \     \"show\": false\n      },\n      \"tableColumn\": \"\",\n      \"targets\"\
+    : [\n        {\n          \"calculatedInterval\": \"10m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"mysql_global_variables_innodb_buffer_pool_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"5m\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 300\n        }\n      ],\n      \"thresholds\": \"90,95\",\n      \"title\"\
+    : \"InnoDB Buffer Pool Size\",\n      \"transparent\": false,\n      \"type\"\
+    : \"singlestat\",\n      \"valueFontSize\": \"80%\",\n      \"valueMaps\": [],\n\
+    \      \"valueName\": \"current\"\n    },\n    {\n      \"cacheTimeout\": null,\n\
+    \      \"colorBackground\": false,\n      \"colorValue\": true,\n      \"colors\"\
+    : [\n        \"rgba(245, 54, 54, 0.9)\",\n        \"rgba(237, 129, 40, 0.89)\"\
+    ,\n        \"rgba(50, 172, 45, 0.97)\"\n      ],\n      \"datasource\": \"VictoriaMetrics\"\
+    ,\n      \"decimals\": 0,\n      \"description\": \"**InnoDB Buffer Pool Size\
+    \ % of Total RAM**\\n\\nInnoDB maintains a storage area called the buffer pool\
+    \ for caching data and indexes in memory.  Knowing how the InnoDB buffer pool\
+    \ works, and taking advantage of it to keep frequently accessed data in memory,\
+    \ is one of the most important aspects of MySQL tuning. The goal is to keep the\
+    \ working set in memory. In most cases, this should be between 60%-90% of available\
+    \ memory on a dedicated database host, but depends on many factors.\",\n     \
+    \ \"editable\": true,\n      \"error\": false,\n      \"format\": \"percent\"\
+    ,\n      \"gauge\": {\n        \"maxValue\": 100,\n        \"minValue\": 0,\n\
+    \        \"show\": false,\n        \"thresholdLabels\": false,\n        \"thresholdMarkers\"\
+    : true\n      },\n      \"gridPos\": {\n        \"h\": 4,\n        \"w\": 6,\n\
+    \        \"x\": 18,\n        \"y\": 1\n      },\n      \"height\": \"125px\",\n\
+    \      \"id\": 52,\n      \"interval\": \"$interval\",\n      \"links\": [\n \
+    \       {\n          \"targetBlank\": true,\n          \"title\": \"Tuning the\
+    \ InnoDB Buffer Pool Size\",\n          \"type\": \"absolute\",\n          \"\
+    url\": \"https://www.percona.com/blog/2015/06/02/80-ram-tune-innodb_buffer_pool_size/\"\
+    \n        }\n      ],\n      \"mappingType\": 1,\n      \"mappingTypes\": [\n\
+    \        {\n          \"name\": \"value to text\",\n          \"value\": 1\n \
+    \       },\n        {\n          \"name\": \"range to text\",\n          \"value\"\
+    : 2\n        }\n      ],\n      \"maxDataPoints\": 100,\n      \"nullPointMode\"\
+    : \"connected\",\n      \"nullText\": null,\n      \"postfix\": \"\",\n      \"\
+    postfixFontSize\": \"50%\",\n      \"prefix\": \"\",\n      \"prefixFontSize\"\
+    : \"80%\",\n      \"rangeMaps\": [\n        {\n          \"from\": \"null\",\n\
+    \          \"text\": \"N/A\",\n          \"to\": \"null\"\n        }\n      ],\n\
+    \      \"repeat\": null,\n      \"sparkline\": {\n        \"fillColor\": \"rgba(31,\
+    \ 118, 189, 0.18)\",\n        \"full\": false,\n        \"lineColor\": \"rgb(31,\
+    \ 120, 193)\",\n        \"maxValue\": 100,\n        \"minValue\": 0,\n       \
+    \ \"show\": true\n      },\n      \"tableColumn\": \"\",\n      \"targets\": [\n\
+    \        {\n          \"calculatedInterval\": \"10m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"(mysql_global_variables_innodb_buffer_pool_size{instance=\\\
+    \"$host\\\"} * 100) / on (instance) node_memory_MemTotal_bytes{instance=\\\"$host\\\
+    \"}\",\n          \"format\": \"time_series\",\n          \"interval\": \"5m\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\",\n     \
+    \     \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\": 300\n\
+    \        }\n      ],\n      \"thresholds\": \"40,80\",\n      \"title\": \"Buffer\
+    \ Pool Size of Total RAM\",\n      \"transparent\": false,\n      \"type\": \"\
+    singlestat\",\n      \"valueFontSize\": \"80%\",\n      \"valueMaps\": [],\n \
+    \     \"valueName\": \"current\"\n    },\n    {\n      \"collapsed\": false,\n\
+    \      \"gridPos\": {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n\
+    \        \"y\": 5\n      },\n      \"id\": 383,\n      \"panels\": [],\n     \
+    \ \"repeat\": null,\n      \"title\": \"Connections\",\n      \"type\": \"row\"\
+    \n    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"\
+    dashLength\": 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\"\
+    ,\n      \"decimals\": 0,\n      \"description\": \"**Max Connections** \\n\\\
+    nMax Connections is the maximum permitted number of simultaneous client connections.\
+    \ By default, this is 151. Increasing this value increases the number of file\
+    \ descriptors that mysqld requires. If the required number of descriptors are\
+    \ not available, the server reduces the value of Max Connections.\\n\\nmysqld\
+    \ actually permits Max Connections + 1 clients to connect. The extra connection\
+    \ is reserved for use by accounts that have the SUPER privilege, such as root.\\\
+    n\\nMax Used Connections is the maximum number of connections that have been in\
+    \ use simultaneously since the server started.\\n\\nConnections is the number\
+    \ of connection attempts (successful or not) to the MySQL server.\",\n      \"\
+    editable\": true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\"\
+    : {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"\
+    x\": 0,\n        \"y\": 6\n      },\n      \"height\": \"250px\",\n      \"id\"\
+    : 92,\n      \"legend\": {\n        \"alignAsTable\": true,\n        \"avg\":\
+    \ true,\n        \"current\": false,\n        \"max\": true,\n        \"min\"\
+    : true,\n        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\"\
+    : true,\n        \"total\": false,\n        \"values\": true\n      },\n     \
+    \ \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [\n        {\n \
+    \         \"targetBlank\": true,\n          \"title\": \"MySQL Server System Variables\"\
+    ,\n          \"type\": \"absolute\",\n          \"url\": \"https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_max_connections\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    Max Connections\",\n          \"fill\": 0\n        }\n      ],\n      \"spaceLength\"\
+    : 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\"\
+    : [\n        {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"max(max_over_time(mysql_global_status_threads_connected{instance=\\\
+    \"$host\\\"}[$interval])  or mysql_global_status_threads_connected{instance=\\\
+    \"$host\\\"} )\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Connections\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n\
+    \          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_status_max_used_connections{instance=\\\"$host\\\
+    \"}\",\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Max Used Connections\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"C\",\n          \"step\"\
+    : 20,\n          \"target\": \"\"\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_variables_max_connections{instance=\\\"$host\\\
+    \"}\",\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Max Connections\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"B\",\n          \"step\"\
+    : 20,\n          \"target\": \"\"\n        }\n      ],\n      \"thresholds\":\
+    \ [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\"\
+    : \"MySQL Connections\",\n      \"tooltip\": {\n        \"msResolution\": false,\n\
+    \        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"cumulative\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"label\": \"\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        },\n        {\n          \"format\": \"short\",\n          \"label\"\
+    : \"\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n    \
+    \    \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n\
+    \      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n\
+    \      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": 2,\n      \"description\": \"**MySQL Active Threads**\\n\\nThreads\
+    \ Connected is the number of open connections, while Threads Running is the number\
+    \ of threads not sleeping.\",\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 6\n      },\n   \
+    \   \"id\": 10,\n      \"legend\": {\n        \"alignAsTable\": true,\n      \
+    \  \"avg\": true,\n        \"current\": true,\n        \"max\": true,\n      \
+    \  \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n  \
+    \      \"sortDesc\": true,\n        \"total\": false,\n        \"values\": true\n\
+    \      },\n      \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [],\n\
+    \      \"nullPointMode\": \"null\",\n      \"percentage\": false,\n      \"pointradius\"\
+    : 5,\n      \"points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\"\
+    : [\n        {\n          \"alias\": \"Peak Threads Running\",\n          \"color\"\
+    : \"#E24D42\",\n          \"lines\": false,\n          \"pointradius\": 1,\n \
+    \         \"points\": true\n        },\n        {\n          \"alias\": \"Peak\
+    \ Threads Connected\",\n          \"color\": \"#1F78C1\"\n        },\n       \
+    \ {\n          \"alias\": \"Avg Threads Running\",\n          \"color\": \"#EAB839\"\
+    \n        }\n      ],\n      \"spaceLength\": 10,\n      \"stack\": false,\n \
+    \     \"steppedLine\": false,\n      \"targets\": [\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"max_over_time(mysql_global_status_threads_connected{instance=\\\
+    \"$host\\\"}[$interval]) or\\nmax_over_time(mysql_global_status_threads_connected{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"hide\"\
+    : false,\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Peak Threads Connected\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"A\",\n          \"step\": 20\n        },\n   \
+    \     {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"max_over_time(mysql_global_status_threads_running{instance=\\\
+    \"$host\\\"}[$interval]) or\\nmax_over_time(mysql_global_status_threads_running{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Peak Threads Running\",\n          \"metric\": \"\",\n          \"refId\"\
+    : \"B\",\n          \"step\": 20\n        },\n        {\n          \"expr\": \"\
+    avg_over_time(mysql_global_status_threads_running{instance=\\\"$host\\\"}[$interval])\
+    \ or \\navg_over_time(mysql_global_status_threads_running{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Avg Threads Running\",\n          \"refId\": \"C\",\n          \"step\": 20\n\
+    \        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n \
+    \     \"timeShift\": null,\n      \"title\": \"MySQL Client Thread Activity\"\
+    ,\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\"\
+    : true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n\
+    \      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n\
+    \        \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n\
+    \        \"values\": [\n          \"total\"\n        ]\n      },\n      \"yaxes\"\
+    : [\n        {\n          \"format\": \"short\",\n          \"label\": \"Threads\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"label\": \"\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": false\n        }\n      ],\n     \
+    \ \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n    \
+    \  }\n    },\n    {\n      \"collapsed\": false,\n      \"gridPos\": {\n     \
+    \   \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 13\n    \
+    \  },\n      \"id\": 384,\n      \"panels\": [],\n      \"repeat\": null,\n  \
+    \    \"title\": \"Table Locks\",\n      \"type\": \"row\"\n    },\n    {\n   \
+    \   \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n\
+    \      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": null,\n      \"description\": \"**MySQL Questions**\\n\\nThe number\
+    \ of statements executed by the server. This includes only statements sent to\
+    \ the server by clients and not statements executed within stored programs, unlike\
+    \ the Queries used in the QPS calculation. \\n\\nThis variable does not count\
+    \ the following commands:\\n* ``COM_PING``\\n* ``COM_STATISTICS``\\n* ``COM_STMT_PREPARE``\\\
+    n* ``COM_STMT_CLOSE``\\n* ``COM_STMT_RESET``\",\n      \"editable\": true,\n \
+    \     \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\":\
+    \ 14\n      },\n      \"id\": 53,\n      \"legend\": {\n        \"alignAsTable\"\
+    : true,\n        \"avg\": true,\n        \"current\": false,\n        \"max\"\
+    : true,\n        \"min\": true,\n        \"rightSide\": false,\n        \"show\"\
+    : true,\n        \"total\": false,\n        \"values\": true\n      },\n     \
+    \ \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [\n        {\n \
+    \         \"targetBlank\": true,\n          \"title\": \"MySQL Queries and Questions\"\
+    ,\n          \"type\": \"absolute\",\n          \"url\": \"https://www.percona.com/blog/2014/05/29/how-mysql-queries-and-questions-are-measured/\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_questions{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_questions{instance=\\\"\
+    $host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Questions\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n \
+    \         \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n     \
+    \ \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL Questions\"\
+    ,\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\"\
+    : true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n\
+    \      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n\
+    \        \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n\
+    \        \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"description\": \"**MySQL Thread Cache**\\n\\\
+    nThe thread_cache_size variable sets how many threads the server should cache\
+    \ to reuse. When a client disconnects, the client's threads are put in the cache\
+    \ if the cache is not full. It is autosized in MySQL 5.6.8 and above (capped to\
+    \ 100). Requests for threads are satisfied by reusing threads taken from the cache\
+    \ if possible, and only when the cache is empty is a new thread created.\\n\\\
+    n* *Threads_created*: The number of threads created to handle connections.\\n*\
+    \ *Threads_cached*: The number of threads in the thread cache.\",\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n\
+    \        \"y\": 14\n      },\n      \"id\": 11,\n      \"legend\": {\n       \
+    \ \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\": false,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": false,\n\
+    \        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [\n        {\n          \"\
+    title\": \"Tuning information\",\n          \"type\": \"absolute\",\n        \
+    \  \"url\": \"https://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_thread_cache_size\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    Threads Created\",\n          \"fill\": 0\n        }\n      ],\n      \"spaceLength\"\
+    : 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\"\
+    : [\n        {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"mysql_global_variables_thread_cache_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Thread Cache Size\",\n          \"metric\": \"\",\n          \"refId\": \"\
+    B\",\n          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_status_threads_cached{instance=\\\"$host\\\"\
+    }\",\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Threads Cached\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"C\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"calculatedInterval\": \"2m\",\n     \
+    \     \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\"\
+    : \"rate(mysql_global_status_threads_created{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_threads_created{instance=\\\"$host\\\"}[5m])\"\
+    ,\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Threads Created\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Thread Cache\",\n      \"\
+    tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n  \
+    \      \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n      \"\
+    transparent\": false,\n      \"type\": \"graph\",\n      \"xaxis\": {\n      \
+    \  \"buckets\": null,\n        \"mode\": \"time\",\n        \"name\": null,\n\
+    \        \"show\": true,\n        \"values\": []\n      },\n      \"yaxes\": [\n\
+    \        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n    \
+    \      \"max\": null,\n          \"min\": 0,\n          \"show\": true\n     \
+    \   },\n        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n\
+    \          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n \
+    \       }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"collapsed\": false,\n    \
+    \  \"gridPos\": {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n\
+    \        \"y\": 21\n      },\n      \"id\": 385,\n      \"panels\": [],\n    \
+    \  \"repeat\": null,\n      \"title\": \"Temporary Objects\",\n      \"type\"\
+    : \"row\"\n    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n\
+    \      \"dashLength\": 10,\n      \"dashes\": false,\n      \"datasource\": \"\
+    VictoriaMetrics\",\n      \"decimals\": 2,\n      \"editable\": true,\n      \"\
+    error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n\
+    \        \"h\": 7,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 22\n\
+    \      },\n      \"id\": 22,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n\
+    \        \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_created_tmp_tables{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_created_tmp_tables{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Created Tmp Tables\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"A\",\n          \"step\": 20\n        },\n   \
+    \     {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_created_tmp_disk_tables{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_created_tmp_disk_tables{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Created Tmp Disk Tables\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"B\",\n          \"step\": 20\n        },\n   \
+    \     {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_created_tmp_files{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_created_tmp_files{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Created Tmp Files\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"C\",\n          \"step\": 20\n        }\n    \
+    \  ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\"\
+    : null,\n      \"title\": \"MySQL Temporary Objects\",\n      \"tooltip\": {\n\
+    \        \"msResolution\": false,\n        \"shared\": true,\n        \"sort\"\
+    : 0,\n        \"value_type\": \"individual\"\n      },\n      \"type\": \"graph\"\
+    ,\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\"\
+    ,\n        \"name\": null,\n        \"show\": true,\n        \"values\": []\n\
+    \      },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n \
+    \         \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n \
+    \         \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n        \"\
+    align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : 2,\n      \"description\": \"**MySQL Select Types**\\n\\nAs with most relational\
+    \ databases, selecting based on indexes is more efficient than scanning an entire\
+    \ table's data. Here we see the counters for selects not done with indexes.\\\
+    n\\n* ***Select Scan*** is how many queries caused full table scans, in which\
+    \ all the data in the table had to be read and either discarded or returned.\\\
+    n* ***Select Range*** is how many queries used a range scan, which means MySQL\
+    \ scanned all rows in a given range.\\n* ***Select Full Join*** is the number\
+    \ of joins that are not joined on an index, this is usually a huge performance\
+    \ hit.\",\n      \"editable\": true,\n      \"error\": false,\n      \"fill\"\
+    : 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"\
+    w\": 12,\n        \"x\": 12,\n        \"y\": 22\n      },\n      \"height\": \"\
+    250px\",\n      \"id\": 311,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"hideZero\": true,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": false,\n\
+    \        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_select_full_join{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_select_full_join{instance=\\\"$host\\\"}[5m])\"\
+    ,\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Select Full\
+    \ Join\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n        \
+    \  \"step\": 20\n        },\n        {\n          \"calculatedInterval\": \"2m\"\
+    ,\n          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_select_full_range_join{instance=\\\"$host\\\
+    \"}[$interval]) or irate(mysql_global_status_select_full_range_join{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Select Full Range Join\",\n          \"metric\": \"\",\n          \"refId\"\
+    : \"B\",\n          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_select_range{instance=\\\"$host\\\
+    \"}[$interval]) or irate(mysql_global_status_select_range{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Select Range\",\n          \"metric\": \"\",\n          \"refId\": \"C\",\n  \
+    \        \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_select_range_check{instance=\\\"\
+    $host\\\"}[$interval]) or irate(mysql_global_status_select_range_check{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Select Range Check\",\n          \"metric\": \"\",\n          \"refId\": \"\
+    D\",\n          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_select_scan{instance=\\\"$host\\\
+    \"}[$interval]) or irate(mysql_global_status_select_scan{instance=\\\"$host\\\"\
+    }[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Select Scan\",\n          \"metric\": \"\",\n          \"refId\": \"E\",\n   \
+    \       \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n      \"\
+    timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL Select\
+    \ Types\",\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"\
+    shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n\
+    \      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\":\
+    \ null,\n          \"min\": 0,\n          \"show\": true\n        },\n       \
+    \ {\n          \"format\": \"short\",\n          \"logBase\": 1,\n          \"\
+    max\": null,\n          \"min\": 0,\n          \"show\": true\n        }\n   \
+    \   ],\n      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\"\
+    : null\n      }\n    },\n    {\n      \"collapsed\": false,\n      \"gridPos\"\
+    : {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 29\n      },\n      \"id\": 386,\n      \"panels\": [],\n      \"repeat\": null,\n\
+    \      \"title\": \"Sorts\",\n      \"type\": \"row\"\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : 2,\n      \"description\": \"**MySQL Sorts**\\n\\nDue to a query's structure,\
+    \ order, or other requirements, MySQL sorts the rows before returning them. For\
+    \ example, if a table is ordered 1 to 10 but you want the results reversed, MySQL\
+    \ then has to sort the rows to return 10 to 1.\\n\\nThis graph also shows when\
+    \ sorts had to scan a whole table or a given range of a table in order to return\
+    \ the results and which could not have been sorted via an index.\",\n      \"\
+    editable\": true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\"\
+    : {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"\
+    x\": 0,\n        \"y\": 30\n      },\n      \"id\": 30,\n      \"legend\": {\n\
+    \        \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\"\
+    : false,\n        \"hideZero\": true,\n        \"max\": true,\n        \"min\"\
+    : true,\n        \"rightSide\": false,\n        \"show\": true,\n        \"sort\"\
+    : \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n        \"\
+    values\": true\n      },\n      \"lines\": true,\n      \"linewidth\": 2,\n  \
+    \    \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_sort_rows{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_sort_rows{instance=\\\"\
+    $host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Sort Rows\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n \
+    \         \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_sort_range{instance=\\\"$host\\\"\
+    }[$interval]) or irate(mysql_global_status_sort_range{instance=\\\"$host\\\"}[5m])\"\
+    ,\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Sort Range\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"B\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"calculatedInterval\": \"2m\",\n     \
+    \     \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\"\
+    : \"rate(mysql_global_status_sort_merge_passes{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_sort_merge_passes{instance=\\\"$host\\\"}[5m])\"\
+    ,\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Sort Merge\
+    \ Passes\",\n          \"metric\": \"\",\n          \"refId\": \"C\",\n      \
+    \    \"step\": 20\n        },\n        {\n          \"calculatedInterval\": \"\
+    2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n      \
+    \    \"expr\": \"rate(mysql_global_status_sort_scan{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_sort_scan{instance=\\\"$host\\\"}[5m])\",\n   \
+    \       \"format\": \"time_series\",\n          \"interval\": \"$interval\",\n\
+    \          \"intervalFactor\": 1,\n          \"legendFormat\": \"Sort Scan\",\n\
+    \          \"metric\": \"\",\n          \"refId\": \"D\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Sorts\",\n      \"tooltip\"\
+    : {\n        \"msResolution\": false,\n        \"shared\": true,\n        \"sort\"\
+    : 0,\n        \"value_type\": \"individual\"\n      },\n      \"type\": \"graph\"\
+    ,\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\"\
+    ,\n        \"name\": null,\n        \"show\": true,\n        \"values\": []\n\
+    \      },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n \
+    \         \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n \
+    \         \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n        \"\
+    align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : 2,\n      \"description\": \"**MySQL Slow Queries**\\n\\nSlow queries are defined\
+    \ as queries being slower than the long_query_time setting. For example, if you\
+    \ have long_query_time set to 3, all queries that take longer than 3 seconds to\
+    \ complete will show on this graph.\",\n      \"editable\": true,\n      \"error\"\
+    : false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n    \
+    \    \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 30\n  \
+    \    },\n      \"id\": 48,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n\
+    \        \"min\": true,\n        \"show\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_slow_queries{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_slow_queries{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Slow Queries\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n\
+    \          \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n    \
+    \  \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL Slow\
+    \ Queries\",\n      \"tooltip\": {\n        \"msResolution\": false,\n       \
+    \ \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"cumulative\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"label\": \"\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        },\n        {\n          \"format\": \"short\",\n          \"label\"\
+    : \"\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n    \
+    \    \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n\
+    \      \"collapsed\": false,\n      \"gridPos\": {\n        \"h\": 1,\n      \
+    \  \"w\": 24,\n        \"x\": 0,\n        \"y\": 37\n      },\n      \"id\": 387,\n\
+    \      \"panels\": [],\n      \"repeat\": null,\n      \"title\": \"Aborted\"\
+    ,\n      \"type\": \"row\"\n    },\n    {\n      \"aliasColors\": {},\n      \"\
+    bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n      \"\
+    datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"description\"\
+    : \"**Aborted Connections**\\n\\nWhen a given host connects to MySQL and the connection\
+    \ is interrupted in the middle (for example due to bad credentials), MySQL keeps\
+    \ that info in a system table (since 5.6 this table is exposed in performance_schema).\\\
+    n\\nIf the amount of failed requests without a successful connection reaches the\
+    \ value of max_connect_errors, mysqld assumes that something is wrong and blocks\
+    \ the host from further connection.\\n\\nTo allow connections from that host again,\
+    \ you need to issue the ``FLUSH HOSTS`` statement.\",\n      \"editable\": true,\n\
+    \      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\":\
+    \ 38\n      },\n      \"id\": 47,\n      \"legend\": {\n        \"alignAsTable\"\
+    : true,\n        \"avg\": true,\n        \"current\": false,\n        \"max\"\
+    : true,\n        \"min\": true,\n        \"show\": true,\n        \"sort\": \"\
+    avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n        \"values\"\
+    : true\n      },\n      \"lines\": true,\n      \"linewidth\": 2,\n      \"links\"\
+    : [],\n      \"nullPointMode\": \"null\",\n      \"percentage\": false,\n    \
+    \  \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\": \"flot\"\
+    ,\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n      \"stack\"\
+    : false,\n      \"steppedLine\": false,\n      \"targets\": [\n        {\n   \
+    \       \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_aborted_connects{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_aborted_connects{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Aborted Connects (attempts)\",\n          \"metric\": \"\",\n          \"\
+    refId\": \"A\",\n          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_aborted_clients{instance=\\\"$host\\\
+    \"}[$interval]) or irate(mysql_global_status_aborted_clients{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Aborted Clients (timeout)\",\n          \"metric\": \"\",\n          \"refId\"\
+    : \"B\",\n          \"step\": 20,\n          \"target\": \"\"\n        }\n   \
+    \   ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\"\
+    : null,\n      \"title\": \"MySQL Aborted Connections\",\n      \"tooltip\": {\n\
+    \        \"msResolution\": false,\n        \"shared\": true,\n        \"sort\"\
+    : 0,\n        \"value_type\": \"cumulative\"\n      },\n      \"type\": \"graph\"\
+    ,\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\"\
+    ,\n        \"name\": null,\n        \"show\": true,\n        \"values\": []\n\
+    \      },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n \
+    \         \"label\": \"\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        },\n        {\n    \
+    \      \"format\": \"short\",\n          \"label\": \"\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"aliasColors\": {},\n     \
+    \ \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n    \
+    \  \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"description\"\
+    : \"**Table Locks**\\n\\nMySQL takes a number of different locks for varying reasons.\
+    \ In this graph we see how many Table level locks MySQL has requested from the\
+    \ storage engine. In the case of InnoDB, many times the locks could actually be\
+    \ row locks as it only takes table level locks in a few specific cases.\\n\\nIt\
+    \ is most useful to compare Locks Immediate and Locks Waited. If Locks waited\
+    \ is rising, it means you have lock contention. Otherwise, Locks Immediate rising\
+    \ and falling is normal activity.\",\n      \"editable\": true,\n      \"error\"\
+    : false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n    \
+    \    \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\": 38\n  \
+    \    },\n      \"id\": 32,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n\
+    \        \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_table_locks_immediate{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_locks_immediate{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Table Locks Immediate\",\n          \"metric\": \"\",\n          \"refId\"\
+    : \"A\",\n          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_table_locks_waited{instance=\\\"\
+    $host\\\"}[$interval]) or irate(mysql_global_status_table_locks_waited{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Table Locks Waited\",\n          \"metric\": \"\",\n          \"refId\": \"\
+    B\",\n          \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL\
+    \ Table Locks\",\n      \"tooltip\": {\n        \"msResolution\": false,\n   \
+    \     \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\":\
+    \ null,\n          \"min\": 0,\n          \"show\": true\n        },\n       \
+    \ {\n          \"format\": \"short\",\n          \"logBase\": 1,\n          \"\
+    max\": null,\n          \"min\": 0,\n          \"show\": true\n        }\n   \
+    \   ],\n      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\"\
+    : null\n      }\n    },\n    {\n      \"collapsed\": false,\n      \"gridPos\"\
+    : {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 45\n      },\n      \"id\": 388,\n      \"panels\": [],\n      \"repeat\": null,\n\
+    \      \"title\": \"Network\",\n      \"type\": \"row\"\n    },\n    {\n     \
+    \ \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n  \
+    \    \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": 2,\n      \"description\": \"**MySQL Network Traffic**\\n\\nHere we\
+    \ can see how much network traffic is generated by MySQL. Outbound is network\
+    \ traffic sent from MySQL and Inbound is network traffic MySQL has received.\"\
+    ,\n      \"editable\": true,\n      \"error\": false,\n      \"fill\": 6,\n  \
+    \    \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n\
+    \        \"x\": 0,\n        \"y\": 46\n      },\n      \"id\": 9,\n      \"legend\"\
+    : {\n        \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\"\
+    : false,\n        \"max\": true,\n        \"min\": true,\n        \"rightSide\"\
+    : false,\n        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\"\
+    : true,\n        \"total\": false,\n        \"values\": true\n      },\n     \
+    \ \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": true,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_bytes_received{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_bytes_received{instance=\\\"$host\\\"}[5m])\",\n\
+    \          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Inbound\",\n\
+    \          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"calculatedInterval\": \"2m\",\n     \
+    \     \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\"\
+    : \"rate(mysql_global_status_bytes_sent{instance=\\\"$host\\\"}[$interval]) or\
+    \ irate(mysql_global_status_bytes_sent{instance=\\\"$host\\\"}[5m])\",\n     \
+    \     \"format\": \"time_series\",\n          \"interval\": \"$interval\",\n \
+    \         \"intervalFactor\": 1,\n          \"legendFormat\": \"Outbound\",\n\
+    \          \"metric\": \"\",\n          \"refId\": \"B\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Network Traffic\",\n   \
+    \   \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n\
+    \        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n    \
+    \  \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n    \
+    \    \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n \
+    \       \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"Bps\",\n          \"logBase\": 1,\n          \"max\": null,\n    \
+    \      \"min\": 0,\n          \"show\": true\n        },\n        {\n        \
+    \  \"format\": \"none\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"aliasColors\": {},\n      \"bars\": true,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"description\": \"**MySQL Network Usage Hourly**\\\
+    n\\nHere we can see how much network traffic is generated by MySQL per hour. You\
+    \ can use the bar graph to compare data sent by MySQL and data received by MySQL.\"\
+    ,\n      \"editable\": true,\n      \"error\": false,\n      \"fill\": 6,\n  \
+    \    \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n\
+    \        \"x\": 12,\n        \"y\": 46\n      },\n      \"height\": \"250px\"\
+    ,\n      \"id\": 381,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n\
+    \        \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": false,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": true,\n      \"steppedLine\": false,\n      \"targets\": [\n   \
+    \     {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"increase(mysql_global_status_bytes_received{instance=\\\
+    \"$host\\\"}[1h])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"1h\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Received\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 3600\n        },\n        {\n          \"calculatedInterval\": \"2m\",\n   \
+    \       \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\"\
+    : \"increase(mysql_global_status_bytes_sent{instance=\\\"$host\\\"}[1h])\",\n\
+    \          \"format\": \"time_series\",\n          \"interval\": \"1h\",\n   \
+    \       \"intervalFactor\": 1,\n          \"legendFormat\": \"Sent\",\n      \
+    \    \"metric\": \"\",\n          \"refId\": \"B\",\n          \"step\": 3600\n\
+    \        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": \"24h\",\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Network Usage Hourly\",\n\
+    \      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n\
+    \        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n    \
+    \  \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n    \
+    \    \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n \
+    \       \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"bytes\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"none\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"\
+    h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 53\n      },\n\
+    \      \"id\": 389,\n      \"panels\": [],\n      \"repeat\": null,\n      \"\
+    title\": \"Memory\",\n      \"type\": \"row\"\n    },\n    {\n      \"aliasColors\"\
+    : {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n\
+    \      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 0,\n      \"\
+    description\": \"***System Memory***: Total Memory for the system.\\\\\\n***InnoDB\
+    \ Buffer Pool Data***: InnoDB maintains a storage area called the buffer pool\
+    \ for caching data and indexes in memory.\\\\\\n***TokuDB Cache Size***: Similar\
+    \ in function to the InnoDB Buffer Pool,  TokuDB will allocate 50% of the installed\
+    \ RAM for its own cache.\\\\\\n***Key Buffer Size***: Index blocks for MYISAM\
+    \ tables are buffered and are shared by all threads. key_buffer_size is the size\
+    \ of the buffer used for index blocks.\\\\\\n***Adaptive Hash Index Size***: When\
+    \ InnoDB notices that some index values are being accessed very frequently, it\
+    \ builds a hash index for them in memory on top of B-Tree indexes.\\\\\\n ***Query\
+    \ Cache Size***: The query cache stores the text of a SELECT statement together\
+    \ with the corresponding result that was sent to the client. The query cache has\
+    \ huge scalability problems in that only one thread can do an operation in the\
+    \ query cache at the same time.\\\\\\n***InnoDB Dictionary Size***: The data dictionary\
+    \ is InnoDB \\u2018s internal catalog of tables. InnoDB stores the data dictionary\
+    \ on disk, and loads entries into memory while the server is running.\\\\\\n***InnoDB\
+    \ Log Buffer Size***: The MySQL InnoDB log buffer allows transactions to run without\
+    \ having to write the log to disk before the transactions commit.\",\n      \"\
+    editable\": true,\n      \"error\": false,\n      \"fill\": 6,\n      \"grid\"\
+    : {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\": 24,\n        \"\
+    x\": 0,\n        \"y\": 54\n      },\n      \"id\": 50,\n      \"legend\": {\n\
+    \        \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\"\
+    : false,\n        \"hideEmpty\": true,\n        \"hideZero\": true,\n        \"\
+    max\": true,\n        \"min\": true,\n        \"rightSide\": true,\n        \"\
+    show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n     \
+    \   \"total\": false,\n        \"values\": true\n      },\n      \"lines\": true,\n\
+    \      \"linewidth\": 2,\n      \"links\": [\n        {\n          \"title\":\
+    \ \"Detailed descriptions about metrics\",\n          \"type\": \"absolute\",\n\
+    \          \"url\": \"https://www.percona.com/doc/percona-monitoring-and-management/dashboard.mysql-overview.html#mysql-internal-memory-overview\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    System Memory\",\n          \"fill\": 0,\n          \"stack\": false\n       \
+    \ }\n      ],\n      \"spaceLength\": 10,\n      \"stack\": true,\n      \"steppedLine\"\
+    : false,\n      \"targets\": [\n        {\n          \"expr\": \"node_memory_MemTotal_bytes{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"intervalFactor\"\
+    : 2,\n          \"legendFormat\": \"System Memory\",\n          \"refId\": \"\
+    G\",\n          \"step\": 4\n        },\n        {\n          \"expr\": \"mysql_global_status_innodb_page_size{instance=\\\
+    \"$host\\\"} * on (instance) mysql_global_status_buffer_pool_pages{instance=\\\
+    \"$host\\\",state=\\\"data\\\"}\",\n          \"format\": \"time_series\",\n \
+    \         \"hide\": false,\n          \"interval\": \"$interval\",\n         \
+    \ \"intervalFactor\": 1,\n          \"legendFormat\": \"InnoDB Buffer Pool Data\"\
+    ,\n          \"refId\": \"A\",\n          \"step\": 20\n        },\n        {\n\
+    \          \"expr\": \"mysql_global_variables_innodb_log_buffer_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"InnoDB Log Buffer Size\",\n          \"refId\": \"D\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"expr\": \"mysql_global_variables_innodb_additional_mem_pool_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 2,\n          \"legendFormat\"\
+    : \"InnoDB Additional Memory Pool Size\",\n          \"refId\": \"H\",\n     \
+    \     \"step\": 40\n        },\n        {\n          \"expr\": \"mysql_global_status_innodb_mem_dictionary{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"InnoDB Dictionary Size\",\n          \"refId\": \"F\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"expr\": \"mysql_global_variables_key_buffer_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Key Buffer Size\",\n          \"refId\": \"B\",\n          \"step\": 20\n\
+    \        },\n        {\n          \"expr\": \"mysql_global_variables_query_cache_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Query Cache Size\",\n          \"refId\": \"C\",\n          \"step\": 20\n\
+    \        },\n        {\n          \"expr\": \"mysql_global_status_innodb_mem_adaptive_hash{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Adaptive Hash Index Size\",\n          \"refId\": \"E\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"expr\": \"mysql_global_variables_tokudb_cache_size{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"TokuDB Cache Size\",\n          \"refId\": \"I\",\n          \"step\": 20\n\
+    \        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n \
+    \     \"timeShift\": null,\n      \"title\": \"MySQL Internal Memory Overview\"\
+    ,\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\"\
+    : true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n\
+    \      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n\
+    \        \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n\
+    \        \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"bytes\",\n          \"label\": \"\",\n          \"logBase\": 1,\n\
+    \          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n \
+    \       },\n        {\n          \"format\": \"short\",\n          \"label\":\
+    \ null,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : null,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n \
+    \       \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n   \
+    \ {\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"h\": 1,\n  \
+    \      \"w\": 24,\n        \"x\": 0,\n        \"y\": 61\n      },\n      \"id\"\
+    : 390,\n      \"panels\": [],\n      \"repeat\": null,\n      \"title\": \"Command,\
+    \ Handlers, Processes\",\n      \"type\": \"row\"\n    },\n    {\n      \"aliasColors\"\
+    : {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n\
+    \      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"\
+    description\": \"**Top Command Counters**\\n\\nThe Com_{{xxx}} statement counter\
+    \ variables indicate the number of times each xxx statement has been executed.\
+    \ There is one status variable for each type of statement. For example, Com_delete\
+    \ and Com_update count [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html)\
+    \ and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements,\
+    \ respectively. Com_delete_multi and Com_update_multi are similar but apply to\
+    \ [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html)\
+    \ statements that use multiple-table syntax.\",\n      \"editable\": true,\n \
+    \     \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 62\n      },\n      \"id\": 14,\n      \"legend\": {\n        \"alignAsTable\"\
+    : true,\n        \"avg\": true,\n        \"current\": false,\n        \"hideEmpty\"\
+    : false,\n        \"hideZero\": false,\n        \"max\": true,\n        \"min\"\
+    : true,\n        \"rightSide\": true,\n        \"show\": true,\n        \"sort\"\
+    : \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n        \"\
+    values\": true\n      },\n      \"lines\": true,\n      \"linewidth\": 2,\n  \
+    \    \"links\": [\n        {\n          \"title\": \"Server Status Variables (Com_xxx)\"\
+    ,\n          \"type\": \"absolute\",\n          \"url\": \"https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Com_xxx\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"topk(5, rate(mysql_global_status_commands_total{instance=\\\
+    \"$host\\\"}[$interval])>0) or topk(5, irate(mysql_global_status_commands_total{instance=\\\
+    \"$host\\\"}[5m])>0)\",\n          \"format\": \"time_series\",\n          \"\
+    hide\": false,\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Com_{{ command }}\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"B\",\n          \"step\": 20\n        }\n    \
+    \  ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\"\
+    : null,\n      \"title\": \"Top Command Counters\",\n      \"tooltip\": {\n  \
+    \      \"msResolution\": false,\n        \"shared\": true,\n        \"sort\":\
+    \ 0,\n        \"value_type\": \"individual\"\n      },\n      \"type\": \"graph\"\
+    ,\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\"\
+    ,\n        \"name\": null,\n        \"show\": true,\n        \"values\": []\n\
+    \      },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n \
+    \         \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n \
+    \         \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n        \"\
+    align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": true,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : 2,\n      \"description\": \"**Top Command Counters Hourly**\\n\\nThe Com_{{xxx}}\
+    \ statement counter variables indicate the number of times each xxx statement\
+    \ has been executed. There is one status variable for each type of statement.\
+    \ For example, Com_delete and Com_update count [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html)\
+    \ and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html) statements,\
+    \ respectively. Com_delete_multi and Com_update_multi are similar but apply to\
+    \ [``DELETE``](https://dev.mysql.com/doc/refman/5.7/en/delete.html) and [``UPDATE``](https://dev.mysql.com/doc/refman/5.7/en/update.html)\
+    \ statements that use multiple-table syntax.\",\n      \"editable\": true,\n \
+    \     \"error\": false,\n      \"fill\": 6,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 69\n      },\n      \"id\": 39,\n      \"legend\": {\n        \"alignAsTable\"\
+    : true,\n        \"avg\": true,\n        \"current\": false,\n        \"max\"\
+    : true,\n        \"min\": true,\n        \"rightSide\": true,\n        \"show\"\
+    : true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\"\
+    : false,\n        \"values\": true\n      },\n      \"lines\": false,\n      \"\
+    linewidth\": 2,\n      \"links\": [\n        {\n          \"dashboard\": \"https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Com_xxx\"\
+    ,\n          \"title\": \"Server Status Variables (Com_xxx)\",\n          \"type\"\
+    : \"absolute\",\n          \"url\": \"https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Com_xxx\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": true,\n      \"steppedLine\": false,\n      \"targets\": [\n   \
+    \     {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"topk(5, increase(mysql_global_status_commands_total{instance=\\\
+    \"$host\\\"}[1h])>0)\",\n          \"format\": \"time_series\",\n          \"\
+    interval\": \"1h\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Com_{{ command }}\",\n          \"metric\": \"\",\n          \"refId\": \"\
+    A\",\n          \"step\": 3600\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": \"24h\",\n      \"timeShift\": null,\n      \"title\": \"\
+    Top Command Counters Hourly\",\n      \"tooltip\": {\n        \"msResolution\"\
+    : false,\n        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\"\
+    : \"individual\"\n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n \
+    \       \"buckets\": null,\n        \"mode\": \"time\",\n        \"name\": null,\n\
+    \        \"show\": true,\n        \"values\": []\n      },\n      \"yaxes\": [\n\
+    \        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n    \
+    \      \"max\": null,\n          \"min\": 0,\n          \"show\": true\n     \
+    \   },\n        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n\
+    \          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n \
+    \       }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"aliasColors\": {},\n     \
+    \ \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n    \
+    \  \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"description\"\
+    : \"**MySQL Handlers**\\n\\nHandler statistics are internal statistics on how\
+    \ MySQL is selecting, updating, inserting, and modifying rows, tables, and indexes.\\\
+    n\\nThis is in fact the layer between the Storage Engine and MySQL.\\n\\n* `read_rnd_next`\
+    \ is incremented when the server performs a full table scan and this is a counter\
+    \ you don't really want to see with a high value.\\n* `read_key` is incremented\
+    \ when a read is done with an index.\\n* `read_next` is incremented when the storage\
+    \ engine is asked to 'read the next index entry'. A high value means a lot of\
+    \ index scans are being done.\",\n      \"editable\": true,\n      \"error\":\
+    \ false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n    \
+    \    \"h\": 7,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 76\n   \
+    \   },\n      \"id\": 8,\n      \"legend\": {\n        \"alignAsTable\": true,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"hideZero\": true,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": true,\n\
+    \        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_handlers_total{instance=\\\"$host\\\", handler!~\\\
+    \"commit|rollback|savepoint.*|prepare\\\"}[$interval]) or irate(mysql_global_status_handlers_total{instance=\\\
+    \"$host\\\", handler!~\\\"commit|rollback|savepoint.*|prepare\\\"}[5m])\",\n \
+    \         \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"{{ handler\
+    \ }}\",\n          \"metric\": \"\",\n          \"refId\": \"J\",\n          \"\
+    step\": 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\"\
+    : null,\n      \"timeShift\": null,\n      \"title\": \"MySQL Handlers\",\n  \
+    \    \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n\
+    \        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n    \
+    \  \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n    \
+    \    \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n \
+    \       \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 83\n      },\n   \
+    \   \"id\": 28,\n      \"legend\": {\n        \"alignAsTable\": true,\n      \
+    \  \"avg\": true,\n        \"current\": false,\n        \"hideZero\": true,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": true,\n\
+    \        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_handlers_total{instance=\\\"$host\\\", handler=~\\\
+    \"commit|rollback|savepoint.*|prepare\\\"}[$interval]) or irate(mysql_global_status_handlers_total{instance=\\\
+    \"$host\\\", handler=~\\\"commit|rollback|savepoint.*|prepare\\\"}[5m])\",\n \
+    \         \"interval\": \"$interval\",\n          \"intervalFactor\": 1,\n   \
+    \       \"legendFormat\": \"{{ handler }}\",\n          \"metric\": \"\",\n  \
+    \        \"refId\": \"A\",\n          \"step\": 20\n        }\n      ],\n    \
+    \  \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n\
+    \      \"title\": \"MySQL Transaction Handlers\",\n      \"tooltip\": {\n    \
+    \    \"msResolution\": false,\n        \"shared\": true,\n        \"sort\": 0,\n\
+    \        \"value_type\": \"individual\"\n      },\n      \"type\": \"graph\",\n\
+    \      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\",\n\
+    \        \"name\": null,\n        \"show\": true,\n        \"values\": []\n  \
+    \    },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n   \
+    \       \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n   \
+    \       \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n        \"\
+    align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : 2,\n      \"editable\": true,\n      \"error\": false,\n      \"fill\": 0,\n\
+    \      \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\":\
+    \ 24,\n        \"x\": 0,\n        \"y\": 90\n      },\n      \"id\": 40,\n   \
+    \   \"legend\": {\n        \"alignAsTable\": true,\n        \"avg\": true,\n \
+    \       \"current\": false,\n        \"hideZero\": true,\n        \"max\": true,\n\
+    \        \"min\": false,\n        \"rightSide\": true,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"mysql_info_schema_threads{instance=\\\
+    \"$host\\\"}\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"{{ state }}\",\n          \"metric\": \"\"\
+    ,\n          \"refId\": \"A\",\n          \"step\": 20\n        }\n      ],\n\
+    \      \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n\
+    \      \"title\": \"Process States\",\n      \"tooltip\": {\n        \"msResolution\"\
+    : false,\n        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\"\
+    : \"individual\"\n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n \
+    \       \"buckets\": null,\n        \"mode\": \"time\",\n        \"name\": null,\n\
+    \        \"show\": true,\n        \"values\": []\n      },\n      \"yaxes\": [\n\
+    \        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n    \
+    \      \"max\": null,\n          \"min\": 0,\n          \"show\": true\n     \
+    \   },\n        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n\
+    \          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n \
+    \       }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"aliasColors\": {},\n     \
+    \ \"bars\": true,\n      \"dashLength\": 10,\n      \"dashes\": false,\n     \
+    \ \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 6,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 24,\n        \"x\": 0,\n\
+    \        \"y\": 97\n      },\n      \"id\": 49,\n      \"legend\": {\n       \
+    \ \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\": false,\n\
+    \        \"hideZero\": true,\n        \"max\": true,\n        \"min\": false,\n\
+    \        \"rightSide\": true,\n        \"show\": true,\n        \"sort\": \"avg\"\
+    ,\n        \"sortDesc\": true,\n        \"total\": false,\n        \"values\"\
+    : true\n      },\n      \"lines\": false,\n      \"linewidth\": 2,\n      \"links\"\
+    : [],\n      \"nullPointMode\": \"null\",\n      \"percentage\": false,\n    \
+    \  \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\": \"flot\"\
+    ,\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n      \"stack\"\
+    : true,\n      \"steppedLine\": false,\n      \"targets\": [\n        {\n    \
+    \      \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"topk(5, avg_over_time(mysql_info_schema_threads{instance=\\\
+    \"$host\\\"}[1h]))\",\n          \"interval\": \"1h\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"{{ state }}\",\n          \"metric\": \"\"\
+    ,\n          \"refId\": \"A\",\n          \"step\": 3600\n        }\n      ],\n\
+    \      \"thresholds\": [],\n      \"timeFrom\": \"24h\",\n      \"timeShift\"\
+    : null,\n      \"title\": \"Top Process States Hourly\",\n      \"tooltip\": {\n\
+    \        \"msResolution\": false,\n        \"shared\": true,\n        \"sort\"\
+    : 0,\n        \"value_type\": \"individual\"\n      },\n      \"type\": \"graph\"\
+    ,\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\"\
+    ,\n        \"name\": null,\n        \"show\": true,\n        \"values\": []\n\
+    \      },\n      \"yaxes\": [\n        {\n          \"format\": \"short\",\n \
+    \         \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n \
+    \         \"show\": true\n        },\n        {\n          \"format\": \"short\"\
+    ,\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\": 0,\n\
+    \          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n        \"\
+    align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n      \"\
+    collapsed\": false,\n      \"gridPos\": {\n        \"h\": 1,\n        \"w\": 24,\n\
+    \        \"x\": 0,\n        \"y\": 104\n      },\n      \"id\": 391,\n      \"\
+    panels\": [],\n      \"repeat\": null,\n      \"title\": \"Query Cache\",\n  \
+    \    \"type\": \"row\"\n    },\n    {\n      \"aliasColors\": {},\n      \"bars\"\
+    : false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n      \"datasource\"\
+    : \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"description\": \"**MySQL\
+    \ Query Cache Memory**\\n\\nThe query cache has huge scalability problems in that\
+    \ only one thread can do an operation in the query cache at the same time. This\
+    \ serialization is true not only for SELECTs, but also for INSERT/UPDATE/DELETE.\\\
+    n\\nThis also means that the larger the `query_cache_size` is set to, the slower\
+    \ those operations become. In concurrent environments, the MySQL Query Cache quickly\
+    \ becomes a contention point, decreasing performance. MariaDB and AWS Aurora have\
+    \ done work to try and eliminate the query cache contention in their flavors of\
+    \ MySQL, while MySQL 8.0 has eliminated the query cache feature.\\n\\nThe recommended\
+    \ settings for most environments is to set:\\n  ``query_cache_type=0``\\n  ``query_cache_size=0``\\\
+    n\\nNote that while you can dynamically change these values, to completely remove\
+    \ the contention point you have to restart the database.\",\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 0,\n\
+    \        \"y\": 105\n      },\n      \"id\": 46,\n      \"legend\": {\n      \
+    \  \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\": false,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": false,\n\
+    \        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"mysql_global_status_qcache_free_memory{instance=\\\"$host\\\"}\",\n\
+    \          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Free Memory\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"F\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"calculatedInterval\": \"2m\",\n     \
+    \     \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\"\
+    : \"mysql_global_variables_query_cache_size{instance=\\\"$host\\\"}\",\n     \
+    \     \"format\": \"time_series\",\n          \"interval\": \"$interval\",\n \
+    \         \"intervalFactor\": 1,\n          \"legendFormat\": \"Query Cache Size\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"E\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Query Cache Memory\",\n\
+    \      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n\
+    \        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n    \
+    \  \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n    \
+    \    \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n \
+    \       \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"bytes\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"description\": \"**MySQL Query Cache Activity**\\\
+    n\\nThe query cache has huge scalability problems in that only one thread can\
+    \ do an operation in the query cache at the same time. This serialization is true\
+    \ not only for SELECTs, but also for INSERT/UPDATE/DELETE.\\n\\nThis also means\
+    \ that the larger the `query_cache_size` is set to, the slower those operations\
+    \ become. In concurrent environments, the MySQL Query Cache quickly becomes a\
+    \ contention point, decreasing performance. MariaDB and AWS Aurora have done work\
+    \ to try and eliminate the query cache contention in their flavors of MySQL, while\
+    \ MySQL 8.0 has eliminated the query cache feature.\\n\\nThe recommended settings\
+    \ for most environments is to set:\\n``query_cache_type=0``\\n``query_cache_size=0``\\\
+    n\\nNote that while you can dynamically change these values, to completely remove\
+    \ the contention point you have to restart the database.\",\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n\
+    \        \"y\": 105\n      },\n      \"height\": \"\",\n      \"id\": 45,\n  \
+    \    \"legend\": {\n        \"alignAsTable\": true,\n        \"avg\": true,\n\
+    \        \"current\": false,\n        \"max\": true,\n        \"min\": true,\n\
+    \        \"rightSide\": false,\n        \"show\": true,\n        \"sort\": \"\
+    avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n        \"values\"\
+    : true\n      },\n      \"lines\": true,\n      \"linewidth\": 2,\n      \"links\"\
+    : [],\n      \"nullPointMode\": \"null\",\n      \"percentage\": false,\n    \
+    \  \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\": \"flot\"\
+    ,\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n      \"stack\"\
+    : false,\n      \"steppedLine\": false,\n      \"targets\": [\n        {\n   \
+    \       \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"rate(mysql_global_status_qcache_hits{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_qcache_hits{instance=\\\"\
+    $host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Hits\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n      \
+    \    \"step\": 20\n        },\n        {\n          \"calculatedInterval\": \"\
+    2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n      \
+    \    \"expr\": \"rate(mysql_global_status_qcache_inserts{instance=\\\"$host\\\"\
+    }[$interval]) or irate(mysql_global_status_qcache_inserts{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Inserts\",\n          \"metric\": \"\",\n          \"refId\": \"C\",\n       \
+    \   \"step\": 20\n        },\n        {\n          \"calculatedInterval\": \"\
+    2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n      \
+    \    \"expr\": \"rate(mysql_global_status_qcache_not_cached{instance=\\\"$host\\\
+    \"}[$interval]) or irate(mysql_global_status_qcache_not_cached{instance=\\\"$host\\\
+    \"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Not Cached\",\n          \"metric\": \"\",\n          \"refId\": \"D\",\n    \
+    \      \"step\": 20\n        },\n        {\n          \"calculatedInterval\":\
+    \ \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"rate(mysql_global_status_qcache_lowmem_prunes{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_qcache_lowmem_prunes{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Prunes\",\n          \"metric\": \"\",\n          \"refId\": \"F\",\n    \
+    \      \"step\": 20\n        },\n        {\n          \"calculatedInterval\":\
+    \ \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_status_qcache_queries_in_cache{instance=\\\"\
+    $host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Queries in Cache\",\n          \"metric\": \"\",\n          \"refId\": \"\
+    E\",\n          \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL\
+    \ Query Cache Activity\",\n      \"tooltip\": {\n        \"msResolution\": false,\n\
+    \        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\":\
+    \ null,\n          \"min\": 0,\n          \"show\": true\n        },\n       \
+    \ {\n          \"format\": \"short\",\n          \"logBase\": 1,\n          \"\
+    max\": null,\n          \"min\": 0,\n          \"show\": true\n        }\n   \
+    \   ],\n      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\"\
+    : null\n      }\n    },\n    {\n      \"collapsed\": false,\n      \"gridPos\"\
+    : {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 112\n      },\n      \"id\": 392,\n      \"panels\": [],\n      \"repeat\":\
+    \ null,\n      \"title\": \"Files and Tables\",\n      \"type\": \"row\"\n   \
+    \ },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 113\n      },\n  \
+    \    \"id\": 43,\n      \"legend\": {\n        \"alignAsTable\": true,\n     \
+    \   \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n    \
+    \    \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"total\": false,\n        \"values\": true\n      },\n      \"lines\"\
+    : true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_opened_files{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_opened_files{instance=\\\"$host\\\"}[5m])\",\n\
+    \          \"interval\": \"$interval\",\n          \"intervalFactor\": 1,\n  \
+    \        \"legendFormat\": \"Openings\",\n          \"metric\": \"\",\n      \
+    \    \"refId\": \"A\",\n          \"step\": 20\n        }\n      ],\n      \"\
+    thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n   \
+    \   \"title\": \"MySQL File Openings\",\n      \"tooltip\": {\n        \"msResolution\"\
+    : false,\n        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\"\
+    : \"individual\"\n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n \
+    \       \"buckets\": null,\n        \"mode\": \"time\",\n        \"name\": null,\n\
+    \        \"show\": true,\n        \"values\": []\n      },\n      \"yaxes\": [\n\
+    \        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n    \
+    \      \"max\": null,\n          \"min\": 0,\n          \"show\": true\n     \
+    \   },\n        {\n          \"format\": \"short\",\n          \"logBase\": 1,\n\
+    \          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n \
+    \       }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"aliasColors\": {},\n     \
+    \ \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n    \
+    \  \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": 2,\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n\
+    \        \"y\": 113\n      },\n      \"id\": 41,\n      \"legend\": {\n      \
+    \  \"alignAsTable\": true,\n        \"avg\": true,\n        \"current\": false,\n\
+    \        \"max\": true,\n        \"min\": true,\n        \"rightSide\": false,\n\
+    \        \"show\": true,\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"mysql_global_status_open_files{instance=\\\
+    \"$host\\\"}\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Open Files\",\n          \"metric\": \"\"\
+    ,\n          \"refId\": \"A\",\n          \"step\": 20\n        },\n        {\n\
+    \          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"mysql_global_variables_open_files_limit{instance=\\\
+    \"$host\\\"}\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Open Files Limit\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"D\",\n          \"step\": 20\n        },\n   \
+    \     {\n          \"expr\": \"mysql_global_status_innodb_num_open_files{instance=\\\
+    \"$host\\\"}\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"InnoDB Open Files\",\n          \"refId\"\
+    : \"B\",\n          \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"MySQL\
+    \ Open Files\",\n      \"tooltip\": {\n        \"msResolution\": false,\n    \
+    \    \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\":\
+    \ null,\n          \"min\": 0,\n          \"show\": true\n        },\n       \
+    \ {\n          \"format\": \"short\",\n          \"logBase\": 1,\n          \"\
+    max\": null,\n          \"min\": 0,\n          \"show\": true\n        }\n   \
+    \   ],\n      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\"\
+    : null\n      }\n    },\n    {\n      \"collapsed\": false,\n      \"gridPos\"\
+    : {\n        \"h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\":\
+    \ 120\n      },\n      \"id\": 393,\n      \"panels\": [],\n      \"repeat\":\
+    \ null,\n      \"title\": \"Table Openings\",\n      \"type\": \"row\"\n    },\n\
+    \    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"description\": \"**MySQL Table Open Cache Status**\\\
+    n\\nThe recommendation is to set the `table_open_cache_instances` to a loose correlation\
+    \ to virtual CPUs, keeping in mind that more instances means the cache is split\
+    \ more times. If you have a cache set to 500 but it has 10 instances, each cache\
+    \ will only have 50 cached.\\n\\nThe `table_definition_cache` and `table_open_cache`\
+    \ can be left as default as they are auto-sized MySQL 5.6 and above (ie: do not\
+    \ set them to any value).\",\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 12,\n        \"x\": 0,\n        \"y\": 121\n      },\n  \
+    \    \"id\": 44,\n      \"legend\": {\n        \"alignAsTable\": true,\n     \
+    \   \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n    \
+    \    \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [\n        {\n          \"title\": \"Server Status Variables\
+    \ (table_open_cache)\",\n          \"type\": \"absolute\",\n          \"url\"\
+    : \"http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    Table Open Cache Hit Ratio\",\n          \"yaxis\": 2\n        }\n      ],\n \
+    \     \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(mysql_global_status_opened_tables{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_opened_tables{instance=\\\"$host\\\"}[5m])\",\n\
+    \          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Openings\"\
+    ,\n          \"metric\": \"\",\n          \"refId\": \"A\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"expr\": \"rate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Hits\",\n          \"refId\": \"B\",\n          \"step\": 20\n        },\n\
+    \        {\n          \"expr\": \"rate(mysql_global_status_table_open_cache_misses{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_misses{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Misses\",\n          \"refId\": \"C\",\n          \"step\": 20\n        },\n\
+    \        {\n          \"expr\": \"rate(mysql_global_status_table_open_cache_overflows{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_overflows{instance=\\\
+    \"$host\\\"}[5m])\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Misses due to Overflows\",\n          \"refId\": \"D\",\n          \"step\"\
+    : 20\n        },\n        {\n          \"expr\": \"(rate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[5m]))/((rate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_hits{instance=\\\
+    \"$host\\\"}[5m]))+(rate(mysql_global_status_table_open_cache_misses{instance=\\\
+    \"$host\\\"}[$interval]) or irate(mysql_global_status_table_open_cache_misses{instance=\\\
+    \"$host\\\"}[5m])))\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Table Open Cache Hit Ratio\",\n          \"refId\": \"E\",\n          \"step\"\
+    : 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Table Open Cache Status\"\
+    ,\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\"\
+    : true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n\
+    \      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n\
+    \        \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n\
+    \        \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"percentunit\",\n          \"logBase\": 1,\n          \"max\"\
+    : null,\n          \"min\": 0,\n          \"show\": true\n        }\n      ],\n\
+    \      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n\
+    \      }\n    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n\
+    \      \"dashLength\": 10,\n      \"dashes\": false,\n      \"datasource\": \"\
+    VictoriaMetrics\",\n      \"decimals\": 2,\n      \"description\": \"**MySQL Open\
+    \ Tables**\\n\\nThe recommendation is to set the `table_open_cache_instances`\
+    \ to a loose correlation to virtual CPUs, keeping in mind that more instances\
+    \ means the cache is split more times. If you have a cache set to 500 but it has\
+    \ 10 instances, each cache will only have 50 cached.\\n\\nThe `table_definition_cache`\
+    \ and `table_open_cache` can be left as default as they are auto-sized MySQL 5.6\
+    \ and above (ie: do not set them to any value).\",\n      \"editable\": true,\n\
+    \      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 12,\n        \"x\": 12,\n        \"y\"\
+    : 121\n      },\n      \"id\": 42,\n      \"legend\": {\n        \"alignAsTable\"\
+    : true,\n        \"avg\": true,\n        \"current\": false,\n        \"max\"\
+    : true,\n        \"min\": true,\n        \"rightSide\": false,\n        \"show\"\
+    : true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\"\
+    : false,\n        \"values\": true\n      },\n      \"lines\": true,\n      \"\
+    linewidth\": 2,\n      \"links\": [\n        {\n          \"title\": \"Server\
+    \ Status Variables (table_open_cache)\",\n          \"type\": \"absolute\",\n\
+    \          \"url\": \"http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"mysql_global_status_open_tables{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Open Tables\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n\
+    \          \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_variables_table_open_cache{instance=\\\"$host\\\
+    \"}\",\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Table Open\
+    \ Cache\",\n          \"metric\": \"\",\n          \"refId\": \"C\",\n       \
+    \   \"step\": 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\"\
+    : null,\n      \"timeShift\": null,\n      \"title\": \"MySQL Open Tables\",\n\
+    \      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\": true,\n\
+    \        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n    \
+    \  \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n    \
+    \    \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n \
+    \       \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"\
+    h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 128\n      },\n\
+    \      \"id\": 394,\n      \"panels\": [],\n      \"repeat\": null,\n      \"\
+    title\": \"MySQL Table Definition Cache\",\n      \"type\": \"row\"\n    },\n\
+    \    {\n      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": 2,\n      \"description\": \"**MySQL Table Definition Cache**\\\
+    n\\nThe recommendation is to set the `table_open_cache_instances` to a loose correlation\
+    \ to virtual CPUs, keeping in mind that more instances means the cache is split\
+    \ more times. If you have a cache set to 500 but it has 10 instances, each cache\
+    \ will only have 50 cached.\\n\\nThe `table_definition_cache` and `table_open_cache`\
+    \ can be left as default as they are auto-sized MySQL 5.6 and above (ie: do not\
+    \ set them to any value).\",\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 129\n      },\n  \
+    \    \"id\": 54,\n      \"legend\": {\n        \"alignAsTable\": true,\n     \
+    \   \"avg\": true,\n        \"current\": false,\n        \"max\": true,\n    \
+    \    \"min\": true,\n        \"rightSide\": false,\n        \"show\": true,\n\
+    \        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": true,\n      \"linewidth\"\
+    : 2,\n      \"links\": [\n        {\n          \"title\": \"Server Status Variables\
+    \ (table_open_cache)\",\n          \"type\": \"absolute\",\n          \"url\"\
+    : \"http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_table_open_cache\"\
+    \n        }\n      ],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    Opened Table Definitions\",\n          \"yaxis\": 2\n        }\n      ],\n   \
+    \   \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2m\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"mysql_global_status_open_table_definitions{instance=\\\"$host\\\"}\"\
+    ,\n          \"format\": \"time_series\",\n          \"interval\": \"$interval\"\
+    ,\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"Open Table\
+    \ Definitions\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n \
+    \         \"step\": 20\n        },\n        {\n          \"calculatedInterval\"\
+    : \"2m\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"mysql_global_variables_table_definition_cache{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Table Definitions Cache Size\",\n          \"metric\": \"\",\n          \"\
+    refId\": \"C\",\n          \"step\": 20\n        },\n        {\n          \"expr\"\
+    : \"rate(mysql_global_status_opened_table_definitions{instance=\\\"$host\\\"}[$interval])\
+    \ or irate(mysql_global_status_opened_table_definitions{instance=\\\"$host\\\"\
+    }[5m])\",\n          \"format\": \"time_series\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Opened Table Definitions\",\n          \"refId\": \"A\",\n          \"step\":\
+    \ 20\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"MySQL Table Definition Cache\"\
+    ,\n      \"tooltip\": {\n        \"msResolution\": false,\n        \"shared\"\
+    : true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\n      },\n\
+    \      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n\
+    \        \"mode\": \"time\",\n        \"name\": null,\n        \"show\": true,\n\
+    \        \"values\": []\n      },\n      \"yaxes\": [\n        {\n          \"\
+    format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n  \
+    \        \"min\": 0,\n          \"show\": true\n        },\n        {\n      \
+    \    \"format\": \"short\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": 0,\n          \"show\": true\n        }\n      ],\n      \"\
+    yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n      }\n\
+    \    },\n    {\n      \"collapsed\": false,\n      \"gridPos\": {\n        \"\
+    h\": 1,\n        \"w\": 24,\n        \"x\": 0,\n        \"y\": 136\n      },\n\
+    \      \"id\": 395,\n      \"panels\": [],\n      \"repeat\": null,\n      \"\
+    title\": \"System Charts\",\n      \"type\": \"row\"\n    },\n    {\n      \"\
+    aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n      \"\
+    dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"decimals\"\
+    : null,\n      \"editable\": true,\n      \"error\": false,\n      \"fill\": 2,\n\
+    \      \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"w\":\
+    \ 8,\n        \"x\": 0,\n        \"y\": 137\n      },\n      \"id\": 31,\n   \
+    \   \"legend\": {\n        \"alignAsTable\": false,\n        \"avg\": true,\n\
+    \        \"current\": false,\n        \"hideEmpty\": false,\n        \"max\":\
+    \ false,\n        \"min\": false,\n        \"rightSide\": false,\n        \"show\"\
+    : true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\"\
+    : false,\n        \"values\": true\n      },\n      \"lines\": true,\n      \"\
+    linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n  \
+    \    \"percentage\": false,\n      \"pointradius\": 5,\n      \"points\": false,\n\
+    \      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\"\
+    : 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\"\
+    : [\n        {\n          \"calculatedInterval\": \"2s\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"rate(node_vmstat_pgpgin{instance=\\\
+    \"$host\\\"}[$interval]) * 1024 or irate(node_vmstat_pgpgin{instance=\\\"$host\\\
+    \"}[5m]) * 1024\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Page In\",\n          \"metric\": \"\",\n\
+    \          \"refId\": \"A\",\n          \"step\": 20,\n          \"target\": \"\
+    \"\n        },\n        {\n          \"calculatedInterval\": \"2s\",\n       \
+    \   \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\":\
+    \ \"rate(node_vmstat_pgpgout{instance=\\\"$host\\\"}[$interval]) * 1024 or irate(node_vmstat_pgpgout{instance=\\\
+    \"$host\\\"}[5m]) * 1024\",\n          \"interval\": \"$interval\",\n        \
+    \  \"intervalFactor\": 1,\n          \"legendFormat\": \"Page Out\",\n       \
+    \   \"metric\": \"\",\n          \"refId\": \"B\",\n          \"step\": 20,\n\
+    \          \"target\": \"\"\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"I/O\
+    \ Activity\",\n      \"tooltip\": {\n        \"msResolution\": false,\n      \
+    \  \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"transparent\": false,\n      \"type\": \"graph\",\n      \"\
+    xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\",\n        \"\
+    name\": null,\n        \"show\": true,\n        \"values\": []\n      },\n   \
+    \   \"yaxes\": [\n        {\n          \"format\": \"Bps\",\n          \"label\"\
+    : \"\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        },\n        {\n          \"format\": \"\
+    bytes\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n    \
+    \    \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n\
+    \      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n\
+    \      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": null,\n      \"editable\": true,\n      \"error\": false,\n      \"\
+    fill\": 6,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n   \
+    \     \"w\": 8,\n        \"x\": 8,\n        \"y\": 137\n      },\n      \"height\"\
+    : \"250px\",\n      \"id\": 37,\n      \"legend\": {\n        \"alignAsTable\"\
+    : false,\n        \"avg\": true,\n        \"current\": false,\n        \"hideEmpty\"\
+    : false,\n        \"max\": false,\n        \"min\": false,\n        \"rightSide\"\
+    : false,\n        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\"\
+    : true,\n        \"total\": false,\n        \"values\": true\n      },\n     \
+    \ \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": true,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2s\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"node_memory_MemTotal_bytes{instance=\\\"$host\\\"} - (node_memory_MemFree_bytes{instance=\\\
+    \"$host\\\"} + node_memory_Buffers{instance=\\\"$host\\\"} + node_memory_Cached{instance=\\\
+    \"$host\\\"})\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Used\",\n          \"metric\": \"\",\n   \
+    \       \"refId\": \"A\",\n          \"step\": 20,\n          \"target\": \"\"\
+    \n        },\n        {\n          \"calculatedInterval\": \"2s\",\n         \
+    \ \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\": \"\
+    node_memory_MemFree_bytes{instance=\\\"$host\\\"}\",\n          \"interval\":\
+    \ \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Free\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n      \
+    \    \"step\": 20,\n          \"target\": \"\"\n        },\n        {\n      \
+    \    \"calculatedInterval\": \"2s\",\n          \"datasourceErrors\": {},\n  \
+    \        \"errors\": {},\n          \"expr\": \"node_memory_Buffers{instance=\\\
+    \"$host\\\"}\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Buffers\",\n          \"metric\": \"\",\n\
+    \          \"refId\": \"D\",\n          \"step\": 20,\n          \"target\": \"\
+    \"\n        },\n        {\n          \"calculatedInterval\": \"2s\",\n       \
+    \   \"datasourceErrors\": {},\n          \"errors\": {},\n          \"expr\":\
+    \ \"node_memory_Cached{instance=\\\"$host\\\"}\",\n          \"interval\": \"\
+    $interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\": \"\
+    Cached\",\n          \"metric\": \"\",\n          \"refId\": \"E\",\n        \
+    \  \"step\": 20,\n          \"target\": \"\"\n        }\n      ],\n      \"thresholds\"\
+    : [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\"\
+    : \"Memory Distribution\",\n      \"tooltip\": {\n        \"msResolution\": false,\n\
+    \        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"transparent\": false,\n      \"type\": \"graph\",\n      \"\
+    xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"time\",\n        \"\
+    name\": null,\n        \"show\": true,\n        \"values\": []\n      },\n   \
+    \   \"yaxes\": [\n        {\n          \"format\": \"bytes\",\n          \"label\"\
+    : \"\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        },\n        {\n          \"format\": \"\
+    bytes\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n    \
+    \    \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n\
+    \      \"aliasColors\": {\n        \"Load 1m\": \"#58140C\",\n        \"Max Core\
+    \ Utilization\": \"#bf1b00\",\n        \"iowait\": \"#e24d42\",\n        \"nice\"\
+    : \"#1f78c1\",\n        \"softirq\": \"#806eb7\",\n        \"system\": \"#eab839\"\
+    ,\n        \"user\": \"#508642\"\n      },\n      \"bars\": false,\n      \"dashLength\"\
+    : 10,\n      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n\
+    \      \"decimals\": null,\n      \"editable\": true,\n      \"error\": false,\n\
+    \      \"fill\": 6,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\"\
+    : 7,\n        \"w\": 8,\n        \"x\": 16,\n        \"y\": 137\n      },\n  \
+    \    \"height\": \"\",\n      \"id\": 2,\n      \"legend\": {\n        \"alignAsTable\"\
+    : false,\n        \"avg\": true,\n        \"current\": false,\n        \"hideEmpty\"\
+    : true,\n        \"hideZero\": true,\n        \"max\": false,\n        \"min\"\
+    : false,\n        \"rightSide\": false,\n        \"show\": true,\n        \"sort\"\
+    : \"avg\",\n        \"sortDesc\": true,\n        \"total\": false,\n        \"\
+    values\": true\n      },\n      \"lines\": true,\n      \"linewidth\": 2,\n  \
+    \    \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 5,\n      \"points\": false,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [\n        {\n          \"alias\": \"\
+    Max Core Utilization\",\n          \"lines\": false,\n          \"pointradius\"\
+    : 1,\n          \"points\": true,\n          \"stack\": false\n        },\n  \
+    \      {\n          \"alias\": \"Load 1m\",\n          \"color\": \"#58140C\"\
+    ,\n          \"fill\": 2,\n          \"stack\": false,\n          \"yaxis\": 2\n\
+    \        }\n      ],\n      \"spaceLength\": 10,\n      \"stack\": true,\n   \
+    \   \"steppedLine\": false,\n      \"targets\": [\n        {\n          \"calculatedInterval\"\
+    : \"2s\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"clamp_max(((avg by (mode) ( (clamp_max(rate(node_cpu_seconds_total{instance=\\\
+    \"$host\\\",mode!=\\\"idle\\\"}[$interval]),1)) or (clamp_max(irate(node_cpu_seconds_total{instance=\\\
+    \"$host\\\",mode!=\\\"idle\\\"}[5m]),1)) ))*100 or (avg_over_time(node_cpu_seconds_total_average{instance=~\\\
+    \"$host\\\", mode!=\\\"total\\\", mode!=\\\"idle\\\"}[$interval]) or avg_over_time(node_cpu_seconds_total_average{instance=~\\\
+    \"$host\\\", mode!=\\\"total\\\", mode!=\\\"idle\\\"}[5m]))),100)\",\n       \
+    \   \"format\": \"time_series\",\n          \"hide\": false,\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"{{ mode }}\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n\
+    \          \"step\": 20\n        },\n        {\n          \"expr\": \"clamp_max(max\
+    \ by () (sum  by (cpu) ( (clamp_max(rate(node_cpu_seconds_total{instance=\\\"\
+    $host\\\",mode!=\\\"idle\\\",mode!=\\\"iowait\\\"}[$interval]),1)) or (clamp_max(irate(node_cpu_seconds_total{instance=\\\
+    \"$host\\\",mode!=\\\"idle\\\",mode!=\\\"iowait\\\"}[5m]),1)) ))*100,100)\",\n\
+    \          \"format\": \"time_series\",\n          \"hide\": true,\n         \
+    \ \"interval\": \"$interval\",\n          \"intervalFactor\": 1,\n          \"\
+    legendFormat\": \"Max Core Utilization\",\n          \"refId\": \"B\",\n     \
+    \     \"step\": 20\n        },\n        {\n          \"expr\": \"node_load1{instance=\\\
+    \"$host\\\"}\",\n          \"format\": \"time_series\",\n          \"hide\": false,\n\
+    \          \"intervalFactor\": 2,\n          \"legendFormat\": \"Load 1m\",\n\
+    \          \"refId\": \"C\"\n        }\n      ],\n      \"thresholds\": [],\n\
+    \      \"timeFrom\": null,\n      \"timeShift\": null,\n      \"title\": \"CPU\
+    \ Usage / Load\",\n      \"tooltip\": {\n        \"msResolution\": false,\n  \
+    \      \"shared\": true,\n        \"sort\": 0,\n        \"value_type\": \"individual\"\
+    \n      },\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"decimals\": 1,\n          \"format\": \"percent\",\n          \"label\"\
+    : \"\",\n          \"logBase\": 1,\n          \"max\": 100,\n          \"min\"\
+    : 0,\n          \"show\": true\n        },\n        {\n          \"format\": \"\
+    none\",\n          \"logBase\": 1,\n          \"max\": null,\n          \"min\"\
+    : 0,\n          \"show\": true\n        }\n      ],\n      \"yaxis\": {\n    \
+    \    \"align\": false,\n        \"alignLevel\": null\n      }\n    },\n    {\n\
+    \      \"aliasColors\": {},\n      \"bars\": false,\n      \"dashLength\": 10,\n\
+    \      \"dashes\": false,\n      \"datasource\": \"VictoriaMetrics\",\n      \"\
+    decimals\": 2,\n      \"editable\": true,\n      \"error\": false,\n      \"fill\"\
+    : 2,\n      \"grid\": {},\n      \"gridPos\": {\n        \"h\": 7,\n        \"\
+    w\": 8,\n        \"x\": 0,\n        \"y\": 144\n      },\n      \"height\": \"\
+    250px\",\n      \"id\": 36,\n      \"legend\": {\n        \"alignAsTable\": false,\n\
+    \        \"avg\": true,\n        \"current\": false,\n        \"hideEmpty\": true,\n\
+    \        \"hideZero\": true,\n        \"max\": false,\n        \"min\": false,\n\
+    \        \"rightSide\": false,\n        \"show\": true,\n        \"total\": false,\n\
+    \        \"values\": true\n      },\n      \"lines\": false,\n      \"linewidth\"\
+    : 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n      \"percentage\"\
+    : false,\n      \"pointradius\": 1,\n      \"points\": true,\n      \"renderer\"\
+    : \"flot\",\n      \"seriesOverrides\": [],\n      \"spaceLength\": 10,\n    \
+    \  \"stack\": false,\n      \"steppedLine\": false,\n      \"targets\": [\n  \
+    \      {\n          \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\"\
+    : {},\n          \"errors\": {},\n          \"expr\": \"sum((rate(node_disk_read_time_seconds_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[$interval]) / rate(node_disk_reads_completed_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[$interval])) or (irate(node_disk_read_time_seconds_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[5m]) / irate(node_disk_reads_completed_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[5m]))\\nor avg_over_time(aws_rds_read_latency_average{instance=\\\
+    \"$host\\\"}[$interval]) or avg_over_time(aws_rds_read_latency_average{instance=\\\
+    \"$host\\\"}[5m]))\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Read\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n      \
+    \    \"step\": 20,\n          \"target\": \"\"\n        },\n        {\n      \
+    \    \"calculatedInterval\": \"2m\",\n          \"datasourceErrors\": {},\n  \
+    \        \"errors\": {},\n          \"expr\": \"sum((rate(node_disk_write_time_seconds_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[$interval]) / rate(node_disk_writes_completed_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[$interval])) or (irate(node_disk_write_time_seconds_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[5m]) / irate(node_disk_writes_completed_total{device!~\\\
+    \"dm-.+\\\", instance=\\\"$host\\\"}[5m])) or \\navg_over_time(aws_rds_write_latency_average{instance=\\\
+    \"$host\\\"}[$interval]) or avg_over_time(aws_rds_write_latency_average{instance=\\\
+    \"$host\\\"}[5m]))\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Write\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n     \
+    \     \"step\": 20,\n          \"target\": \"\"\n        }\n      ],\n      \"\
+    thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n   \
+    \   \"title\": \"Disk Latency\",\n      \"tooltip\": {\n        \"msResolution\"\
+    : false,\n        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\"\
+    : \"individual\"\n      },\n      \"transparent\": false,\n      \"type\": \"\
+    graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"\
+    time\",\n        \"name\": null,\n        \"show\": true,\n        \"values\"\
+    : []\n      },\n      \"yaxes\": [\n        {\n          \"format\": \"ms\",\n\
+    \          \"label\": \"\",\n          \"logBase\": 2,\n          \"max\": null,\n\
+    \          \"min\": null,\n          \"show\": true\n        },\n        {\n \
+    \         \"format\": \"ms\",\n          \"label\": \"\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    },\n    {\n      \"aliasColors\": {},\n     \
+    \ \"bars\": false,\n      \"dashLength\": 10,\n      \"dashes\": false,\n    \
+    \  \"datasource\": \"VictoriaMetrics\",\n      \"decimals\": null,\n      \"editable\"\
+    : true,\n      \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n  \
+    \    \"gridPos\": {\n        \"h\": 7,\n        \"w\": 8,\n        \"x\": 8,\n\
+    \        \"y\": 144\n      },\n      \"height\": \"250px\",\n      \"id\": 21,\n\
+    \      \"legend\": {\n        \"alignAsTable\": false,\n        \"avg\": true,\n\
+    \        \"current\": false,\n        \"hideEmpty\": false,\n        \"max\":\
+    \ false,\n        \"min\": false,\n        \"rightSide\": false,\n        \"show\"\
+    : true,\n        \"sort\": \"avg\",\n        \"sortDesc\": true,\n        \"total\"\
+    : false,\n        \"values\": true\n      },\n      \"lines\": true,\n      \"\
+    linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\": \"null\",\n  \
+    \    \"percentage\": false,\n      \"pointradius\": 5,\n      \"points\": false,\n\
+    \      \"renderer\": \"flot\",\n      \"seriesOverrides\": [\n        {\n    \
+    \      \"alias\": \"Outbound\",\n          \"transform\": \"negative-Y\"\n   \
+    \     }\n      ],\n      \"spaceLength\": 10,\n      \"stack\": false,\n     \
+    \ \"steppedLine\": false,\n      \"targets\": [\n        {\n          \"calculatedInterval\"\
+    : \"2s\",\n          \"datasourceErrors\": {},\n          \"errors\": {},\n  \
+    \        \"expr\": \"sum(rate(node_network_receive_bytes_total{instance=\\\"$host\\\
+    \", device!=\\\"lo\\\"}[$interval])) or sum(irate(node_network_receive_bytes_total{instance=\\\
+    \"$host\\\", device!=\\\"lo\\\"}[5m])) or sum(max_over_time(rdsosmetrics_network_rx{instance=\\\
+    \"$host\\\"}[$interval])) or sum(max_over_time(rdsosmetrics_network_rx{instance=\\\
+    \"$host\\\"}[5m])) \",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Inbound\",\n          \"metric\": \"\",\n          \"refId\": \"B\",\n   \
+    \       \"step\": 20,\n          \"target\": \"\"\n        },\n        {\n   \
+    \       \"calculatedInterval\": \"2s\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"sum(rate(node_network_transmit_bytes_total{instance=\\\
+    \"$host\\\", device!=\\\"lo\\\"}[$interval])) or sum(irate(node_network_transmit_bytes_total{instance=\\\
+    \"$host\\\", device!=\\\"lo\\\"}[5m])) or\\nsum(max_over_time(rdsosmetrics_network_tx{instance=\\\
+    \"$host\\\"}[$interval])) or sum(max_over_time(rdsosmetrics_network_tx{instance=\\\
+    \"$host\\\"}[5m]))\",\n          \"format\": \"time_series\",\n          \"interval\"\
+    : \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Outbound\",\n          \"metric\": \"\",\n          \"refId\": \"A\",\n  \
+    \        \"step\": 20,\n          \"target\": \"\"\n        }\n      ],\n    \
+    \  \"thresholds\": [],\n      \"timeFrom\": null,\n      \"timeShift\": null,\n\
+    \      \"title\": \"Network Traffic\",\n      \"tooltip\": {\n        \"msResolution\"\
+    : false,\n        \"shared\": true,\n        \"sort\": 0,\n        \"value_type\"\
+    : \"individual\"\n      },\n      \"transparent\": false,\n      \"type\": \"\
+    graph\",\n      \"xaxis\": {\n        \"buckets\": null,\n        \"mode\": \"\
+    time\",\n        \"name\": null,\n        \"show\": true,\n        \"values\"\
+    : []\n      },\n      \"yaxes\": [\n        {\n          \"format\": \"Bps\",\n\
+    \          \"label\": \"\",\n          \"logBase\": 1,\n          \"max\": null,\n\
+    \          \"min\": null,\n          \"show\": true\n        },\n        {\n \
+    \         \"format\": \"bytes\",\n          \"logBase\": 1,\n          \"max\"\
+    : null,\n          \"min\": 0,\n          \"show\": true\n        }\n      ],\n\
+    \      \"yaxis\": {\n        \"align\": false,\n        \"alignLevel\": null\n\
+    \      }\n    },\n    {\n      \"aliasColors\": {},\n      \"bars\": false,\n\
+    \      \"dashLength\": 10,\n      \"dashes\": false,\n      \"datasource\": \"\
+    VictoriaMetrics\",\n      \"decimals\": null,\n      \"editable\": true,\n   \
+    \   \"error\": false,\n      \"fill\": 2,\n      \"grid\": {},\n      \"gridPos\"\
+    : {\n        \"h\": 7,\n        \"w\": 8,\n        \"x\": 16,\n        \"y\":\
+    \ 144\n      },\n      \"id\": 38,\n      \"legend\": {\n        \"alignAsTable\"\
+    : false,\n        \"avg\": true,\n        \"current\": false,\n        \"hideEmpty\"\
+    : false,\n        \"max\": false,\n        \"min\": false,\n        \"rightSide\"\
+    : false,\n        \"show\": true,\n        \"sort\": \"avg\",\n        \"sortDesc\"\
+    : true,\n        \"total\": false,\n        \"values\": true\n      },\n     \
+    \ \"lines\": true,\n      \"linewidth\": 2,\n      \"links\": [],\n      \"nullPointMode\"\
+    : \"null\",\n      \"percentage\": false,\n      \"pointradius\": 5,\n      \"\
+    points\": false,\n      \"renderer\": \"flot\",\n      \"seriesOverrides\": [],\n\
+    \      \"spaceLength\": 10,\n      \"stack\": false,\n      \"steppedLine\": false,\n\
+    \      \"targets\": [\n        {\n          \"calculatedInterval\": \"2s\",\n\
+    \          \"datasourceErrors\": {},\n          \"errors\": {},\n          \"\
+    expr\": \"rate(node_vmstat_pswpin{instance=\\\"$host\\\"}[$interval]) * 4096 or\
+    \ irate(node_vmstat_pswpin{instance=\\\"$host\\\"}[5m]) * 4096\",\n          \"\
+    interval\": \"$interval\",\n          \"intervalFactor\": 1,\n          \"legendFormat\"\
+    : \"Swap In (Reads)\",\n          \"metric\": \"\",\n          \"refId\": \"A\"\
+    ,\n          \"step\": 20,\n          \"target\": \"\"\n        },\n        {\n\
+    \          \"calculatedInterval\": \"2s\",\n          \"datasourceErrors\": {},\n\
+    \          \"errors\": {},\n          \"expr\": \"rate(node_vmstat_pswpout{instance=\\\
+    \"$host\\\"}[$interval]) * 4096 or irate(node_vmstat_pswpout{instance=\\\"$host\\\
+    \"}[5m]) * 4096\",\n          \"interval\": \"$interval\",\n          \"intervalFactor\"\
+    : 1,\n          \"legendFormat\": \"Swap Out (Writes)\",\n          \"metric\"\
+    : \"\",\n          \"refId\": \"B\",\n          \"step\": 20,\n          \"target\"\
+    : \"\"\n        }\n      ],\n      \"thresholds\": [],\n      \"timeFrom\": null,\n\
+    \      \"timeShift\": null,\n      \"title\": \"Swap Activity\",\n      \"tooltip\"\
+    : {\n        \"msResolution\": false,\n        \"shared\": true,\n        \"sort\"\
+    : 0,\n        \"value_type\": \"individual\"\n      },\n      \"transparent\"\
+    : false,\n      \"type\": \"graph\",\n      \"xaxis\": {\n        \"buckets\"\
+    : null,\n        \"mode\": \"time\",\n        \"name\": null,\n        \"show\"\
+    : true,\n        \"values\": []\n      },\n      \"yaxes\": [\n        {\n   \
+    \       \"format\": \"Bps\",\n          \"label\": \"\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        },\n        {\n          \"format\": \"bytes\",\n          \"logBase\"\
+    : 1,\n          \"max\": null,\n          \"min\": 0,\n          \"show\": true\n\
+    \        }\n      ],\n      \"yaxis\": {\n        \"align\": false,\n        \"\
+    alignLevel\": null\n      }\n    }\n  ],\n  \"refresh\": \"1m\",\n  \"schemaVersion\"\
+    : 16,\n  \"style\": \"dark\",\n  \"tags\": [\n    \"Percona\",\n    \"MySQL\"\n\
+    \  ],\n  \"templating\": {\n    \"list\": [\n      {\n        \"allFormat\": \"\
+    glob\",\n        \"auto\": true,\n        \"auto_count\": 200,\n        \"auto_min\"\
+    : \"1s\",\n        \"current\": {\n          \"text\": \"auto\",\n          \"\
+    value\": \"$__auto_interval_interval\"\n        },\n        \"datasource\": \"\
+    VictoriaMetrics\",\n        \"hide\": 0,\n        \"includeAll\": false,\n   \
+    \     \"label\": \"Interval\",\n        \"multi\": false,\n        \"multiFormat\"\
+    : \"glob\",\n        \"name\": \"interval\",\n        \"options\": [\n       \
+    \   {\n            \"selected\": true,\n            \"text\": \"auto\",\n    \
+    \        \"value\": \"$__auto_interval_interval\"\n          },\n          {\n\
+    \            \"selected\": false,\n            \"text\": \"1s\",\n           \
+    \ \"value\": \"1s\"\n          },\n          {\n            \"selected\": false,\n\
+    \            \"text\": \"5s\",\n            \"value\": \"5s\"\n          },\n\
+    \          {\n            \"selected\": false,\n            \"text\": \"1m\",\n\
+    \            \"value\": \"1m\"\n          },\n          {\n            \"selected\"\
+    : false,\n            \"text\": \"5m\",\n            \"value\": \"5m\"\n     \
+    \     },\n          {\n            \"selected\": false,\n            \"text\"\
+    : \"1h\",\n            \"value\": \"1h\"\n          },\n          {\n        \
+    \    \"selected\": false,\n            \"text\": \"6h\",\n            \"value\"\
+    : \"6h\"\n          },\n          {\n            \"selected\": false,\n      \
+    \      \"text\": \"1d\",\n            \"value\": \"1d\"\n          }\n       \
+    \ ],\n        \"query\": \"1s,5s,1m,5m,1h,6h,1d\",\n        \"refresh\": 2,\n\
+    \        \"type\": \"interval\"\n      },\n      {\n        \"allFormat\": \"\
+    glob\",\n        \"allValue\": null,\n        \"current\": {},\n        \"datasource\"\
+    : \"VictoriaMetrics\",\n        \"hide\": 0,\n        \"includeAll\": false,\n\
+    \        \"label\": \"Host\",\n        \"multi\": false,\n        \"multiFormat\"\
+    : \"regex values\",\n        \"name\": \"host\",\n        \"options\": [],\n \
+    \       \"query\": \"label_values(mysql_up, instance)\",\n        \"refresh\"\
+    : 1,\n        \"refresh_on_load\": false,\n        \"regex\": \"\",\n        \"\
+    sort\": 1,\n        \"tagValuesQuery\": null,\n        \"tags\": [],\n       \
+    \ \"tagsQuery\": null,\n        \"type\": \"query\",\n        \"useTags\": false\n\
+    \      }\n    ]\n  },\n  \"time\": {\n    \"from\": \"now-12h\",\n    \"to\":\
+    \ \"now\"\n  },\n  \"timepicker\": {\n    \"collapse\": false,\n    \"enable\"\
+    : true,\n    \"hidden\": false,\n    \"notice\": false,\n    \"now\": true,\n\
+    \    \"refresh_intervals\": [\n      \"5s\",\n      \"10s\",\n      \"30s\",\n\
+    \      \"1m\",\n      \"5m\",\n      \"15m\",\n      \"30m\",\n      \"1h\",\n\
+    \      \"2h\",\n      \"1d\"\n    ],\n    \"status\": \"Stable\",\n    \"time_options\"\
+    : [\n      \"5m\",\n      \"15m\",\n      \"1h\",\n      \"6h\",\n      \"12h\"\
+    ,\n      \"24h\",\n      \"2d\",\n      \"7d\",\n      \"30d\"\n    ],\n    \"\
+    type\": \"timepicker\"\n  },\n  \"timezone\": \"browser\",\n  \"title\": \"MySQL\
+    \ Overview\",\n  \"uid\": \"MQWgroiiz\",\n  \"version\": 1,\n  \"description\"\
+    : \"Dashboard from Percona Monitoring and Management project. \"\n}"
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/instance: apecloud-mysql
+    grafana_dashboard: '1'
+  name: mysql-dashboard
+  namespace: monitoring

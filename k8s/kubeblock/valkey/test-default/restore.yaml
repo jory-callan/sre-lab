@@ -1,0 +1,67 @@
+# Restore — 从备份恢复 Valkey 到新集群
+# 用法：先查找可用备份，修改 backup-name 后 apply
+# kubectl get backup -n valkey
+# kubectl apply -f restore.yaml -n <target-ns>
+---
+apiVersion: apps.kubeblocks.io/v1
+kind: Cluster
+metadata:
+  name: valkey-restore-demo
+  namespace: demo
+spec:
+  restore:
+    source:
+      apiGroup: dataprotection.kubeblocks.io
+      kind: Backup
+      # 替换为实际的备份名称：kubectl get backup -n valkey
+      name: valkey-valkey-backup-datafile-202607200310
+      namespace: valkey
+    parameters:
+      dataprotection.kubeblocks.io/source-target-name: valkey
+      dataprotection.kubeblocks.io/volume-restore-policy: Parallel
+      dataprotection.kubeblocks.io/restore-env: '[{"name":"DATA_REPLICA_COUNT","value":"2"},{"name":"POST_RESTORE_SENTINEL_EXPECTED_COUNT","value":"3"}]'
+  terminationPolicy: Delete
+  clusterDef: valkey
+  topology: replication-8
+  componentSpecs:
+    - name: valkey
+      serviceVersion: "8.1.8"
+      disableExporter: false
+      replicas: 2
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: valkey-account
+            namespace: valkey
+      resources:
+        limits:
+          memory: 512Mi
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            storageClassName: "nfs-client"
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 5Gi
+    - name: valkey-sentinel
+      serviceVersion: "8.1.8"
+      replicas: 3
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: valkey-account
+            namespace: valkey
+      resources:
+        limits:
+          memory: 256Mi
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            storageClassName: "nfs-client"
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: 1Gi

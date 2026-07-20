@@ -1,0 +1,65 @@
+# CiliumNetworkPolicy — Valkey 网络隔离
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: valkey-network-isolation
+  namespace: valkey
+spec:
+  description: "限制 Valkey 6379 和 Sentinel 26379 端口的入站访问"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+  ingress:
+    # 1. 允许同一 namespace 内通信
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+            - port: "26379"
+              protocol: TCP
+    # 2. 允许监控系统抓取 metrics
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9121"
+              protocol: TCP
+    # 3. 允许调试 Pod 访问
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kdebug
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+            - port: "26379"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: valkey-egress
+  namespace: valkey
+spec:
+  description: "Valkey 必要的出站通信"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - cluster

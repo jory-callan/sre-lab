@@ -1,0 +1,27 @@
+# BackupSchedule 启用配置（参考示例） — Valkey
+---
+apiVersion: dataprotection.kubeblocks.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: valkey-valkey-backup-schedule
+  namespace: valkey
+spec:
+  backupPolicyName: valkey-valkey-backup-policy
+  schedules:
+    # 每天凌晨 3:10 全量备份（datafile），保留 7 天（错开 Redis 的时间避免同时）
+    - backupMethod: datafile
+      cronExpression: 10 3 * * *
+      enabled: true
+      name: datafile
+      retentionPeriod: 7d
+    # 每 6 小时增量 AOF 备份
+    - backupMethod: aof
+      cronExpression: 10 */6 * * *
+      enabled: true
+      name: aof
+      retentionPeriod: 2d
+    - backupMethod: volume-snapshot
+      cronExpression: 0 5 * * 0
+      enabled: false
+      name: volume-snapshot
+      retentionPeriod: 7d

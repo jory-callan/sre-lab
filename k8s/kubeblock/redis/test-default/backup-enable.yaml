@@ -1,0 +1,32 @@
+# BackupSchedule 启用配置（参考示例）
+# 实际运行中的调度已通过 kubectl patch 直接启用
+# 如需重新部署，将此文件 apply 到集群即可恢复调度设置
+# 注意：backupPolicyName 必须与 KubeBlocks 自动创建的策略名一致
+# 自动创建的策略名称格式: <cluster-name>-<component-def-name>-backup-policy
+---
+apiVersion: dataprotection.kubeblocks.io/v1alpha1
+kind: BackupSchedule
+metadata:
+  name: redis-redis-backup-schedule
+  namespace: redis
+spec:
+  backupPolicyName: redis-redis-backup-policy
+  schedules:
+    # 每天凌晨 3:00 全量备份（datafile），保留 7 天
+    - backupMethod: datafile
+      cronExpression: 0 3 * * *
+      enabled: true
+      name: datafile
+      retentionPeriod: 7d
+    # 每 6 小时增量 AOF 备份，保留 2 天
+    - backupMethod: aof
+      cronExpression: 0 */6 * * *
+      enabled: true
+      name: aof
+      retentionPeriod: 2d
+    # VolumeSnapshot（如果存储类支持），每周日凌晨 5:00
+    - backupMethod: volume-snapshot
+      cronExpression: 0 5 * * 0
+      enabled: false
+      name: volume-snapshot
+      retentionPeriod: 7d

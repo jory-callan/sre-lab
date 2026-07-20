@@ -1,0 +1,70 @@
+# CiliumNetworkPolicy — Redis 网络隔离
+# 限制对 Redis/Sentinel 端口的访问，只允许授权的来源
+# Cilium 实现 Kubernetes NetworkPolicy 并额外支持 L7 策略
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-network-isolation
+  namespace: redis
+spec:
+  description: "限制 Redis 6379 和 Sentinel 26379 端口的入站访问"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+  ingress:
+    # 1. 允许同一 namespace 内所有 Pod（KubeBlocks 内部健康检查、sentinel 通信）
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: redis
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+            - port: "26379"
+              protocol: TCP
+    # 2. 允许监测系统抓取 metrics（exporter 端口 9121）
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9121"
+              protocol: TCP
+    # 3. 允许调试 Pod 访问（用于日常运维操作）
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kdebug
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+            - port: "26379"
+              protocol: TCP
+---
+# Egress 规则：允许 Redis 正常对外通信（DNS、复制、MinIO 备份等）
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: redis-egress
+  namespace: redis
+spec:
+  description: "Redis 必要的出站通信"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+  egress:
+    # 允许 DNS 解析
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    # 允许集群内任意 TCP 通信（主从复制、MinIO 备份上传等）
+    - toEntities:
+        - cluster

@@ -1,0 +1,48 @@
+# VMPodScrape — 让 VictoriaMetrics vmagent 抓取 Valkey exporter 指标
+# Valkey 指标格式与 Redis 完全兼容
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: valkey-pod-scrape
+  namespace: valkey
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - valkey
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey
+  podTargetLabels:
+    - app.kubernetes.io/instance
+    - app.kubernetes.io/managed-by
+    - apps.kubeblocks.io/component-name
+    - apps.kubeblocks.io/pod-name
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: valkey-sentinel-pod-scrape
+  namespace: valkey
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+  namespaceSelector:
+    matchNames:
+      - valkey
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey-sentinel
+  podTargetLabels:
+    - app.kubernetes.io/instance
+    - app.kubernetes.io/managed-by
+    - apps.kubeblocks.io/component-name
+    - apps.kubeblocks.io/pod-name

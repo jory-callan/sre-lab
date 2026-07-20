@@ -1,0 +1,18 @@
+# PodDisruptionBudget — ApeCloud MySQL
+# 3 节点 Raft 共识集群，需要至少 2 个副本存活以维持 quorum
+# 只允许 1 个副本不可用，防止节点维护时丢失共识
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: mysql-pdb
+  namespace: mysql
+  labels:
+    app.kubernetes.io/instance: apecloud-mysql
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: apecloud-mysql
+      apps.kubeblocks.io/component-name: mysql

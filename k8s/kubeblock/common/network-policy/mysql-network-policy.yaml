@@ -1,0 +1,62 @@
+# CiliumNetworkPolicy — ApeCloud MySQL 网络隔离
+# MySQL 3306 端口限制访问
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mysql-network-isolation
+  namespace: mysql
+spec:
+  description: "限制 MySQL 3306 端口和 Raft 通信端口的入站访问"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: apecloud-mysql
+  ingress:
+    # 1. 允许同一 namespace 内通信（Raft 共识、健康检查）
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: mysql
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+    # 2. 允许监控系统抓取 metrics
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9104"
+              protocol: TCP
+    # 3. 允许调试 Pod 访问
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kdebug
+      toPorts:
+        - ports:
+            - port: "3306"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: mysql-egress
+  namespace: mysql
+spec:
+  description: "MySQL 必要的出站通信"
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: apecloud-mysql
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - cluster
