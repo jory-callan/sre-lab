@@ -12,6 +12,11 @@ spec:
       serviceVersion: "8.0.30"
       disableExporter: false
       replicas: 3
+      systemAccounts:
+        - name: root
+          secretRef:
+            name: mysql-account-root
+            namespace: mysql
       resources:
         limits:
           memory: 2Gi

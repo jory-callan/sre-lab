@@ -12,6 +12,11 @@ spec:
       serviceVersion: "7.2.4"
       disableExporter: false
       replicas: 2
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: redis-account
+            namespace: redis
       resources:
         limits:
           memory: 512Mi
@@ -27,6 +32,11 @@ spec:
     - name: redis-sentinel
       serviceVersion: "7.2.4"
       replicas: 3
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: redis-account
+            namespace: redis
       resources:
         limits:
           memory: 256Mi

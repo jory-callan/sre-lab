@@ -9,10 +9,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NAME="valkey"
 NAMESPACE="valkey"
 CR_FILE="$SCRIPT_DIR/cluster.yaml"
+SECRET_FILE="$SCRIPT_DIR/secret-account.yaml"
 # ===================
 
 install() {
   kubectl create namespace "$NAMESPACE" --dry-run=client -o yaml | kubectl apply -f -
+  kubectl apply -f "$SECRET_FILE" --namespace "$NAMESPACE" 2>/dev/null || true
   kubectl apply -f "$CR_FILE" --namespace "$NAMESPACE"
   echo "Valkey 实例部署完成"
 }

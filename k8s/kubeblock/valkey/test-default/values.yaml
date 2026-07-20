@@ -17,3 +17,8 @@ resources:
   sentinel:
     limits:
       memory: 256Mi
+accounts:
+  default:
+    username: default
+    password: valkey@czw123
+    description: 默认用户（ACL 认证）

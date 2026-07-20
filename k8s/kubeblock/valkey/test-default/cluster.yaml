@@ -12,6 +12,11 @@ spec:
       serviceVersion: "8.1.8"
       disableExporter: false
       replicas: 2
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: valkey-account
+            namespace: valkey
       resources:
         limits:
           memory: 512Mi
@@ -27,6 +32,11 @@ spec:
     - name: valkey-sentinel
       serviceVersion: "8.1.8"
       replicas: 3
+      systemAccounts:
+        - name: default
+          secretRef:
+            name: valkey-account
+            namespace: valkey
       resources:
         limits:
           memory: 256Mi
