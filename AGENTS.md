@@ -7,11 +7,13 @@
 - 重构文件夹的时候优先采用 mv cp 等等指令。如果是git 也需要优先 git mv 之类的指令
 - 文字版本的架构图尽量少一点儿空格紧凑点
 - 需要保持相关模块的文档和内容一致
+- 所有的资产只要是受过验证能正常work的都别删，留在那里，用README文档更新记录即可
 
 docker规则：
 - 所有组件都必须走 net-shared 这个存在的网络，目的是为了所有组件的网络互通
 
 k8s规则:
+- 监控优先采用prometheus的兼容模式，就是 PodMonitor/ServicesMonitor, 也需要提供 vm 的方案
 - 资源限制去掉 cpu 的限制只做内存限制
 - 用户已经配置好了 kubectl 和 helm 可以直接使用
 - 避免使用 *.local 域名，统一使用 *.czw-sre.internal 域名，此域名不是互联网域名，是内网域名，已经在路由器里解析过，可以直接用
@@ -46,7 +48,7 @@ helm 编写规则：
 - _helpers.tpl 只保留极简的必要函数：例如单组件：name、labels、selectorLabels，多组件：（增加 componentLabels、componentSelector）。禁止嵌套调用、禁止额外辅助函数，显示声明是第一优先
 - 必须包含 NOTES.txt，内容为部署后用户需执行的后续操作指引
 - templates/ 下按 Kind-组件 拆分文件，禁止在一个文件中用 --- 分隔多个资源
-- 默认开启必备特性例如软反亲和性（podAntiAffinity），用 values 中的 affinity.enabled 控制开关，默认 true
+- 默认开启必备特性例如软反亲和性(优先软反亲和)，用 values 中的 affinity.enabled 控制开关，默认 true
 - 服务端口固定写在 values 中，默认 clusterIP 类型；如需 NodePort，额外生成 templates/service-nodeport.yaml，通过 values 中的 service.nodePort.enabled 控制，且该 Service 通过标签选择器关联同一 Pod
 - 如果 Pod 暴露了 metrics 端口，增加 serviceMonitor 配置，通过 values 中的 serviceMonitor.enabled 控制，默认 false
 - 如果应用需要对外暴露 HTTP/S 路由，增加 ingress 配置，通过 values 中的 ingress.enabled 控制，默认 false

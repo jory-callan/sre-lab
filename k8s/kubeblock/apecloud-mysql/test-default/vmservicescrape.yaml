@@ -1,0 +1,24 @@
+# VMServiceScrape — Prometheus 兼容模式 — ApeCloud MySQL
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: mysql-service-scrape
+  namespace: mysql
+  labels:
+    app.kubernetes.io/instance: apecloud-mysql
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  jobLabel: app.kubernetes.io/managed-by
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      scheme: http
+      interval: 20s
+  namespaceSelector:
+    matchNames:
+      - mysql
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: apecloud-mysql
+      apps.kubeblocks.io/component-name: mysql

@@ -1,0 +1,47 @@
+# VMServiceScrape — Prometheus 兼容模式 — Valkey
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: valkey-service-scrape
+  namespace: valkey
+  labels:
+    app.kubernetes.io/instance: valkey
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  jobLabel: app.kubernetes.io/managed-by
+  endpoints:
+    - port: http-metrics
+      path: /metrics
+      scheme: http
+      interval: 20s
+  namespaceSelector:
+    matchNames:
+      - valkey
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: valkey-sentinel-service-scrape
+  namespace: valkey
+  labels:
+    app.kubernetes.io/instance: valkey
+    app.kubernetes.io/managed-by: kubeblocks
+spec:
+  jobLabel: app.kubernetes.io/managed-by
+  endpoints:
+    - port: valkey-sentinel
+      path: /metrics
+      scheme: http
+      interval: 20s
+  namespaceSelector:
+    matchNames:
+      - valkey
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: valkey
+      apps.kubeblocks.io/component-name: valkey-sentinel
