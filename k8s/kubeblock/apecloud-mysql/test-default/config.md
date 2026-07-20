@@ -31,7 +31,7 @@ ApeCloud MySQL 配置由 KubeBlocks 通过 ConfigMap 管理，模板位于 `oper
 | `authentication_policy` | `mysql_native_password,` | 认证插件 |
 | `slave_exec_mode` | IDEMPOTENT | 复制冲突处理 |
 
-## 查看当前配置
+## 查看配置
 
 ```bash
 # 查看 Pod 中的配置文件
@@ -43,24 +43,24 @@ kubectl -n mysql exec apecloud-mysql-mysql-0 -- mysql -uroot -proot@czw123 -e "S
 
 ## 修改配置
 
-通过 KubeBlocks 配置功能修改，不要直接编辑 ConfigMap：
+直接编辑 ConfigMap，编辑后重启 Pod 使配置生效：
 
 ```bash
-# 查看可配置参数
+# 编辑配置模板
+kubectl edit configmap mysql8.0-config-template -n operators
+
+# 重启 Pod 加载新配置
+kubectl -n mysql rollout restart statefulset apecloud-mysql-mysql
+```
+
+部分参数（如 `max_connections`、`slow_query_log`）可通过 `SET GLOBAL` 动态生效，无需重启。
+
+## 可调参数参考
+
+通过 `apecloud-mysql8.0-pd` 查看完整的参数定义和校验规则：
+
+```bash
 kubectl get parametersdefinition apecloud-mysql8.0-pd -o yaml
 ```
 
-## 可动态配置的参数
-
-通过 `apecloud-mysql8.0-pd` 的 `dynamicParameters` 字段定义，修改后自动 reload 生效。
-常见可动态配置参数：
-
-- `max_connections`、`sql_mode`、`slow_query_log`、`long_query_time`
-- `innodb_*` 相关参数
-- `binlog_expire_logs_seconds`
-
-## 相关文档
-
-- [MySQL 8.0 配置文档](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html)
-- [ApeCloud MySQL 说明](https://github.com/apecloud/apecloud-mysql)
-- [KubeBlocks 配置管理](https://kubeblocks.io/docs/user-docs/configuration/)
+完整参数列表见 [MySQL 8.0 官方文档](https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html)。
