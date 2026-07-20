@@ -146,6 +146,9 @@ echo "     kubectl apply -f test-pvc.yaml"
 echo "     kubectl get pvc test-nfs-pvc"
 
 # 设置 defalut 
-echo "移除 "
-kubectl patch storageclass local-path \
-  -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+# echo "移除 local-path 的 default 标记"
+# kubectl patch storageclass local-path \
+#   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"false"}}}'
+# echo "设置 nfs-client 的 default 标记"
+# kubectl patch storageclass nfs-client \
+#   -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
